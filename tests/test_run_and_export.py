@@ -38,14 +38,14 @@ def test_preregistration_loads_and_declares_a_ceiling() -> None:
     prereg = load_preregistration(PREREG)
     assert prereg.id == "run-01"
     assert prereg.quarantine_ceiling == 0.20
-    assert prereg.depths == (2, 3, 5)
+    assert prereg.depths == (1, 2, 3, 5)  # depth 1 is KT-0's positive control
     assert prereg.reuse_ceiling == 100
 
     # The cap does not bind at depth 3: the link graph holds only 134 chains there, so a
     # budget computed from the cap alone would overstate the run by a third.
-    assert prereg.ceiling_completions == 3 * 500 * 4 * 3
-    assert prereg.planned_composites == {2: 500, 3: 134, 5: 500}
-    assert prereg.planned_completions == (500 + 134 + 500) * 4 * 3 == 13608
+    assert prereg.ceiling_completions == 4 * 500 * 4 * 3
+    assert prereg.planned_composites == {1: 55, 2: 500, 3: 134, 5: 500}
+    assert prereg.planned_completions == (55 + 500 + 134 + 500) * 4 * 3 == 14268
     declared = int(str(prereg.raw["budget"]["estimated_completions"]))  # type: ignore[index]
     assert declared == prereg.planned_completions
 
@@ -101,6 +101,43 @@ def test_execute_refuses_without_authorisation(records: list[dict[str, object]])
     # ...and still refuses when authorised, because the file says it is not.
     with pytest.raises(NotAuthorised, match="status"):
         execute(prereg, records, never_called, authorised=True)
+
+
+def test_a_dead_run_is_distinguishable_from_a_null_one() -> None:
+    """KT-0 exists because the other arms provably cannot tell those apart.
+
+    product(p_i) <= max(p_i) for any p_i in [0,1], so a measured 0.0 is never strictly
+    closer to the max than to the product: KT-1 cannot fire on a dead harness. KT-2
+    quarantines only what beats its bound, and 0.0 beats nothing.
+    """
+    import tomllib
+
+    from nonius.archive import Archive, Verdict
+    from nonius.bound import assess, max_prediction, product_prediction, summarize
+
+    arch = Archive(
+        tuple(Verdict("S", item, d, 1 if d < 3 else 0) for item in ("x", "y") for d in range(4))
+    )
+    chain = make_chain(("x", "y"), [])
+    product = product_prediction(arch, "S", chain.components)
+    assert product is not None
+    maximum = max_prediction(arch, "S", chain.components)
+    assert maximum is not None
+    assert abs(0.0 - product) <= abs(0.0 - maximum), "product must never exceed the max"
+
+    bounds = assess("c", chain, arch, measured={"S": 0.0}, band=0.05)
+    assert not any(b.quarantined for b in bounds)
+    assert summarize(bounds, depth=2, ceiling=0.20).rate == 0.0
+
+    # ...which is why the pre-registration carries an arm that CAN fire on a dead run.
+    raw = tomllib.loads(PREREG.read_bytes().decode("utf-8"))
+    kt0 = [t for t in raw["threshold"] if t["id"] == "KT-0-execution-validity"]
+    assert kt0, "no execution-validity arm is registered"
+    assert "ceiling" not in kt0[0], (
+        "KT-0 must not use a key named 'ceiling': load_preregistration takes the last "
+        "one it finds as the quarantine ceiling"
+    )
+    assert kt0[0]["floor_accuracy"] < 0.8385, "the floor must sit below the archive's own mean"
 
 
 def test_the_shipped_preregistration_is_not_authorised() -> None:

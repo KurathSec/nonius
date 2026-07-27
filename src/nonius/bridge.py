@@ -1,8 +1,8 @@
 """The bridge table (ARCHITECTURE.md section 10).
 
-PF-11's second horn: switching instruments destroys comparability with every previously
-published number, and no bridging procedure exists. This table is nonius's answer, and it
-is a modest one.
+The second of the two bad moves a saturated benchmark leaves you: switching instruments
+destroys comparability with every previously published number, and no bridging procedure
+exists. This table is nonius's answer to that, and it is a modest one.
 
 For each system it puts three numbers side by side: the score the *old* instrument gave,
 the score the composed instrument predicts under the independence bound, and -- when a

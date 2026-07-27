@@ -84,6 +84,29 @@ chaining the component oracles, the check compares that computation against itse
 emits an info diagnostic saying so. The check has force only for a realizer that reaches
 the gold independently.
 
+**The audit builds one chain per node sequence.** Along a path it takes the first
+admissible (result, slot) assignment and drops the rest, so the constructible population is
+much smaller than the set of distinct composites over the same items. Reported in every
+audit's `caps`, and it means the depth counts are a floor twice over: over shapes, and over
+link assignments within a shape.
+
+**At depth 5 on the reference asset the product bound is refused, not computed.** 720 of
+the 732 constructible depth-5 chains live inside one family's six near-duplicate programs.
+The declared reuse ceiling refuses to price a set that correlated, and the pre-registration
+records that refusal in advance rather than discovering it afterwards.
+
+**One of the pre-registered kill tests is tripped by its own null.** On the constructible
+population the predicted ordering departs from the singleton ordering at depth 3, because
+that population is dominated by a family on which the systems rank differently. That is a
+property of which composites the link graph can build, not of composition, and it is
+registered as an expected outcome so it cannot later be read as a finding.
+
+**Until this project reviewed itself, no registered arm could tell a null result from a
+broken run.** The product of accuracies never exceeds their maximum, so an all-zero
+measurement passes the product-versus-max test by construction; the quarantine gate
+likewise catches only composites that beat their bound. A positive-control arm was added
+for that reason, and the gap is recorded in the pre-registration's own limitations.
+
 ## Two units, and why both appear
 
 The composer works on **programs**. The benchmark scores **items**, which on the reference

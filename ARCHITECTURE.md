@@ -227,8 +227,10 @@ per-platform; cross-OS byte-identity is not claimed.
 
 ## 15. The three gates
 
-1. **Composition drift** — a full value snapshot of every link verdict, composite gold,
-   rendering hash and diagnostic on the calibration corpus, stamped with the spec version.
+1. **Composition drift** — a full value snapshot of every decision the composer makes on
+   the calibration corpus: link verdicts and diagnostics, the constructed chains at each
+   depth, and each composite's gold, id, shape and rendering hash. Stamped with the spec
+   version.
    `tools/update_snapshot.py` is the only way to move it and refuses without a real spec
    MAJOR bump; a deleted case counts as a change, so "delete, regenerate, re-add" is
    closed off.

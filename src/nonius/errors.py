@@ -25,7 +25,7 @@ class OracleError(NoniusError):
 
 
 class LinkError(NoniusError):
-    """A proposed link is not admissible (LINK-ALL-0001 .. LINK-ALL-0005)."""
+    """A proposed link is not admissible (LINK-ALL-0004, LINK-ALL-0005)."""
 
 
 class CompositionError(NoniusError):

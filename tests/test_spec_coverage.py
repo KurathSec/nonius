@@ -134,8 +134,8 @@ HISTORICAL_CITATIONS: frozenset[str] = frozenset(
 )
 
 #: Shipped prose whose ruling citations are read as the current rule. Selected by suffix
-#: and by name, because two of the files that matter carry no matching extension: NOTICE
-#: states the claim boundary and CITATION.cff is what a reader cites.
+#: and by name, because NOTICE -- which states the claim boundary -- carries no extension
+#: at all, and neither does LICENSE.
 PROSE_SUFFIXES: frozenset[str] = frozenset({".md", ".toml", ".cff", ".yml", ".yaml"})
 PROSE_NAMES: frozenset[str] = frozenset({"NOTICE", "LICENSE"})
 

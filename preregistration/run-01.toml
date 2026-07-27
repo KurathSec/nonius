@@ -22,7 +22,9 @@ subject_commit = "826f4cbf8f4d4c7e2d8473374694360c43fbb820"
 # with a floored fraction of 1.0000, so they would buy a row of zeros. Recording the
 # exclusion here rather than discovering it later is the difference between a design and
 # an excuse.
-depths = [2, 3, 5]
+# Depth 1 is the positive control, not a composed arm: it buys the run's own components as
+# singletons so a dead harness is distinguishable from a null result. See KT-0.
+depths = [1, 2, 3, 5]
 composites_per_depth = 500
 profile = "max"
 # ONE rendering cell is purchased. The realizer emits all five languages; buying every one
@@ -44,7 +46,10 @@ excluded_reason = "audit predicts 0.0000 for all four systems and floored = 1.00
 # depth 2 and 732 at depth 5. Recording the shortfall here rather than discovering it when
 # the run comes up short is the difference between a design and a surprise.
 constructible_available = { depth_2 = 729, depth_3 = 134, depth_5 = 732 }
-planned_composites = { depth_2 = 500, depth_3 = 134, depth_5 = 500 }
+planned_composites = { depth_1 = 55, depth_2 = 500, depth_3 = 134, depth_5 = 500 }
+# The 55 are every distinct component the composed arms use: agg_stats 16, allowlist 19,
+# threshold_select 14, fsm_transition 6.
+control_components = 55
 
 [systems]
 # The same four-model ladder the singleton archive was computed on. Using different
@@ -60,15 +65,47 @@ temperature = 0.0
 note = "k = 3 rather than the archive's 8, because the band comes from the archive's replicates, not from this run's"
 
 [budget]
-estimated_completions = 13608   # (500 + 134 + 500) composites x 4 models x k=3.
+estimated_completions = 14268   # (55 + 500 + 134 + 500) items x 4 models x k=3.
                                 # Not 3 x 500 x 4 x 3 = 18000: depth 3 has only 134
                                 # constructible chains, so the 500 cap cannot bind there.
+                                # The 55 are KT-0's positive control, 660 completions.
 cost_class = "under_25_usd"
 credential = "external; liveness not guaranteed. If it is dead, nothing here runs and the free arms stand."
 
 # --------------------------------------------------------------------------------------
 # Thresholds. Each states what it would take to be WRONG, and each is fixed now.
 # --------------------------------------------------------------------------------------
+
+[[threshold]]
+id = "KT-0-execution-validity"
+statement = """
+A run that returned nothing usable must not be readable as a result. This arm exists
+because none of the other three can tell those apart, and that is provable rather than
+suspected: the product of accuracies in [0,1] is never greater than their maximum, so a
+measured accuracy of 0.0 is always at least as close to the product as to the max. KT-1
+therefore CANNOT fire on a dead harness. KT-2 quarantines only composites that beat their
+bound, and 0.0 beats nothing, so it cannot fire either. KT-2b compares orderings, and
+all-zero measurements are ties. Every threshold except KT-4 would pass, and KT-4 is already
+registered as firing on the free predicted numbers regardless of what is measured.
+
+So the run buys the 55 components its composites are built from, as depth-1 singletons,
+through the same realizer, the same language and the same k. These are items the committed
+archive already scores, so their accuracy is known in advance and any large shortfall is
+the harness, not the systems.
+
+Firing this makes the run VOID, not null: it is re-run, and no other threshold is read.
+"""
+# `floor`, deliberately not `ceiling`: load_preregistration() takes the LAST [[threshold]]
+# carrying a key named `ceiling` as the quarantine ceiling, so a second one here would
+# silently replace KT-2's 0.20.
+floor_accuracy = 0.60
+floor_parse_rate = 0.90
+fires_if = "mean depth-1 accuracy for deepseek-ai/DeepSeek-V4-Flash over the 55 control components is below 0.60, or fewer than 90% of all completions parse"
+note = """
+0.60 is set well below the archive's own DeepSeek mean of 0.8385 so that ordinary
+k=3-versus-k=8 variation and the control set's skew toward the harder families cannot trip
+it; what it catches is a harness returning nothing usable, which is what it is for.
+"""
 
 [[threshold]]
 id = "KT-1-product-vs-max"
@@ -136,7 +173,19 @@ singleton_order = [
 ]
 fires_if = "the MEASURED ordering departs from the PREDICTED ordering at the same depth, for any adjacent pair, by more than the noise band"
 predicted_order_matches_singleton = { depth_2 = true, depth_3 = false }
-note = "depth 5 is excluded here too: with no product bound there is no predicted ordering to compare against"
+note = """
+The yardstick is the replicate noise band (0.0136 on this archive), and it is narrower than
+the instrument's own resolution floor: m* at depth 3 is 0.1192, and every adjacent predicted
+gap at that depth is below it. So a departure large enough to clear the band can still be
+smaller than the smallest difference the composed instrument resolves, and reading it as a
+result would be reading noise. KT-2b(b) therefore fires only on a departure exceeding BOTH
+the replicate band and m* at that depth, and any departure between the two is reported as
+unresolvable rather than as evidence either way.
+
+depth 5 is excluded here too: with no product bound there is no predicted ordering to
+compare against.
+"""
+yardstick = "max(replicate noise band, m* at that depth)"
 
 [[threshold]]
 id = "KT-4-floor-not-ceiling"
@@ -147,6 +196,16 @@ absolute.
 """
 singleton_discriminating_item_level = 0.3273
 singleton_discriminating_program_level = 0.7200
+baseline_k = 8
+run_k = 3
+baseline_caveat = """
+Both baselines are computed at the archive's k = 8; the run buys k = 3. The discriminating
+fraction counts items on which any two systems differ, and fewer draws means coarser rates
+and so a different count -- the comparison is therefore not like-for-like, and the direction
+of the bias is not obvious enough to correct for. Registered as a known confound rather than
+adjusted after the fact: if KT-4's margin turns on less than the difference k could
+plausibly make, the honest report is that the run did not settle it.
+"""
 fires_if = "best-depth discriminating fraction - singleton discriminating fraction < 0.05, on the matching unit"
 note = """
 This one is already in trouble on the free prediction, and saying so now is the point of
@@ -184,6 +243,11 @@ instrument working.
 """
 
 [declared_limitations]
+execution_validity = """
+Until KT-0 was added, no registered arm could distinguish a null result from a broken run:
+KT-1 and KT-2 pass on all-zero measurements by construction, and KT-4 fires regardless.
+That gap was found by this project's own adversarial review, not by the design.
+"""
 model_level_unit = """
 Four systems and three adjacent pairs. Leave-one-out across systems is unavailable. No
 claim about ordering stability generalises to a leaderboard, and this is declared rather

@@ -32,6 +32,11 @@ CORE = sorted(p for p in SRC.rglob("*.py") if p != ADAPTER)
 
 @pytest.mark.parametrize("path", CORE, ids=lambda p: str(p.relative_to(SRC)))
 def test_core_never_imports_the_benchmark(path: Path) -> None:
+    """No import statement names the subject's tree.
+
+    Statements only; :func:`test_core_takes_no_dynamic_route_to_the_benchmark` covers the
+    ways a module can depend on it without one.
+    """
     tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
@@ -45,6 +50,63 @@ def test_core_never_imports_the_benchmark(path: Path) -> None:
             f"{path.relative_to(SRC)}:{node.lineno} imports {offending}; only "
             f"adapters/spaghetti.py may, and the core must run without that project present"
         )
+
+
+#: Ways to reach a module without an import statement. The core has no business with any
+#: of them, and an import-statement-only gate is blind to every one.
+DYNAMIC_IMPORT = {"import_module", "__import__", "exec_module", "spec_from_file_location"}
+
+#: Names that mean "shell out" whoever owns them.
+SHELL_DISTINCTIVE = {"popen", "Popen", "check_output", "check_call", "execv", "execvp"}
+#: Names that mean it only when the receiver says so. ``system``, ``run`` and ``call`` are
+#: ordinary method names elsewhere -- ``platform.system()`` is not a subprocess.
+SHELL_RECEIVERS = {"subprocess", "os"}
+SHELL_SCOPED = {"system", "run", "call", "spawnl", "spawnv", "fork"}
+
+
+def _shells_out(node: ast.Call) -> bool:
+    func = node.func
+    if isinstance(func, ast.Attribute):
+        receiver = func.value
+        if isinstance(receiver, ast.Name) and receiver.id in SHELL_RECEIVERS:
+            return func.attr in SHELL_DISTINCTIVE | SHELL_SCOPED
+        return func.attr in SHELL_DISTINCTIVE
+    # A bare ``system(...)`` in this codebase came from ``os``; a bare ``run(...)`` did not.
+    return getattr(func, "id", "") in SHELL_DISTINCTIVE | {"system"}
+
+
+@pytest.mark.parametrize("path", CORE, ids=lambda p: str(p.relative_to(SRC)))
+def test_core_takes_no_dynamic_route_to_the_benchmark(path: Path) -> None:
+    """An import statement is not the only way to depend on something.
+
+    ``importlib.import_module("src.nodes.validator")``, a string appended to ``sys.path``,
+    or a subprocess would all satisfy the statement-level gate while making the core
+    depend on the subject exactly as much. The core module that legitimately loads a
+    practitioner's oracle by path is exempt by name, because that is its whole job.
+    """
+    rel = path.relative_to(SRC).as_posix()
+    source = path.read_text(encoding="utf-8")
+    tree = ast.parse(source, filename=str(path))
+
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        name = node.func.attr if isinstance(node.func, ast.Attribute) else getattr(node.func, "id", "")
+        if name in DYNAMIC_IMPORT and rel != "oracle.py":
+            raise AssertionError(
+                f"{rel}:{node.lineno} calls {name}(); the core loads nothing dynamically. "
+                f"Only oracle.py may, to load the practitioner's own callable."
+            )
+        if _shells_out(node):
+            raise AssertionError(f"{rel}:{node.lineno} shells out; the core does not")
+
+    # A literal naming the subject's tree is a dependency however it is used.
+    for n, line in enumerate(source.splitlines(), start=1):
+        for token in ('"src.', "'src.", '"bench.', "'bench.", '"src/', "'bench/"):
+            assert token not in line, (
+                f"{rel}:{n} names the subject's tree in a string literal; the core must "
+                f"run without that project present"
+            )
 
 
 def test_core_imports_without_the_benchmark_present() -> None:
@@ -120,10 +182,18 @@ def test_adapter_opens_nothing_for_writing() -> None:
             assert not ({"w", "a", "x", "+"} & set(mode)), (
                 f"adapters/spaghetti.py:{node.lineno} opens a file with mode {mode!r}"
             )
-        elif isinstance(func, ast.Attribute):
-            assert func.attr not in banned_attrs, (
-                f"adapters/spaghetti.py:{node.lineno} calls {func.attr}(); the adapter "
+        elif name in banned_attrs:
+            # Matched on the callee's NAME, whether it arrives as an attribute
+            # (``shutil.copy``, ``p.write_text``) or as a bare name imported earlier
+            # (``from os import remove``). An attribute-only check missed the second.
+            raise AssertionError(
+                f"adapters/spaghetti.py:{node.lineno} calls {name}(); the adapter "
                 f"is read-only"
+            )
+        elif _shells_out(node):
+            raise AssertionError(
+                f"adapters/spaghetti.py:{node.lineno} shells out; a subprocess can write "
+                f"anything and this gate cannot see inside one"
             )
 
 

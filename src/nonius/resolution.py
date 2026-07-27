@@ -8,6 +8,15 @@ failing), the fraction that discriminate at all, the gap between the top two sys
 
 Two sources, never mixed and always labelled:
 
+**A caveat on comparing rows.** ``dead``, ``floored`` and ``discriminating`` are counted by
+the same tie test in every row, but they are not the same quantity across rows whose
+effective replicate depth differs. A rate estimated from k draws is a coarse grid; two
+systems tie more often on a coarse grid than on a fine one, so the discriminating fraction
+moves with k as well as with the instrument. The singleton row is a k-bounded estimate and
+a predicted composite row is the k -> infinity limit of the same quantity, so a difference
+between them is partly an artifact of how each was computed. Read the between-system gap,
+which does not have this problem, alongside them.
+
 ``predicted``  computed from the archive's singleton rates under the independence bound.
               Free, and available before anything is emitted or bought. It is a null, not
               a result: it cannot detect a shortcut, because a shortcut is by definition a

@@ -9,7 +9,7 @@ PROVENANCE OF MEASUREMENT PRIMITIVES
 src/nonius/stats.py is adapted from codecaliper's validation/bw_faithfulness/stats.py,
 which was itself ported from Spaghetti Architect's bench/grade.py (MIT, same author). Five
 functions: mean, stdev, ci95_bootstrap, _ranks, spearman. The definitions and the numbers
-are the same. Two bodies differ in form: mean and stdev accumulate explicitly rather than
+are the same. Three bodies differ in form: mean and stdev accumulate explicitly rather than
 via sum(), and math.sqrt replaces `** 0.5` in stdev and spearman. The `** 0.5` change is
 required -- mypy --strict infers `Any` from it, and this package carries no ignore
 comments. The others are presentational.
