@@ -1,0 +1,127 @@
+# Pre-registration for the first paid run against composed items.
+#
+# Written BEFORE any completion is bought. That ordering is the whole point: the
+# quarantine rule can only ever confirm itself unless its ceiling is fixed in advance
+# (BOUND-ALL-0004), and a threshold chosen after seeing the data is not a threshold.
+#
+# STATUS: NOT EXECUTED. Nothing here has been run. `nonius run` refuses to spend without
+# both this file and an explicit authorisation flag.
+
+[run]
+id = "run-01"
+status = "designed_not_executed"
+spec = "0.1.0"
+subject = "Spaghetti Architect comprehend items, public dev split"
+subject_commit = "826f4cbf8f4d4c7e2d8473374694360c43fbb820"
+
+[population]
+# Fixed from the reference audit in validation/spaghetti_audit/derived/audit.json.
+# Depths 8 and 13 are excluded deliberately: the audit predicts every system at 0.0000
+# with a floored fraction of 1.0000, so they would buy a row of zeros. Recording the
+# exclusion here rather than discovering it later is the difference between a design and
+# an excuse.
+depths = [2, 3, 5]
+composites_per_depth = 500
+profile = "max"
+languages = ["python", "javascript", "go", "java", "cpp"]
+selection = "all constructible chains at each depth, capped at composites_per_depth, seed 20260619"
+excluded_depths = [8, 13]
+excluded_reason = "audit predicts 0.0000 for all four systems and floored = 1.0000"
+
+[systems]
+# The same four-model ladder the singleton archive was computed on. Using different
+# systems would break the bridge table, which is the one thing the run is for.
+models = [
+  "meta-llama/Meta-Llama-3.1-8B-Instruct",
+  "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+  "deepseek-ai/DeepSeek-V4-Flash",
+]
+k = 3
+temperature = 0.0
+note = "k = 3 rather than the archive's 8, because the band comes from the archive's replicates, not from this run's"
+
+[budget]
+estimated_completions = 18000   # 3 depths x 500 composites x 4 models x k=3
+cost_class = "under_25_usd"
+credential = "external; liveness not guaranteed. If it is dead, nothing here runs and the free arms stand."
+
+# --------------------------------------------------------------------------------------
+# Thresholds. Each states what it would take to be WRONG, and each is fixed now.
+# --------------------------------------------------------------------------------------
+
+[[threshold]]
+id = "KT-1-product-vs-max"
+ruling = "BOUND-ALL-0001"
+statement = """
+Composite accuracy should track the product of the component accuracies, not their
+maximum. If measured accuracy for any system sits closer to the maximum than to the
+product at depth 3 or beyond, composition did not preserve the construct and the restored
+headroom is headroom on a different measurand.
+"""
+fires_if = "measured is closer to max_prediction than to product_prediction, for the top system, at depth >= 3"
+predicted_product = { depth_2 = 0.3270, depth_3 = 0.0804, depth_5 = 0.0000 }
+note = "predicted values are for deepseek-ai/DeepSeek-V4-Flash, from the reference audit"
+
+[[threshold]]
+id = "KT-2-quarantine-ceiling"
+ruling = "BOUND-ALL-0004"
+statement = """
+A composite whose measured accuracy exceeds its product prediction by more than the
+archive's replicate noise band is quarantined as shortcut-contaminated. If more than 20%
+of composites are quarantined at any depth, the composer is manufacturing shortcut-solvable
+items faster than it manufactures difficulty, and the operator fails.
+"""
+ceiling = 0.20
+fires_if = "quarantine rate > 0.20 at any depth"
+
+[[threshold]]
+id = "KT-2b-ordering-inversion"
+statement = """
+Any pairwise system ordering inversion against the singleton ordering, beyond the
+replicate band, means comparability was destroyed rather than preserved -- which is the
+opposite of what this instrument is for.
+"""
+singleton_order = [
+  "meta-llama/Meta-Llama-3.1-8B-Instruct",
+  "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+  "deepseek-ai/DeepSeek-V4-Flash",
+]
+fires_if = "any adjacent pair inverts by more than the noise band"
+
+[[threshold]]
+id = "KT-4-floor-not-ceiling"
+statement = """
+Composition must buy resolution, not merely trade a ceiling for a floor. The
+discriminating fraction at the best depth must exceed the singleton's by at least 0.05
+absolute.
+"""
+singleton_discriminating_item_level = 0.3273
+singleton_discriminating_program_level = 0.7200
+fires_if = "best-depth discriminating fraction - singleton discriminating fraction < 0.05, on the matching unit"
+note = """
+This one is already in trouble on the free prediction, and saying so now is the point of
+pre-registering it. At the program level the singleton discriminates on 0.7200 and the
+best predicted composite depth is 3 at 0.7164 -- BELOW the baseline, so on the predicted
+numbers this threshold fires. The measured run is what decides, but the design is
+committed to reporting that outcome rather than reaching for a depth that flatters it.
+"""
+
+[declared_limitations]
+model_level_unit = """
+Four systems and three adjacent pairs. Leave-one-out across systems is unavailable. No
+claim about ordering stability generalises to a leaderboard, and this is declared rather
+than discovered.
+"""
+stratification_circularity = """
+Component difficulty strata come from the same four systems the run measures. Any claim
+about which stratum recovers the most resolution is circular in the stratification, though
+not in the gold, and would need a fifth system that contributed nothing to it.
+"""
+component_reuse = """
+500 composites per depth drawn from 690 depth-2 chains over 26 usable upstream programs
+forces heavy reuse, so the per-item rates behind the product bound are not exchangeable.
+Reuse multiplicity is reported per component (LINK-ALL-0006) and the bound is refused
+above the declared ceiling.
+"""

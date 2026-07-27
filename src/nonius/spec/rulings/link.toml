@@ -1,0 +1,91 @@
+[[ruling]]
+id = "LINK-ALL-0001"
+topic = "link"
+title = "Type compatibility is necessary for a link"
+statement = """
+A link from an upstream result to a downstream slot requires the result's type tag to
+equal the slot's type tag, and that tag to be composable (CORE-ALL-0004). This is a
+necessary condition and not a sufficient one.
+"""
+examples = ["link-live-threshold-001", "link-type-mismatch-001"]
+
+[[ruling]]
+id = "LINK-ALL-0002"
+topic = "link"
+title = "A link is admissible only if it is live over the upstream codomain"
+statement = """
+A link is admissible iff the downstream item's result set takes more than one distinct
+value as the substituted slot ranges over the upstream result variable's codomain. A link
+that fails this test is dead: the downstream answer does not depend on the upstream
+answer, so a system can skip the upstream component entirely and still be scored correct.
+Liveness is measured by running the oracle, never inferred from a declaration.
+"""
+rationale = """
+This is the ruling with evidence behind it, and it is why type compatibility alone is not
+enough. Measured on a committed four-model archive of 100 programs: 3190 of 9900 ordered
+item pairs (32.2%) are type-compatible, which clears the 20% threshold that a source
+record set for feasibility -- but only 690 of 9900 (7.0%) carry a link that is live under
+this ruling. A composer checking types alone would emit a corpus that is roughly
+four-fifths degenerate. Those degenerate composites do not fail silently: they exceed
+their own independence product bound and are quarantined (BOUND-ALL-0003), so a
+type-only composer manufactures quarantine faster than it manufactures difficulty.
+"""
+examples = ["link-dead-lookup-miss-001", "link-live-threshold-001"]
+
+[[ruling]]
+id = "LINK-ALL-0003"
+topic = "link"
+title = "An unbounded codomain is probed with a declared, versioned set"
+statement = """
+When an upstream result declares no codomain, liveness is tested against the declared
+probe set rather than against an arbitrary sample, so that a liveness verdict is
+reproducible and reviewable. The probe set is part of the spec and changing it is a
+spec-major change, because it can move a link from dead to live and therefore change
+which composites exist.
+
+The v1 probe set for int is: 0, 1, 2, 5, 10, 50, 100, 1000, 10000, 60000, -1.
+"""
+rationale = """
+Chosen to straddle the decision boundaries a comparison-based consumer is likely to
+carry -- zero, small counts, round magnitudes, and one negative -- without being tuned to
+any particular corpus. It is deliberately small: a large probe set makes almost every
+slot look live by finding some exotic value that moves it, which would defeat the purpose.
+"""
+examples = ["link-live-threshold-001", "link-unbounded-probe-001"]
+
+[[ruling]]
+id = "LINK-ALL-0004"
+topic = "link"
+title = "A slot takes at most one incoming link"
+statement = """
+Each downstream slot is fed by at most one upstream result. A component may be upstream
+of many links (fan-out) and a component may have many of its slots fed (fan-in), but a
+single slot with two sources is not a substitution and is refused.
+"""
+examples = []
+
+[[ruling]]
+id = "LINK-ALL-0005"
+topic = "link"
+title = "Chains are acyclic and stored in topological order"
+statement = """
+The link graph of a chain must be acyclic, and a chain stores its components in
+topological order so that evaluating them in stored order is always legal. Ties break on
+the order the components were supplied, never on set iteration, so the ordering is
+deterministic.
+"""
+examples = []
+
+[[ruling]]
+id = "LINK-ALL-0006"
+topic = "link"
+title = "Component reuse is counted and reported, and bounded by a declared ceiling"
+statement = """
+A component appearing in many composites makes the per-item accuracies used by the
+product bound non-exchangeable, so the bound over-counts. nonius records the reuse
+multiplicity of every component in an emitted set and refuses to report a product bound
+when the maximum multiplicity exceeds the declared ceiling. The ceiling is a parameter
+with no default: a caller must state it, because the tolerable amount depends on how the
+bound will be read.
+"""
+examples = []

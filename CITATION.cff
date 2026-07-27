@@ -1,0 +1,39 @@
+cff-version: 1.2.0
+message: "If you use nonius, please cite it as below."
+title: "nonius: a benchmark composer and composability audit"
+abstract: >-
+  nonius composes a benchmark's own already-committed items into depth-graded composites
+  whose gold is a deterministic function of the component golds, computed by the
+  benchmark's own execution oracle, with no examiner and no new items. It also declines:
+  a free pre-flight audit reports whether an item set can be composed at all and how far,
+  on the grounds that type-compatible substitutions are usually not live ones.
+type: software
+authors:
+  - family-names: Kurath
+    alias: KurathSec
+license: MIT
+repository-code: "https://github.com/KurathSec/nonius"
+keywords:
+  - benchmark saturation
+  - evaluation
+  - metamorphic testing
+  - compositional difficulty
+  - execution oracle
+# version and date-released are deliberately absent: an archival service supplies them per
+# release, and a hand-maintained copy here would only drift.
+references:
+  - type: software
+    title: "codecaliper: a traceable, reproducible instrument"
+    authors:
+      - family-names: Kurath
+    notes: >-
+      The versioned-rulings, drift-gate and isolation-seam discipline this project is built
+      on, and the origin of src/nonius/stats.py. See NOTICE.
+  - type: software
+    title: "Spaghetti Architect"
+    authors:
+      - family-names: Kurath
+    notes: >-
+      Subject of the reference audit in validation/spaghetti_audit/, read strictly
+      read-only and used as an instrument. Its generator, IR, execution oracle, grader and
+      four-model archive are cited, never claimed. See NOTICE.

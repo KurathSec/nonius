@@ -1,0 +1,223 @@
+"""The resolution readout (ARCHITECTURE.md section 9).
+
+What a practitioner actually wants to know: *how much between-system resolution did
+composition buy, and at what depth*. Per depth this reports each system's accuracy, the
+fraction of composites that are dead (every system perfect) and floored (every system
+failing), the fraction that discriminate at all, the gap between the top two systems, and
+``m*``, the smallest gap the composed instrument can resolve.
+
+Two sources, never mixed and always labelled:
+
+``predicted``  computed from the archive's singleton rates under the independence bound.
+              Free, and available before anything is emitted or bought. It is a null, not
+              a result: it cannot detect a shortcut, because a shortcut is by definition a
+              departure from the model it uses.
+``measured``   computed from real per-composite verdicts. Only this can answer whether
+              composition preserved the construct.
+
+Sampling is over the **constructible** population -- composites the link graph can
+actually build (AUDIT-ALL-0002). Sampling components uniformly from the item set describes
+a population the composer cannot emit, and on a real corpus the two differ enough to
+change which depth looks best.
+"""
+
+from __future__ import annotations
+
+import random
+from collections.abc import Mapping, Sequence
+from dataclasses import dataclass, field
+from typing import Literal
+
+from nonius.archive import Archive
+from nonius.bound import product_prediction
+from nonius.model import Chain
+from nonius.spec.registry import require
+from nonius.stats import ci95_bootstrap, mean
+
+_R_POPULATION = require("AUDIT-ALL-0002")
+_R_CAPS = require("AUDIT-ALL-0004")
+
+Source = Literal["predicted", "measured"]
+
+
+@dataclass(frozen=True, slots=True)
+class DepthReadout:
+    """One depth's row of the resolution table."""
+
+    depth: int
+    n: int
+    source: Source
+    accuracy: Mapping[str, float]
+    dead: float
+    floored: float
+    discriminating: float
+    top_two_gap: float
+    m_star: float
+    #: Bounds applied while producing this row, reported never hidden (AUDIT-ALL-0004).
+    caps: Mapping[str, object] = field(default_factory=dict)
+
+    def leaders(self) -> tuple[str, str] | None:
+        if len(self.accuracy) < 2:
+            return None
+        ranked = sorted(self.accuracy.items(), key=lambda kv: (-kv[1], kv[0]))
+        return (ranked[0][0], ranked[1][0])
+
+
+def _row(
+    depth: int,
+    source: Source,
+    per_composite: Sequence[Mapping[str, float]],
+    *,
+    seed: int,
+    caps: Mapping[str, object],
+) -> DepthReadout:
+    systems = sorted({s for row in per_composite for s in row})
+    n = len(per_composite)
+    if n == 0 or not systems:
+        return DepthReadout(depth, 0, source, {}, 0.0, 0.0, 0.0, 0.0, 0.0, caps)
+
+    accuracy = {s: mean([row.get(s, 0.0) for row in per_composite]) for s in systems}
+
+    dead = sum(1 for row in per_composite if all(row.get(s, 0.0) == 1.0 for s in systems))
+    floored = sum(1 for row in per_composite if all(row.get(s, 0.0) == 0.0 for s in systems))
+    disc = sum(1 for row in per_composite if len({round(row.get(s, 0.0), 12) for s in systems}) > 1)
+
+    ranked = sorted(accuracy.values(), reverse=True)
+    gap = ranked[0] - ranked[1] if len(ranked) > 1 else 0.0
+
+    # m*: the smallest between-system difference this instrument can resolve, taken as the
+    # widest 95% bootstrap interval on any system's mean. A gap narrower than that is
+    # inside the instrument's own noise and must not be reported as a difference.
+    widths = [
+        hi - lo
+        for s in systems
+        for lo, hi in [ci95_bootstrap([row.get(s, 0.0) for row in per_composite], seed=seed)]
+    ]
+    m_star = max(widths) if widths else 0.0
+
+    return DepthReadout(
+        depth=depth,
+        n=n,
+        source=source,
+        accuracy=accuracy,
+        dead=dead / n,
+        floored=floored / n,
+        discriminating=disc / n,
+        top_two_gap=gap,
+        m_star=m_star,
+        caps=caps,
+    )
+
+
+def predict(
+    chains: Sequence[Chain],
+    archive: Archive,
+    *,
+    depth: int,
+    seed: int = 0,
+    sample: int | None = None,
+) -> DepthReadout:
+    """Predicted readout at one depth, under the independence bound (BOUND-ALL-0001).
+
+    ``chains`` must already be the constructible population at this depth
+    (AUDIT-ALL-0002). ``sample`` bounds how many are used and is reported.
+    """
+    pool = list(chains)
+    truncated = False
+    if sample is not None and len(pool) > sample:
+        rng = random.Random(seed)
+        pool = rng.sample(pool, sample)
+        truncated = True
+
+    rows: list[Mapping[str, float]] = []
+    skipped = 0
+    for chain in pool:
+        row: dict[str, float] = {}
+        for system in archive.systems:
+            p = product_prediction(archive, system, chain.components)
+            if p is None:
+                break
+            row[system] = p
+        if len(row) == len(archive.systems):
+            rows.append(row)
+        else:
+            skipped += 1
+
+    return _row(
+        depth,
+        "predicted",
+        rows,
+        seed=seed,
+        caps={
+            "population": "constructible",
+            "chains_available": len(chains),
+            "chains_used": len(rows),
+            "sampled": truncated,
+            "sample_size": sample,
+            "skipped_incomplete_archive": skipped,
+        },
+    )
+
+
+def measure(
+    observed: Mapping[str, Mapping[str, float]],
+    *,
+    depth: int,
+    seed: int = 0,
+    quarantined: Sequence[str] = (),
+) -> DepthReadout:
+    """Measured readout at one depth from real per-composite accuracies.
+
+    ``observed`` is ``{composite_id: {system: accuracy}}``. Quarantined composites are
+    excluded, not counted as successes (BOUND-ALL-0003), and the exclusion is reported.
+    """
+    drop = set(quarantined)
+    rows = [row for cid, row in sorted(observed.items()) if cid not in drop]
+    return _row(
+        depth,
+        "measured",
+        rows,
+        seed=seed,
+        caps={
+            "population": "measured",
+            "composites_supplied": len(observed),
+            "composites_quarantined": len(drop & set(observed)),
+            "composites_scored": len(rows),
+        },
+    )
+
+
+def singleton_row(archive: Archive, *, seed: int = 0) -> DepthReadout:
+    """The depth-1 row: the source instrument, unchanged.
+
+    This is the baseline every other row is read against, and it is computed from the
+    archive alone -- no composition, no assumption, no sampling.
+    """
+    rows = [archive.per_item(item) for item in archive.items]
+    rows = [r for r in rows if len(r) == len(archive.systems)]
+    return _row(
+        1,
+        "predicted",
+        rows,
+        seed=seed,
+        caps={"population": "singleton", "items": len(rows)},
+    )
+
+
+def table(rows: Sequence[DepthReadout]) -> str:
+    """Render the readout as a fixed-width table."""
+    systems = sorted({s for r in rows for s in r.accuracy})
+    head = (
+        f"{'depth':>5} {'n':>7} {'source':<10}"
+        + "".join(f"{s[:16]:>17}" for s in systems)
+        + f"{'dead':>8}{'floored':>9}{'discrim':>9}{'gap':>8}{'m*':>8}"
+    )
+    lines = [head, "-" * len(head)]
+    for r in sorted(rows, key=lambda x: x.depth):
+        lines.append(
+            f"{r.depth:>5} {r.n:>7} {r.source:<10}"
+            + "".join(f"{r.accuracy.get(s, float('nan')):>17.4f}" for s in systems)
+            + f"{r.dead:>8.4f}{r.floored:>9.4f}{r.discriminating:>9.4f}"
+            f"{r.top_two_gap:>8.4f}{r.m_star:>8.4f}"
+        )
+    return "\n".join(lines)

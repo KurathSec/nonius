@@ -1,0 +1,27 @@
+[case]
+id = "chain-depth3-path-001"
+rulings = ["DEPTH-ALL-0001", "EMIT-ALL-0002", "EMIT-ALL-0003"]
+kind = "chain"
+computed_by = "hand"
+notes = """
+The path sum-a -> thr-live -> lk-live, with two links:
+  sum-a.total    -> thr-live.subject
+  thr-live.verdict -> lk-live.key
+
+Gold, by hand:
+  c0_total   = 1 + 2 + 3 = 6
+  c1_verdict = "low"      because 6 >= 10 is false
+  c2_route   = "ignore"   because the table maps low -> ignore
+
+Depth is 3 because there are three components (DEPTH-ALL-0001); there are 2 links, which
+is depth - 1. Path depth is also 3 here, since the shape is a path.
+"""
+
+[expect]
+components = ["sum-a", "thr-live", "lk-live"]
+links = [[0, "total", 1, "subject"], [1, "verdict", 2, "key"]]
+depth = 3
+path_depth = 3
+n_links = 2
+gold = { c0_total = 6, c1_verdict = "low", c2_route = "ignore" }
+suppressed = ["c1_subject", "c2_key"]

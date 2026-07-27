@@ -1,0 +1,22 @@
+[case]
+id = "link-type-mismatch-001"
+rulings = ["LINK-ALL-0001"]
+kind = "no-candidate"
+computed_by = "hand"
+notes = """
+mem-a.present is bool. thr-live.subject is int. Type compatibility requires the tags to be
+equal, and bool != int, so no candidate is generated.
+
+This is the check that makes CORE-ALL-0001 load-bearing rather than decorative: in Python
+bool is a subclass of int, so a tag function that tested int first would report `present`
+as an int, generate this candidate, and then find it live -- because feeding True or False
+into a >= comparison really does move the answer. The item would be nonsense and the
+composer would never notice.
+"""
+
+[expect]
+upstream = "mem-a"
+result = "present"
+downstream = "thr-live"
+slot = "subject"
+candidates = 0

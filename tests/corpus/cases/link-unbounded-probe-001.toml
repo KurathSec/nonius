@@ -1,0 +1,24 @@
+[case]
+id = "link-unbounded-probe-001"
+rulings = ["LINK-ALL-0003"]
+kind = "link"
+computed_by = "hand"
+notes = """
+lk-nocodomain.route is a str result whose manifest record omits `codomain`, so it is
+unbounded. str has no probe set: an arbitrary string tells you only that a lookup misses,
+which every arbitrary string does, so no number of samples could establish liveness.
+
+The link is therefore refused with zero probes rather than guessed at, and the analysis
+emits a `codomain-unbounded` warning naming the item. Compare link-live-threshold-001,
+where the unbounded result is an int and the versioned probe set does apply.
+"""
+
+[expect]
+upstream = "lk-nocodomain"
+result = "route"
+downstream = "lk-live"
+slot = "key"
+live = false
+distinct_outcomes = 0
+probed = 0
+diagnostic = "codomain-unbounded"

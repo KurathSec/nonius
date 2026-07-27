@@ -1,0 +1,639 @@
+{
+  "archive": {
+    "items": 100,
+    "k": 120,
+    "mean_accuracy": {
+      "deepseek-ai-DeepSeek-V4-Flash": 0.8385,
+      "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.7685,
+      "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.552416666667,
+      "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.73825
+    },
+    "strata": {
+      "dead": 18,
+      "discriminating": 72,
+      "floored": 10,
+      "uniform-partial": 0
+    },
+    "systems": [
+      "deepseek-ai-DeepSeek-V4-Flash",
+      "meta-llama-Llama-3.3-70B-Instruct-Turbo",
+      "meta-llama-Meta-Llama-3.1-8B-Instruct",
+      "mistralai-Mistral-Small-3.2-24B-Instruct-2506"
+    ],
+    "unit": "item = program (fifteen rendering cells pooled as replicates)"
+  },
+  "audit": {
+    "candidate_links": 16470,
+    "caps": {
+      "diagnostic_cap": 25,
+      "diagnostic_counts": {
+        "link-dead": 10590
+      },
+      "diagnostics_withheld": 10565,
+      "max_depth_search": 32,
+      "max_depth_search_hit_cap": false,
+      "path_cap": 10000,
+      "probe_cap": 64,
+      "probe_int": [
+        0,
+        1,
+        2,
+        5,
+        10,
+        50,
+        100,
+        1000,
+        10000,
+        60000,
+        -1
+      ],
+      "sample": 20000,
+      "seed": 20260619,
+      "str_unbounded_refused": []
+    },
+    "chains_at_depth": {
+      "1": 100,
+      "13": 0,
+      "2": 690,
+      "3": 120,
+      "5": 720,
+      "8": 0
+    },
+    "diagnostics": [
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W12.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W12->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W12.peak -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W12->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W12.trough -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W12->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W128.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W128->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W128.peak -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W128->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W128.trough -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W128->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W16.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W16->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W16.peak -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W16->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W16.trough -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W16->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W160.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W160->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W160.peak -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W160->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W160.trough -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W160->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W16_v0.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W16_v0->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W16_v0.peak -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W16_v0->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W16_v0.trough -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W16_v0->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W16_v1.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W16_v1->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W16_v1.peak -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W16_v1->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W16_v1.trough -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W16_v1->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W16_v2.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W16_v2->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W16_v2.peak -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W16_v2->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W16_v2.trough -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W16_v2->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W16_v3.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W16_v3->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W16_v3.peak -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W16_v3->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W16_v3.trough -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W16_v3->allowlist_L128"
+      },
+      {
+        "code": "link-dead",
+        "message": "agg_stats_W16_v4.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
+        "ruling": "LINK-ALL-0002",
+        "severity": "info",
+        "subject": "agg_stats_W16_v4->allowlist_L128"
+      }
+    ],
+    "fanins_at_depth": {
+      "1": 0,
+      "13": 1,
+      "2": 39,
+      "3": 14,
+      "5": 12,
+      "8": 4
+    },
+    "items": 100,
+    "live_links": 5880,
+    "live_pairs": 690,
+    "max_depth": 13,
+    "ordered_pairs": 9900,
+    "reach": [
+      {
+        "can_continue": 0,
+        "can_start": 20,
+        "family": "agg_stats",
+        "isolated": 0,
+        "items": 20
+      },
+      {
+        "can_continue": 19,
+        "can_start": 0,
+        "family": "allowlist",
+        "isolated": 5,
+        "items": 24
+      },
+      {
+        "can_continue": 0,
+        "can_start": 0,
+        "family": "config_resolver",
+        "isolated": 24,
+        "items": 24
+      },
+      {
+        "can_continue": 0,
+        "can_start": 0,
+        "family": "discovery_pipeline",
+        "isolated": 6,
+        "items": 6
+      },
+      {
+        "can_continue": 6,
+        "can_start": 6,
+        "family": "fsm_transition",
+        "isolated": 0,
+        "items": 6
+      },
+      {
+        "can_continue": 0,
+        "can_start": 0,
+        "family": "status_router",
+        "isolated": 6,
+        "items": 6
+      },
+      {
+        "can_continue": 14,
+        "can_start": 0,
+        "family": "threshold_select",
+        "isolated": 0,
+        "items": 14
+      }
+    ],
+    "readouts": [
+      {
+        "accuracy": {
+          "deepseek-ai-DeepSeek-V4-Flash": 0.8385,
+          "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.7685,
+          "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.552416666667,
+          "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.73825
+        },
+        "caps": {
+          "items": 100,
+          "population": "singleton"
+        },
+        "dead": 0.18,
+        "depth": 1,
+        "discriminating": 0.72,
+        "floored": 0.1,
+        "m_star": 0.170666666667,
+        "n": 100,
+        "source": "predicted",
+        "top_two_gap": 0.07
+      },
+      {
+        "accuracy": {
+          "deepseek-ai-DeepSeek-V4-Flash": 0.326952093398,
+          "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.0964681964573,
+          "meta-llama-Meta-Llama-3.1-8B-Instruct": 6.76328502415e-05,
+          "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.0951525764895
+        },
+        "caps": {
+          "chains_available": 690,
+          "chains_used": 690,
+          "population": "constructible",
+          "sample_size": 20000,
+          "sampled": false,
+          "skipped_incomplete_archive": 0
+        },
+        "dead": 0.0,
+        "depth": 2,
+        "discriminating": 0.51884057971,
+        "floored": 0.48115942029,
+        "m_star": 0.0616443236715,
+        "n": 690,
+        "source": "predicted",
+        "top_two_gap": 0.23048389694
+      },
+      {
+        "accuracy": {
+          "deepseek-ai-DeepSeek-V4-Flash": 0.0804425787728,
+          "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.172201492537,
+          "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.0,
+          "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.142835820896
+        },
+        "caps": {
+          "chains_available": 134,
+          "chains_used": 134,
+          "population": "constructible",
+          "sample_size": 20000,
+          "sampled": false,
+          "skipped_incomplete_archive": 0
+        },
+        "dead": 0.0,
+        "depth": 3,
+        "discriminating": 0.716417910448,
+        "floored": 0.283582089552,
+        "m_star": 0.119247512438,
+        "n": 134,
+        "source": "predicted",
+        "top_two_gap": 0.0293656716418
+      },
+      {
+        "accuracy": {
+          "deepseek-ai-DeepSeek-V4-Flash": 0.0,
+          "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.00250455373406,
+          "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.0,
+          "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.0144808743169
+        },
+        "caps": {
+          "chains_available": 732,
+          "chains_used": 732,
+          "population": "constructible",
+          "sample_size": 20000,
+          "sampled": false,
+          "skipped_incomplete_archive": 0
+        },
+        "dead": 0.0,
+        "depth": 5,
+        "discriminating": 0.327868852459,
+        "floored": 0.672131147541,
+        "m_star": 0.00458561020036,
+        "n": 732,
+        "source": "predicted",
+        "top_two_gap": 0.0119763205829
+      },
+      {
+        "accuracy": {
+          "deepseek-ai-DeepSeek-V4-Flash": 0.0,
+          "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.0,
+          "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.0,
+          "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.0
+        },
+        "caps": {
+          "chains_available": 4,
+          "chains_used": 4,
+          "population": "constructible",
+          "sample_size": 20000,
+          "sampled": false,
+          "skipped_incomplete_archive": 0
+        },
+        "dead": 0.0,
+        "depth": 8,
+        "discriminating": 0.0,
+        "floored": 1.0,
+        "m_star": 0.0,
+        "n": 4,
+        "source": "predicted",
+        "top_two_gap": 0.0
+      },
+      {
+        "accuracy": {
+          "deepseek-ai-DeepSeek-V4-Flash": 0.0,
+          "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.0,
+          "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.0,
+          "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.0
+        },
+        "caps": {
+          "chains_available": 1,
+          "chains_used": 1,
+          "population": "constructible",
+          "sample_size": 20000,
+          "sampled": false,
+          "skipped_incomplete_archive": 0
+        },
+        "dead": 0.0,
+        "depth": 13,
+        "discriminating": 0.0,
+        "floored": 1.0,
+        "m_star": 0.0,
+        "n": 1,
+        "source": "predicted",
+        "top_two_gap": 0.0
+      }
+    ],
+    "reasons": [
+      "cannot compose in either direction: config_resolver, discovery_pipeline, status_router",
+      "can only terminate a chain, never start one: allowlist, threshold_select"
+    ],
+    "spec": "0.1.0",
+    "verdict": "composable_to_depth_13"
+  },
+  "item_level": {
+    "dead_all_systems_perfect": 796,
+    "dead_fraction": 0.530666666667,
+    "discriminating": 491,
+    "discriminating_fraction": 0.327333333333,
+    "floored_all_systems_fail": 213,
+    "floored_fraction": 0.142,
+    "mean_accuracy": {
+      "deepseek-ai-DeepSeek-V4-Flash": 0.8385,
+      "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.7685,
+      "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.552416666667,
+      "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.73825
+    },
+    "n": 1500,
+    "systems": [
+      "deepseek-ai-DeepSeek-V4-Flash",
+      "meta-llama-Llama-3.3-70B-Instruct-Turbo",
+      "meta-llama-Meta-Llama-3.1-8B-Instruct",
+      "mistralai-Mistral-Small-3.2-24B-Instruct-2506"
+    ],
+    "top_two_gap": 0.07,
+    "unit": "item = program x profile x language"
+  },
+  "population_contrast": [
+    {
+      "depth": 2,
+      "discriminating": 0.51884057971,
+      "floored": 0.48115942029,
+      "n": 690,
+      "population": "constructible",
+      "top_two_gap": 0.23048389694
+    },
+    {
+      "depth": 2,
+      "discriminating": 0.771,
+      "floored": 0.2012,
+      "n": 5000,
+      "population": "uniform",
+      "top_two_gap": 0.112127236111
+    },
+    {
+      "depth": 3,
+      "discriminating": 0.716417910448,
+      "floored": 0.283582089552,
+      "n": 134,
+      "population": "constructible",
+      "top_two_gap": 0.0293656716418
+    },
+    {
+      "depth": 3,
+      "discriminating": 0.7172,
+      "floored": 0.2794,
+      "n": 5000,
+      "population": "uniform",
+      "top_two_gap": 0.136164429977
+    },
+    {
+      "depth": 5,
+      "discriminating": 0.327868852459,
+      "floored": 0.672131147541,
+      "n": 732,
+      "population": "constructible",
+      "top_two_gap": 0.0119763205829
+    },
+    {
+      "depth": 5,
+      "discriminating": 0.5478,
+      "floored": 0.4522,
+      "n": 5000,
+      "population": "uniform",
+      "top_two_gap": 0.139812546011
+    }
+  ],
+  "provenance": {
+    "access": "read-only",
+    "nonius_spec": "0.1.0",
+    "seed": 20260619,
+    "subject": "Spaghetti Architect",
+    "subject_commit": "826f4cbf8f4d4c7e2d8473374694360c43fbb820",
+    "subject_role": "instrument and input; claimed as neither"
+  },
+  "toolchain_validation": {
+    "composites": [
+      {
+        "components": [
+          "agg_stats_W96",
+          "threshold_select_T4"
+        ],
+        "composite": "9bd5ea46c5620c5e",
+        "depth": 2,
+        "languages": {
+          "cpp": "PASS",
+          "go": "PASS",
+          "java": "PASS",
+          "javascript": "PASS",
+          "python": "PASS"
+        }
+      },
+      {
+        "components": [
+          "agg_stats_W96",
+          "threshold_select_T4_v0"
+        ],
+        "composite": "dfb7bb53acca38d7",
+        "depth": 2,
+        "languages": {
+          "cpp": "PASS",
+          "go": "PASS",
+          "java": "PASS",
+          "javascript": "PASS",
+          "python": "PASS"
+        }
+      },
+      {
+        "components": [
+          "fsm_transition_v3",
+          "fsm_transition",
+          "fsm_transition_v0"
+        ],
+        "composite": "f6e239ec39035808",
+        "depth": 3,
+        "languages": {
+          "cpp": "PASS",
+          "go": "PASS",
+          "java": "PASS",
+          "javascript": "PASS",
+          "python": "PASS"
+        }
+      },
+      {
+        "components": [
+          "fsm_transition_v3",
+          "fsm_transition",
+          "fsm_transition_v1"
+        ],
+        "composite": "88414dbf37b12781",
+        "depth": 3,
+        "languages": {
+          "cpp": "PASS",
+          "go": "PASS",
+          "java": "PASS",
+          "javascript": "PASS",
+          "python": "PASS"
+        }
+      },
+      {
+        "components": [
+          "fsm_transition_v4",
+          "fsm_transition_v2",
+          "fsm_transition_v0",
+          "fsm_transition_v1",
+          "fsm_transition"
+        ],
+        "composite": "413b90833f636a07",
+        "depth": 5,
+        "languages": {
+          "cpp": "PASS",
+          "go": "PASS",
+          "java": "PASS",
+          "javascript": "PASS",
+          "python": "PASS"
+        }
+      },
+      {
+        "components": [
+          "fsm_transition_v4",
+          "fsm_transition_v2",
+          "fsm_transition_v0",
+          "fsm_transition_v1",
+          "fsm_transition_v3"
+        ],
+        "composite": "8fac83de95de161a",
+        "depth": 5,
+        "languages": {
+          "cpp": "PASS",
+          "go": "PASS",
+          "java": "PASS",
+          "javascript": "PASS",
+          "python": "PASS"
+        }
+      }
+    ],
+    "note": "PASS means the rendered composite compiled, ran, and produced exactly the gold that the merged program's oracle predicted. SKIP means the toolchain is absent on this machine, which is honest locally and would be a no-op in CI.",
+    "outcomes": {
+      "PASS": 30
+    }
+  }
+}

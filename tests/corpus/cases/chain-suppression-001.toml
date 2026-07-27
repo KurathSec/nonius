@@ -1,0 +1,25 @@
+[case]
+id = "chain-suppression-001"
+rulings = ["EMIT-ALL-0001"]
+kind = "suppression"
+computed_by = "hand"
+notes = """
+On the chain sum-a -> thr-live -> lk-live, both fed slots must vanish from the
+presentation's literal bindings, and the rendered text must refer to where the value comes
+from rather than to the value itself.
+
+sum-a's answer is 6 and thr-live's is "low". Neither may appear as a binding. The text
+must contain the reference forms instead, so a system that does not compute Part 1 cannot
+answer Part 2.
+
+The unlinked-slot count is 0 here because every slot in the chain is fed, which is why
+`bindings` is empty rather than merely lacking the two suppressed names.
+"""
+
+[expect]
+components = ["sum-a", "thr-live", "lk-live"]
+links = [[0, "total", 1, "subject"], [1, "verdict", 2, "key"]]
+bindings_empty = true
+suppressed = ["c1_subject", "c2_key"]
+absent_from_text = ["computed in Part 0"]
+present_in_text = ["the value of `total` computed in Part 1", "the value of `verdict` computed in Part 2"]

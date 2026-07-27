@@ -1,0 +1,72 @@
+[[ruling]]
+id = "AUDIT-ALL-0001"
+topic = "audit"
+title = "The composability verdict taxonomy"
+statement = """
+An audit returns exactly one verdict:
+  not_composable        -- no live link exists anywhere in the item set;
+  composable_to_depth_k -- live links exist and the largest constructible component
+                           count is k, with k stated;
+  composable            -- live links exist and component count is bounded only by the
+                           requested target rather than by the link graph.
+The verdict is always accompanied by the reasons: which items cannot start a chain, which
+cannot continue one, and which type tags carry no live link.
+"""
+examples = ["audit-verdict-001"]
+
+[[ruling]]
+id = "AUDIT-ALL-0002"
+topic = "audit"
+title = "Predictions are computed on the constructible population"
+statement = """
+Any predicted accuracy, dead fraction, floored fraction, discriminating fraction or
+between-system gap the audit reports is computed by sampling composites the link graph
+can actually build, not by sampling components uniformly from the item set. A uniform
+prediction describes a population the composer cannot emit.
+"""
+rationale = """
+Measured on a committed four-model archive of 100 programs, with the same archive and the
+same unit in both arms -- only the population differs:
+
+  depth  population       n     discriminating    top-two gap   floored
+    2    constructible   690        0.5188          0.2305       0.4812
+    2    uniform        5000        0.7710          0.1121       0.2012
+    3    constructible   134        0.7164          0.0294       0.2836
+    3    uniform        5000        0.7172          0.1362       0.2794
+    5    constructible   732        0.3279          0.0120       0.6721
+    5    uniform        5000        0.5478          0.1398       0.4522
+
+The uniform figure is not a conservative approximation of the constructible one; it
+describes items the composer cannot emit. Note depth 3, where the two agree almost exactly
+on the discriminating fraction (0.7164 against 0.7172) while differing 4.6-fold on the
+between-system gap (0.0294 against 0.1362). A uniform prediction can therefore look
+correct on one axis while being badly wrong on the axis a practitioner is buying.
+
+The skew has a cause worth stating: on that asset the only item family that can start a
+chain is also the family the systems are worst at, so every constructible composite
+contains an already-hard component.
+"""
+examples = ["audit-constructible-001"]
+
+[[ruling]]
+id = "AUDIT-ALL-0003"
+topic = "audit"
+title = "An audit issues no model calls and emits no composites"
+statement = """
+The audit is a pre-flight: it reads items, runs the practitioner's oracle to test
+liveness, and reads an archive when one is supplied. It contacts nothing, spends nothing,
+and produces no composite items. Its purpose is to answer 'can this benchmark be composed
+at all, and how far' before any composites or completions are paid for.
+"""
+examples = []
+
+[[ruling]]
+id = "AUDIT-ALL-0004"
+topic = "audit"
+title = "Bounded coverage is stated, never silently applied"
+statement = """
+Where an audit bounds its own work -- a sampling cap, a path-enumeration limit, a
+truncated probe set -- the bound and what it excluded are reported in the output. A
+silently truncated search reads as 'covered everything' when it did not.
+"""
+examples = ["audit-verdict-001"]

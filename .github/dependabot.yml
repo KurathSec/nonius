@@ -1,0 +1,8 @@
+version: 2
+updates:
+  # GitHub Actions only. Python pins in constraints/ are calibrated instrument state: a
+  # bump there can move a decision, which is a reviewable act with its own gate, not
+  # something a bot should do.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule: { interval: weekly }

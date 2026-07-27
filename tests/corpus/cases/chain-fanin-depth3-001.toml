@@ -1,0 +1,31 @@
+[case]
+id = "chain-fanin-depth3-001"
+rulings = ["DEPTH-ALL-0002"]
+kind = "chain"
+computed_by = "hand"
+notes = """
+Fan-in: two upstream components feeding two distinct slots of one sink.
+  sum-a.total -> dual-a.subject_a
+  sum-b.total -> dual-a.subject_b
+
+Gold, by hand:
+  c0_total     = 1 + 2 + 3 = 6
+  c1_total     = 10 + 20   = 30
+  c2_verdict_a = "low"   because subject_a = 6  and 6 >= 10 is false
+  c2_verdict_b = "high"  because subject_b = 30 and 30 >= 10 is true
+
+Depth is 3 -- three components -- while the longest path is only 2. Both numbers are
+reported, and they are not the same quantity: the product bound is taken over components,
+so this composite is failed if any of the three is failed, exactly like a depth-3 path.
+That is what makes fan-in a way to raise component count on a corpus whose link graph is
+too shallow to give long paths.
+"""
+
+[expect]
+components = ["sum-a", "sum-b", "dual-a"]
+links = [[0, "total", 2, "subject_a"], [1, "total", 2, "subject_b"]]
+depth = 3
+path_depth = 2
+n_links = 2
+gold = { c0_total = 6, c1_total = 30, c2_verdict_a = "low", c2_verdict_b = "high" }
+suppressed = ["c2_subject_a", "c2_subject_b"]

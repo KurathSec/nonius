@@ -1,0 +1,48 @@
+[[ruling]]
+id = "CORE-ALL-0001"
+topic = "core"
+title = "Scalar type tags, with bool tested before int"
+statement = """
+A scalar's type tag is one of bool, int, float, str, null. `bool` is tested before `int`
+because bool is a subclass of int in Python; a boolean answer that reported itself as an
+integer would become type-compatible with numeric slots and produce links that type-check
+but mean nothing.
+"""
+examples = ["manifest-roundtrip-001"]
+
+[[ruling]]
+id = "CORE-ALL-0002"
+topic = "core"
+title = "Canonical serialization: sorted keys, 12 significant digits, no timestamps"
+statement = """
+Every artifact is serialized with sorted keys, floats quantized to 12 significant digits,
+and no timestamp or hash-order dependence anywhere. Byte-identity is claimed per platform
+and tested under two PYTHONHASHSEED values; cross-OS byte-identity is not claimed.
+"""
+examples = []
+
+[[ruling]]
+id = "CORE-ALL-0003"
+topic = "core"
+title = "An item declares slots, results and nothing the composer interprets"
+statement = """
+An item is an id, a set of typed named input slots, a set of typed named results, an
+optional stratum label, and an opaque adapter payload the core never inspects. Slot and
+result names must be unique within an item. An item with no results cannot be an upstream
+component; an item with no slots cannot be a downstream component; both are legal and are
+reported by the audit rather than rejected.
+"""
+examples = ["manifest-roundtrip-001"]
+
+[[ruling]]
+id = "CORE-ALL-0004"
+topic = "core"
+title = "float and null are not composable in v1"
+statement = """
+Only bool, int and str may carry a link. float is excluded because exact equality on
+floats is not a defensible link relation, and a declared tolerance would make the
+composite's gold approximate, which defeats the by-construction claim the instrument
+rests on. null is excluded because a null result carries no information to propagate.
+Both are declared limitations with a stated reason, not oversights.
+"""
+examples = ["link-float-refused-001"]

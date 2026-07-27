@@ -1,0 +1,34 @@
+[[ruling]]
+id = "DEPTH-ALL-0001"
+topic = "depth"
+title = "Depth is the number of components; links number depth minus one"
+statement = """
+A composite's depth is its component count. A depth-1 composite is a single item and is
+identical to the singleton it came from, which is what makes the bridge table exact at
+depth 1. A depth-d composite carries d-1 links along any path, but the shape is a DAG,
+not necessarily a path: a fan-in composite with one sink and d-1 upstream components has
+depth d and d-1 links.
+"""
+rationale = """
+The convention has to be pinned before anything is measured because the two readings
+differ by one item and the difference is visible in published arithmetic. A source record
+for this work predicted that a system at 0.8385 single-item accuracy 'lands near 0.35 at
+d=5'. 0.8385^5 = 0.4145 and 0.8385^6 = 0.3476, so the 0.35 figure was computed from six
+components -- i.e. that record was counting links, not components, and calling the count
+d. Under this ruling that prediction is a depth-6 prediction.
+"""
+examples = ["chain-depth3-path-001"]
+
+[[ruling]]
+id = "DEPTH-ALL-0002"
+topic = "depth"
+title = "Fan-in raises depth without lengthening the longest path"
+statement = """
+Component count, not longest path, is the quantity the independence product bound is
+taken over: a composite is failed if any component is failed, regardless of the shape
+that joins them. So a sink with k free slots fed by k distinct upstream components is a
+depth-(k+1) composite. On a corpus whose link graph is shallow this is the only way to
+reach higher depths without authoring items, and it is reported separately from path
+depth so the two are never conflated.
+"""
+examples = ["chain-fanin-depth3-001"]

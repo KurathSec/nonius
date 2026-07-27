@@ -1,0 +1,17 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+site/
+
+# Local working notes and drafts. Never tracked, and excluded from the sdist as a
+# second fence (pyproject [tool.hatch.build.targets.sdist]).
+/paper/
+/scratch/
+CLAUDE.md

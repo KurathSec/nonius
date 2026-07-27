@@ -1,0 +1,25 @@
+[case]
+id = "link-live-threshold-001"
+rulings = ["LINK-ALL-0001", "LINK-ALL-0002", "LINK-ALL-0003"]
+kind = "link"
+computed_by = "hand"
+notes = """
+sum-a.total is int and thr-live.subject is int, so the pair is type-compatible
+(LINK-ALL-0001). sum-a declares no codomain, so liveness is probed with the versioned
+int probe set (LINK-ALL-0003):
+
+  probe   0 1 2 5   ->  0,1,2,5 < 10   ->  "low"
+  probe   10 50 100 1000 10000 60000  ->  >= 10  ->  "high"
+  probe   -1  ->  < 10  ->  "low"
+
+Two distinct downstream answers over 11 probed values, so the link is live.
+"""
+
+[expect]
+upstream = "sum-a"
+result = "total"
+downstream = "thr-live"
+slot = "subject"
+live = true
+distinct_outcomes = 2
+probed = 11

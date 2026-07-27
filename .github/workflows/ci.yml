@@ -1,0 +1,78 @@
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request: { branches: [main] }
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "${{ matrix.python-version }}" }
+      - run: pip install -e ".[dev]" -c constraints/ci.txt
+      - run: ruff check src tests tools
+      - run: pytest
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -e ".[dev]" -c constraints/ci.txt
+      # A hard gate. The core is fully annotated and stays that way.
+      - run: mypy
+
+  gates:
+    # The three mechanical gates get their own job so a red one is legible at a glance
+    # rather than buried in the test matrix.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -e ".[dev]" -c constraints/ci.txt
+      - name: composition drift
+        run: pytest tests/test_spec_drift.py -q
+      - name: ruling coverage
+        run: pytest tests/test_spec_coverage.py -q
+      - name: layering and read-only adapter
+        run: pytest tests/test_layering.py -q
+      - name: the snapshot tool agrees nothing changed
+        run: python tools/update_snapshot.py --check
+
+  docs-generated:
+    # The rulings page is generated. Regenerating it here and diffing means the site can
+    # never state a ruling the package does not carry.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -e "." -c constraints/ci.txt
+      - run: python tools/render_rulings.py
+      # `git add -N` first, so a newly generated (untracked) file also fails the diff.
+      - run: git add -N docs/ && git diff --exit-code docs/
+
+  offline:
+    # nonius claims to make no network requests. Prove it with the network taken away,
+    # rather than trusting the in-process socket monkeypatch alone.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install -e ".[dev]" -c constraints/ci.txt
+      - name: audit and compose with no network
+        run: |
+          unshare -rn python -m nonius.cli audit \
+            --items tests/corpus/items.jsonl --oracle oracle:answer --json > /dev/null
+          unshare -rn python -m nonius.cli compose \
+            --items tests/corpus/items.jsonl --oracle oracle:answer --depths 2,3 > /dev/null
+        env:
+          PYTHONPATH: tests/corpus

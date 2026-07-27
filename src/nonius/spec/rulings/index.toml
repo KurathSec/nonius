@@ -1,0 +1,25 @@
+# The composition specification.
+#
+# SPEC semver is independent of the package version:
+#   patch = editorial;
+#   minor = new rulings, no existing decision changes;
+#   major = any change that alters a decision for any existing corpus case.
+#
+# A major bump is the only way past the composition-drift gate
+# (tests/test_spec_drift.py), and tools/update_snapshot.py refuses to regenerate the
+# snapshot without one.
+
+[spec]
+version = "0.1.0"
+
+[[changelog]]
+version = "0.1.0"
+summary = """
+First specification. Fixes the depth convention (components, not links), states that link
+type compatibility is necessary but not sufficient and that liveness over the upstream
+codomain is the admissibility criterion, and requires literal suppression so a composite
+cannot be solved by reading the upstream answer out of the downstream's presentation.
+The liveness ruling is the one with evidence behind it: measured on a committed
+four-model archive, 32.2% of ordered item pairs are type-compatible but only 7.0% carry
+a live link, so a composer that checks types alone manufactures mostly degenerate items.
+"""

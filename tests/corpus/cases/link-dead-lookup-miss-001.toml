@@ -1,0 +1,29 @@
+[case]
+id = "link-dead-lookup-miss-001"
+rulings = ["LINK-ALL-0002"]
+kind = "link"
+computed_by = "hand"
+notes = """
+thr-live.verdict is str and lk-miss.key is str, so the pair is type-compatible and a
+type-only composer would emit it. It is dead.
+
+thr-live.verdict has the declared codomain ["high", "low"]. lk-miss holds the table
+{alpha: x, beta: y} with default "unknown". Neither "high" nor "low" is a key of that
+table, so both probes return the default:
+
+  key="high" -> miss -> "unknown"
+  key="low"  -> miss -> "unknown"
+
+One distinct answer over two probed values. The downstream answer does not depend on the
+upstream answer, so a system can skip thr-live entirely and still be scored correct.
+This is the failure mode that makes type compatibility insufficient.
+"""
+
+[expect]
+upstream = "thr-live"
+result = "verdict"
+downstream = "lk-miss"
+slot = "key"
+live = false
+distinct_outcomes = 1
+probed = 2

@@ -1,0 +1,19 @@
+[case]
+id = "audit-constructible-001"
+rulings = ["AUDIT-ALL-0002"]
+kind = "audit-population"
+computed_by = "hand"
+notes = """
+Every predicted row must declare that it was computed over the constructible population,
+not over items sampled uniformly.
+
+The distinction is not cosmetic. Uniform sampling over these 10 items would draw
+components that no link can join -- lk-miss and float-item's slot among them -- and would
+report a prediction for composites the composer cannot emit. The readout's `caps` therefore
+carries population = "constructible" together with how many chains were available and how
+many were actually used.
+"""
+
+[expect]
+population = "constructible"
+caps_present = ["chains_available", "chains_used", "skipped_incomplete_archive"]

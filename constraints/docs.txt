@@ -1,0 +1,4 @@
+# Docs toolchain. Kept SEPARATE from ci.txt on purpose: the docs stack must never be
+# able to perturb measurement CI.
+mkdocs-material==9.5.49
+mkdocstrings[python]==0.27.0

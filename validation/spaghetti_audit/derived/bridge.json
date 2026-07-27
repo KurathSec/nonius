@@ -1,0 +1,77 @@
+{
+  "note": "An arithmetic re-expression under an independence assumption, not a proof of measurement equivalence. Measured columns are absent because no composite has been run against any system: the paid run is designed and pre-registered, not executed.",
+  "rows": [
+    {
+      "depth": 2,
+      "predicted_composite": 0.326952093398,
+      "singleton": 0.8385,
+      "system": "deepseek-ai-DeepSeek-V4-Flash"
+    },
+    {
+      "depth": 2,
+      "predicted_composite": 0.0964681964573,
+      "singleton": 0.7685,
+      "system": "meta-llama-Llama-3.3-70B-Instruct-Turbo"
+    },
+    {
+      "depth": 2,
+      "predicted_composite": 6.76328502415e-05,
+      "singleton": 0.552416666667,
+      "system": "meta-llama-Meta-Llama-3.1-8B-Instruct"
+    },
+    {
+      "depth": 2,
+      "predicted_composite": 0.0951525764895,
+      "singleton": 0.73825,
+      "system": "mistralai-Mistral-Small-3.2-24B-Instruct-2506"
+    },
+    {
+      "depth": 3,
+      "predicted_composite": 0.0804425787728,
+      "singleton": 0.8385,
+      "system": "deepseek-ai-DeepSeek-V4-Flash"
+    },
+    {
+      "depth": 3,
+      "predicted_composite": 0.172201492537,
+      "singleton": 0.7685,
+      "system": "meta-llama-Llama-3.3-70B-Instruct-Turbo"
+    },
+    {
+      "depth": 3,
+      "predicted_composite": 0.0,
+      "singleton": 0.552416666667,
+      "system": "meta-llama-Meta-Llama-3.1-8B-Instruct"
+    },
+    {
+      "depth": 3,
+      "predicted_composite": 0.142835820896,
+      "singleton": 0.73825,
+      "system": "mistralai-Mistral-Small-3.2-24B-Instruct-2506"
+    },
+    {
+      "depth": 5,
+      "predicted_composite": 0.0,
+      "singleton": 0.8385,
+      "system": "deepseek-ai-DeepSeek-V4-Flash"
+    },
+    {
+      "depth": 5,
+      "predicted_composite": 0.00250455373406,
+      "singleton": 0.7685,
+      "system": "meta-llama-Llama-3.3-70B-Instruct-Turbo"
+    },
+    {
+      "depth": 5,
+      "predicted_composite": 0.0,
+      "singleton": 0.552416666667,
+      "system": "meta-llama-Meta-Llama-3.1-8B-Instruct"
+    },
+    {
+      "depth": 5,
+      "predicted_composite": 0.0144808743169,
+      "singleton": 0.73825,
+      "system": "mistralai-Mistral-Small-3.2-24B-Instruct-2506"
+    }
+  ]
+}

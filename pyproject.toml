@@ -1,0 +1,110 @@
+[build-system]
+# hatchling >=1.27 for PEP 639 (SPDX license = "MIT" string).
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "nonius"
+dynamic = ["version"]
+description = "Compose a benchmark's own committed items into depth-graded composites whose gold is a deterministic function of the component golds -- and audit, for free, whether that is possible at all."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Kurath" }]
+keywords = [
+    "benchmark",
+    "saturation",
+    "evaluation",
+    "metamorphic-testing",
+    "composition",
+    "execution-oracle",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Testing",
+    "Typing :: Typed",
+]
+
+# ZERO runtime dependencies. The composer is arithmetic over an item manifest and a
+# callable the practitioner supplies; nothing here needs a solver, a model client or a
+# parser. `tomllib` is stdlib from 3.11, which is why that is the floor.
+dependencies = []
+
+[project.optional-dependencies]
+# The Spaghetti Architect reference adapter. Quarantined into an extra because the core
+# must never import it (ARCHITECTURE.md section 2, enforced by ruff TID253 and by
+# tests/test_layering.py). Spaghetti Architect is not on PyPI and is used from a source
+# checkout, so this extra declares no requirement -- it exists to name the seam.
+spaghetti = []
+dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.10"]
+docs = ["mkdocs-material>=9", "mkdocstrings[python]>=0.25"]
+
+[project.scripts]
+# The tool-gap record (research/g1/toolgap.jsonl) writes the invocation as
+#   compose --items items.jsonl --oracle ./oracle.py --depths 1,2,3,5,8
+# `compose` is too generic to claim on PATH and PyPI, so the verb keeps the recorded
+# shape and the script keeps the project name: `nonius compose --items ...`.
+nonius = "nonius.cli:main"
+
+[project.urls]
+Repository = "https://github.com/KurathSec/nonius"
+Issues = "https://github.com/KurathSec/nonius/issues"
+Changelog = "https://github.com/KurathSec/nonius/blob/main/CHANGELOG.md"
+
+[tool.hatch.version]
+path = "src/nonius/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/nonius"]
+
+[tool.hatch.build.targets.sdist]
+# Policy, asserted by .github/workflows/release.yml: these never ship.
+exclude = [
+    "/paper",
+    "/.github",
+    "/CLAUDE.md",
+    "/site",
+    "/scratch",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "TID253"]
+ignore = ["E501"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+# ARCHITECTURE.md section 2: the core is benchmark-agnostic. Spaghetti Architect's
+# top-level package installs as `src`, and `bench` is its research layer. Neither may be
+# imported at module level anywhere; the one sanctioned site is the adapter, which
+# imports them inside functions and is exempted below.
+banned-module-level-imports = ["src", "bench", "eval"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/nonius/adapters/spaghetti.py" = ["TID253"]
+"tests/test_layering.py" = ["TID253"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src/nonius"]
+
+[[tool.mypy.overrides]]
+# Spaghetti Architect is a source checkout, not an installed distribution, and it ships no
+# stubs. Only the adapter sees these names, and it holds them as `Any` behind one lazy
+# import site; the core is type-checked normally and never imports them.
+module = ["src.*", "bench.*", "eval.*"]
+ignore_missing_imports = true

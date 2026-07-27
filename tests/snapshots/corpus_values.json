@@ -1,0 +1,233 @@
+{
+  "spec_version": "0.1.0",
+  "values": {
+    "analysis::counts": {
+      "candidates": 31,
+      "live": 18,
+      "live_pairs": 14
+    },
+    "chain-depth3-path-001::depth": 3,
+    "chain-depth3-path-001::gold": {
+      "c0_total": 6,
+      "c1_verdict": "low",
+      "c2_route": "ignore"
+    },
+    "chain-depth3-path-001::id": "4c9b0aa79787a537",
+    "chain-depth3-path-001::path_depth": 3,
+    "chain-depth3-path-001::suppressed": [
+      "c1_subject",
+      "c2_key"
+    ],
+    "chain-fanin-depth3-001::depth": 3,
+    "chain-fanin-depth3-001::gold": {
+      "c0_total": 6,
+      "c1_total": 30,
+      "c2_verdict_a": "low",
+      "c2_verdict_b": "high"
+    },
+    "chain-fanin-depth3-001::id": "892b3aaeec75c4c3",
+    "chain-fanin-depth3-001::path_depth": 2,
+    "chain-fanin-depth3-001::suppressed": [
+      "c2_subject_a",
+      "c2_subject_b"
+    ],
+    "chain-suppression-001::depth": 3,
+    "chain-suppression-001::gold": {
+      "c0_total": 6,
+      "c1_verdict": "low",
+      "c2_route": "ignore"
+    },
+    "chain-suppression-001::id": "4c9b0aa79787a537",
+    "chain-suppression-001::path_depth": 3,
+    "chain-suppression-001::suppressed": [
+      "c1_subject",
+      "c2_key"
+    ],
+    "link::dual-a.verdict_a->lk-live.key": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 2,
+      "tag": "str"
+    },
+    "link::dual-a.verdict_a->lk-miss.key": {
+      "distinct_outcomes": 1,
+      "live": false,
+      "probed": 2,
+      "tag": "str"
+    },
+    "link::dual-a.verdict_a->lk-nocodomain.key": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 2,
+      "tag": "str"
+    },
+    "link::dual-a.verdict_b->lk-live.key": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 2,
+      "tag": "str"
+    },
+    "link::dual-a.verdict_b->lk-miss.key": {
+      "distinct_outcomes": 1,
+      "live": false,
+      "probed": 2,
+      "tag": "str"
+    },
+    "link::dual-a.verdict_b->lk-nocodomain.key": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 2,
+      "tag": "str"
+    },
+    "link::float-item.verdict->lk-live.key": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 2,
+      "tag": "str"
+    },
+    "link::float-item.verdict->lk-miss.key": {
+      "distinct_outcomes": 1,
+      "live": false,
+      "probed": 2,
+      "tag": "str"
+    },
+    "link::float-item.verdict->lk-nocodomain.key": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 2,
+      "tag": "str"
+    },
+    "link::lk-live.route->lk-miss.key": {
+      "distinct_outcomes": 1,
+      "live": false,
+      "probed": 3,
+      "tag": "str"
+    },
+    "link::lk-live.route->lk-nocodomain.key": {
+      "distinct_outcomes": 1,
+      "live": false,
+      "probed": 3,
+      "tag": "str"
+    },
+    "link::lk-miss.route->lk-live.key": {
+      "distinct_outcomes": 1,
+      "live": false,
+      "probed": 3,
+      "tag": "str"
+    },
+    "link::lk-miss.route->lk-nocodomain.key": {
+      "distinct_outcomes": 1,
+      "live": false,
+      "probed": 3,
+      "tag": "str"
+    },
+    "link::lk-nocodomain.route->lk-live.key": {
+      "distinct_outcomes": 0,
+      "live": false,
+      "probed": 0,
+      "tag": "str"
+    },
+    "link::lk-nocodomain.route->lk-miss.key": {
+      "distinct_outcomes": 0,
+      "live": false,
+      "probed": 0,
+      "tag": "str"
+    },
+    "link::sum-a.total->dual-a.subject_a": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 11,
+      "tag": "int"
+    },
+    "link::sum-a.total->dual-a.subject_b": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 11,
+      "tag": "int"
+    },
+    "link::sum-a.total->mem-a.probe": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 11,
+      "tag": "int"
+    },
+    "link::sum-a.total->thr-dead.subject": {
+      "distinct_outcomes": 1,
+      "live": false,
+      "probed": 11,
+      "tag": "int"
+    },
+    "link::sum-a.total->thr-live.subject": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 11,
+      "tag": "int"
+    },
+    "link::sum-b.total->dual-a.subject_a": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 11,
+      "tag": "int"
+    },
+    "link::sum-b.total->dual-a.subject_b": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 11,
+      "tag": "int"
+    },
+    "link::sum-b.total->mem-a.probe": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 11,
+      "tag": "int"
+    },
+    "link::sum-b.total->thr-dead.subject": {
+      "distinct_outcomes": 1,
+      "live": false,
+      "probed": 11,
+      "tag": "int"
+    },
+    "link::sum-b.total->thr-live.subject": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 11,
+      "tag": "int"
+    },
+    "link::thr-dead.verdict->lk-live.key": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 2,
+      "tag": "str"
+    },
+    "link::thr-dead.verdict->lk-miss.key": {
+      "distinct_outcomes": 1,
+      "live": false,
+      "probed": 2,
+      "tag": "str"
+    },
+    "link::thr-dead.verdict->lk-nocodomain.key": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 2,
+      "tag": "str"
+    },
+    "link::thr-live.verdict->lk-live.key": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 2,
+      "tag": "str"
+    },
+    "link::thr-live.verdict->lk-miss.key": {
+      "distinct_outcomes": 1,
+      "live": false,
+      "probed": 2,
+      "tag": "str"
+    },
+    "link::thr-live.verdict->lk-nocodomain.key": {
+      "distinct_outcomes": 2,
+      "live": true,
+      "probed": 2,
+      "tag": "str"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+[case]
+id = "audit-verdict-001"
+rulings = ["AUDIT-ALL-0001", "AUDIT-ALL-0004"]
+kind = "audit"
+computed_by = "hand"
+notes = """
+The whole calibration item set. Counted by hand from the link structure:
+
+Live links exist, and the deepest constructible component count is 3, reached two ways --
+the path sum-a -> thr-live -> lk-live, and the fan-in {sum-a, sum-b} -> dual-a. Nothing
+reaches 4: lk-live and lk-miss produce str values that no remaining slot accepts live, and
+dual-a has only two slots.
+
+So the verdict is composable_to_depth_3, and every bound the search applied is reported.
+"""
+
+[expect]
+verdict = "composable_to_depth_3"
+max_depth = 3
+items = 10
+caps_present = ["probe_cap", "path_cap", "max_depth_search", "seed"]

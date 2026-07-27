@@ -1,0 +1,65 @@
+nonius
+Copyright (c) 2026 Kurath
+Licensed under the MIT License. See LICENSE.
+
+
+PROVENANCE OF MEASUREMENT PRIMITIVES
+------------------------------------
+
+src/nonius/stats.py is a verbatim port of codecaliper's
+validation/bw_faithfulness/stats.py, which was itself ported from Spaghetti Architect's
+bench/grade.py (MIT, same author). Five functions: mean, stdev, ci95_bootstrap, _ranks,
+spearman. Copied rather than depended upon, deliberately: they are the only statistics
+this instrument needs, and adding a numeric stack to obtain them would put a
+floating-point implementation detail between an archive and a published number.
+
+The discipline this repository is built on -- immutable versioned rulings with an
+import-time citation check, a full-value drift snapshot, an update tool that refuses
+without a spec MAJOR bump, and an isolation seam enforced by a test rather than by
+agreement -- is taken from codecaliper. Nothing is copied; the shapes are.
+
+
+THE SUBJECT OF THE REFERENCE AUDIT
+----------------------------------
+
+validation/spaghetti_audit/ reports an audit of Spaghetti Architect, a separate project by
+the same author with its own archive and its own paper. nonius reads that project
+STRICTLY READ-ONLY: it uses the generator, the program IR, the execution oracle, the
+grader and the committed four-model ladder AS INSTRUMENTS, and modifies nothing.
+tests/test_layering.py enforces both halves of that mechanically -- the core cannot import
+it, and the adapter cannot open a file for writing.
+
+
+CLAIM BOUNDARY
+--------------
+
+The overlap between this work and the Spaghetti Architect resource paper (P1) was assessed
+as HIGH_RISK: same instrument and same population, different measurand. The rule for that
+verdict is a written two-directional boundary, so here it is, in both directions.
+
+nonius MAY USE, as instruments and inputs: the generator, the program IR, the execution
+oracle, the grader, the public dev split, and the four-model ladder archive.
+
+nonius MAY NOT CLAIM any of them as a contribution. It may not report the ladder baselines
+as a finding of its own, and it may not restate the by-construction correctness argument
+for generated programs as its own result. It cites that project for all of it. Where this
+repository quotes those baselines -- for instance the 796/213/491 item-level statistics in
+validation/spaghetti_audit/derived/ -- they are quoted as INPUT to a composability
+question, never as an output.
+
+P1 MAY NOT INCORPORATE the composition operator, the link-liveness ruling, the
+independence-product quarantine gate, the bridge table, the composability audit, or the
+resolution readout. Those are this project's only claim, and folding them into P1 would
+leave nothing here.
+
+If that boundary cannot be held, the correct outcome is that this becomes a section of P1
+rather than a separate artifact.
+
+
+WHAT THE CALIBRATION CORPUS IS NOT
+----------------------------------
+
+tests/corpus/ is a calibration fixture. It exists so that every decision the composer makes
+can be checked against arithmetic a person can do on paper. It is NOT a benchmark, it is
+not an item set anyone should score a system on, and no number derived from it is a
+finding about any model.

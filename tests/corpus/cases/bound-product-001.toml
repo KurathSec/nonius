@@ -1,0 +1,31 @@
+[case]
+id = "bound-product-001"
+rulings = ["BOUND-ALL-0001", "BOUND-ALL-0003"]
+kind = "bound"
+computed_by = "hand"
+notes = """
+A two-system archive over the three components of chain-depth3-path-001, with k = 4.
+
+  system A: sum-a 4/4 = 1.00, thr-live 2/4 = 0.50, lk-live 4/4 = 1.00
+  system B: sum-a 2/4 = 0.50, thr-live 2/4 = 0.50, lk-live 2/4 = 0.50
+
+Independence product:
+  A: 1.00 * 0.50 * 1.00 = 0.5
+  B: 0.50 * 0.50 * 0.50 = 0.125
+
+Maximum of the components (the competing hypothesis):
+  A: max(1.00, 0.50, 1.00) = 1.0
+  B: max(0.50, 0.50, 0.50) = 0.5
+
+Quarantine, with a measured composite accuracy of 1.0 for system A and a band of 0.10:
+  1.0 - 0.5 = 0.5 > 0.10, so A's composite is quarantined -- it did better than
+  composition allows, so the chain did not bind for it.
+"""
+
+[expect]
+components = ["sum-a", "thr-live", "lk-live"]
+product = { A = 0.5, B = 0.125 }
+maximum = { A = 1.0, B = 0.5 }
+measured = { A = 1.0 }
+band = 0.10
+quarantined = ["A"]

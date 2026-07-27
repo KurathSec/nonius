@@ -1,0 +1,62 @@
+[[ruling]]
+id = "EMIT-ALL-0001"
+topic = "emit"
+title = "Literal suppression: a substituted slot must not survive in the presentation"
+statement = """
+A realized composite must not contain, anywhere in its presentation, a literal binding
+for a slot that a link feeds. The link is symbolic: the downstream refers to the upstream
+result, it does not quote its value. A realization that leaves the value visible is
+refused at emit time with LiteralLeakError.
+"""
+rationale = """
+This is the shortcut the obvious reading of 'substitute the answer into the input
+literals of the next item' produces, and it is fatal rather than cosmetic. If the
+downstream's source prints the upstream's answer, a system reads it instead of computing
+it, the composite is no harder than its last component, and it beats its own product
+bound -- so the instrument's own validity gate would quarantine the entire emitted set.
+Refusing at emit time turns a silent corpus-wide invalidity into one loud error.
+"""
+examples = ["chain-suppression-001"]
+
+[[ruling]]
+id = "EMIT-ALL-0002"
+topic = "emit"
+title = "Gold agreement: two independent computations must agree"
+statement = """
+A composite's gold is accepted only if the realization's gold equals the gold obtained by
+evaluating the components one at a time in topological order, substituting each link's
+upstream value into the downstream binding before evaluating it. Disagreement raises
+GoldDisagreementError and the composite is not emitted.
+"""
+rationale = """
+The instrument's entire claim is that a composite's gold is an exact deterministic
+function of the component golds. That claim is checkable rather than assertable: the
+chained-component evaluation and the realized composite's own evaluation are two
+independent routes to the same number, and they must agree. This is the check that would
+catch a realizer that quietly changed the semantics while merging.
+"""
+examples = ["chain-depth3-path-001"]
+
+[[ruling]]
+id = "EMIT-ALL-0003"
+topic = "emit"
+title = "Composite identity is a content hash over shape, links and spec version"
+statement = """
+A composite's id is a truncated sha256 over its component ids in topological order, its
+links, and the rulings version that produced it. Result names in the gold are qualified
+by component position, not by item id, so the same item used twice in one composite stays
+distinguishable and the gold's key set is a function of the chain's shape. The hash
+changes if and only if the composite's meaning changes.
+"""
+examples = ["chain-depth3-path-001"]
+
+[[ruling]]
+id = "EMIT-ALL-0004"
+topic = "emit"
+title = "Emission issues no model calls"
+statement = """
+Composing, checking and auditing are offline and free. No stage of nonius contacts a
+model, a network service or a paid endpoint; running the emitted composites against
+systems is the practitioner's own harness call, outside this tool.
+"""
+examples = []

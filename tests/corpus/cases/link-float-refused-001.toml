@@ -1,0 +1,21 @@
+[case]
+id = "link-float-refused-001"
+rulings = ["CORE-ALL-0004"]
+kind = "no-candidate"
+computed_by = "hand"
+notes = """
+float-item.subject is declared float. No link may carry a float, because exact equality on
+floats is not a defensible link relation and a declared tolerance would make the
+composite's gold approximate -- which defeats the by-construction claim the instrument
+rests on.
+
+So the slot generates no candidate at all, from any upstream, and the analysis says so
+with a `slot-tag-not-composable` diagnostic. Note that float-item can still *start* a
+chain: its result is a str, and only the slot is excluded.
+"""
+
+[expect]
+downstream = "float-item"
+slot = "subject"
+candidates = 0
+diagnostic = "slot-tag-not-composable"
