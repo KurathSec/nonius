@@ -238,11 +238,24 @@ class QuarantineReport:
 
     @property
     def exceeds_ceiling(self) -> bool:
+        """Whether the observed rate is over the ceiling. False when nothing was assessed.
+
+        Read it with :attr:`assessed`: a depth where nothing could be assessed has a rate
+        of 0.0 and so is not "over", but it is not a pass either. :meth:`line` says which.
+        """
         return self.rate > self.ceiling
 
     def line(self) -> str:
-        verdict = "OVER CEILING" if self.exceeds_ceiling else "within ceiling"
         band = "n/a" if self.band is None else f"{self.band:.4f}"
+        if not self.assessed:
+            # Never print "within ceiling" for a depth nothing was measured at: an
+            # unassessed depth looks exactly like a clean one otherwise.
+            return (
+                f"depth {self.depth}: NOT ASSESSED -- no composite carried both a "
+                f"measurement and a prediction, so the {self.ceiling:.4f} ceiling says "
+                f"nothing here. Band {band}."
+            )
+        verdict = "OVER CEILING" if self.exceeds_ceiling else "within ceiling"
         return (
             f"depth {self.depth}: quarantined {self.quarantined}/{self.assessed} "
             f"= {self.rate:.4f} against declared ceiling {self.ceiling:.4f} "

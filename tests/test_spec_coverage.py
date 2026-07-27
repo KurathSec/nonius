@@ -50,10 +50,10 @@ UNCOVERED: frozenset[str] = frozenset()
 #: successor and rewrote both. Changing a digest here is almost always the bug, not the
 #: fix; pin a new entry only at the moment a ruling is superseded.
 FROZEN_SUPERSEDED: dict[str, str] = {
-    "AUDIT-ALL-0001": "c5a10da8c06d57f5",
-    "DEPTH-ALL-0001": "c6579288c15772eb",
-    "EMIT-ALL-0003": "b91d0039b9c5c6f8",
-    "LINK-ALL-0002": "02b3379c6497cf15",
+    "AUDIT-ALL-0001": "acac3f28d14283e1",
+    "DEPTH-ALL-0001": "6bc41821b5f0d4f7",
+    "EMIT-ALL-0003": "e39f581463cf26e0",
+    "LINK-ALL-0002": "5c0c324e9cf715b1",
 }
 
 
@@ -101,9 +101,18 @@ def test_named_tests_exist() -> None:
     "path", sorted(SRC.rglob("*.py")), ids=lambda p: str(p.relative_to(SRC))
 )
 def test_every_cited_ruling_resolves(path: Path) -> None:
-    """Including in comments and docstrings: a citation that cannot rot is the point."""
+    """Including in comments and docstrings: a citation that cannot rot is the point.
+
+    Existence is not enough. A superseded id in a docstring reads as the current rule just
+    as a phantom one reads as a real one, and only ``require()`` calls were status-checked.
+    """
     for rid in sorted(set(RULING_RE.findall(path.read_text(encoding="utf-8")))):
-        assert get(rid).id == rid, f"{path}: phantom ruling {rid}"
+        ruling = get(rid)
+        assert ruling.id == rid, f"{path}: phantom ruling {rid}"
+        assert ruling.status == "active", (
+            f"{path.relative_to(SRC)} cites {rid}, which is {ruling.status} "
+            f"(successor: {ruling.superseded_by}). Cite the successor."
+        )
 
 
 #: Files whose ruling citations are HISTORY, not current-tense claims, and so may name a
@@ -124,18 +133,26 @@ HISTORICAL_CITATIONS: frozenset[str] = frozenset(
     }
 )
 
-#: Prose files whose ruling citations are read as the current rule.
-PROSE_GLOBS: tuple[str, ...] = ("*.md", "*.toml")
+#: Shipped prose whose ruling citations are read as the current rule. Selected by suffix
+#: and by name, because two of the files that matter carry no matching extension: NOTICE
+#: states the claim boundary and CITATION.cff is what a reader cites.
+PROSE_SUFFIXES: frozenset[str] = frozenset({".md", ".toml", ".cff", ".yml", ".yaml"})
+PROSE_NAMES: frozenset[str] = frozenset({"NOTICE", "LICENSE"})
 
 
 def _frozen_digest(ruling: object) -> str:
     import hashlib
 
+    # Everything tools/render_rulings.py publishes for a retired ruling, including the
+    # section it appears under and the successor it names: a record whose heading or
+    # successor could be rewritten unnoticed is not frozen.
     parts = (
         ruling.id,  # type: ignore[attr-defined]
+        ruling.topic,  # type: ignore[attr-defined]
         ruling.title,  # type: ignore[attr-defined]
         ruling.statement,  # type: ignore[attr-defined]
         ruling.rationale,  # type: ignore[attr-defined]
+        ruling.superseded_by,  # type: ignore[attr-defined]
         *ruling.examples,  # type: ignore[attr-defined]
     )
     return hashlib.sha256("\0".join(parts).encode("utf-8")).hexdigest()[:16]
@@ -150,15 +167,18 @@ def test_prose_cites_live_rulings() -> None:
     """
     root = ROOT.parent
     stale: list[str] = []
-    for pattern in PROSE_GLOBS:
-        for path in sorted(root.rglob(pattern)):
-            rel = path.relative_to(root).as_posix()
-            if rel.startswith((".venv/", "site/", "tests/corpus/cases/")) or rel in HISTORICAL_CITATIONS:
-                continue
-            for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
-                for rid in RULING_RE.findall(line):
-                    if get(rid).status == "superseded":
-                        stale.append(f"{rel}:{n} cites {rid} (-> {get(rid).superseded_by})")
+    for path in sorted(root.rglob("*")):
+        if not path.is_file():
+            continue
+        if path.suffix not in PROSE_SUFFIXES and path.name not in PROSE_NAMES:
+            continue
+        rel = path.relative_to(root).as_posix()
+        if rel.startswith((".venv/", "site/", "tests/corpus/cases/")) or rel in HISTORICAL_CITATIONS:
+            continue
+        for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            for rid in RULING_RE.findall(line):
+                if get(rid).status == "superseded":
+                    stale.append(f"{rel}:{n} cites {rid} (-> {get(rid).superseded_by})")
     assert not stale, "prose cites superseded rulings as current:\n  " + "\n  ".join(stale)
 
 

@@ -444,6 +444,12 @@ def audit(
             "path_cap_reached_at_depths": truncated,
             "sample": sample,
             "enumerated_shapes": list(ENUMERATED_SHAPES),
+            # The largest bound of all, and the least visible: one chain per node
+            # sequence. Alternative (result, slot) assignments along the same sequence
+            # are never enumerated, so the constructible population is smaller than the
+            # set of distinct composites over the same items (AUDIT-ALL-0004).
+            "one_chain_per_node_sequence": True,
+            "alternative_link_assignments_enumerated": False,
             "max_depth_search": MAX_DEPTH_SEARCH,
             "max_depth_search_hit_cap": capped,
             "seed": seed,

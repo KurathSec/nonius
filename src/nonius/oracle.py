@@ -13,8 +13,8 @@ input specification named three things an item must declare and omitted this one
 composer cannot work without it: expressing 'this slot's value is that item's answer'
 *without printing the value* is precisely the operation that makes a chain bind, and only
 the benchmark knows how to say that in its own presentation. Two tiers ship:
-``nonius.realize.prompt_realizer`` works for any manifest whose items carry a slotted
-prompt template, and an adapter may supply a native realizer that does better -- the
+the realizer built by ``nonius.realize.make_prompt_realizer`` works for any manifest whose
+items carry a slotted prompt template, and an adapter may supply a native realizer that does better -- the
 Spaghetti Architect adapter merges the component programs into one program, so the link
 becomes an ordinary variable reference.
 """

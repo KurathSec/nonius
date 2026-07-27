@@ -153,7 +153,6 @@ def plan(prereg: Preregistration, composites: Sequence[Mapping[str, object]]) ->
             "Trim the set deliberately rather than letting the run decide what to drop.",
         ]
     if prereg.status != "authorised":
-        refusals.append(f"the pre-registration's status is {prereg.status!r}")
         lines += [
             "",
             f"execute() would also refuse on status: this file says {prereg.status!r}, and "

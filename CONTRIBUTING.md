@@ -35,10 +35,10 @@ A ruling is one decision, with an immutable id, cited from the code that impleme
 rewrites the history of every number ever published under it. Once a ruling is superseded
 its text is frozen outright, and `tests/test_spec_coverage.py` pins a digest of it.
 
-The one exception, stated in `ARCHITECTURE.md` §4: a ruling authored in the *current
-unreleased* spec cycle may still be amended in place, with the amendment recorded in that
-cycle's changelog stanza. What immutability protects is a meaning someone could already
-have published a number under.
+The one exception, stated in `ARCHITECTURE.md` §4: a ruling that **no released version has
+ever carried** may still be amended in place, with the amendment recorded in the changelog
+stanza of the cycle that makes it. What immutability protects is a meaning someone could
+already have published a number under; until a version ships, there is no such meaning.
 
 On the old stanza, add exactly two fields and change nothing else:
 

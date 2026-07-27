@@ -10,6 +10,7 @@ from typing import Any
 
 from conftest import cases, chain_for, corpus_items, corpus_oracle
 
+from nonius.audit import constructible
 from nonius.canonical import content_hash
 from nonius.compose import analyze, composite_id, realize
 from nonius.manifest import index
@@ -49,6 +50,22 @@ def compute() -> dict[str, Any]:
     values["analysis::diagnostics"] = sorted(
         f"{d.code}:{d.subject}" for d in analysis.diagnostics
     )
+
+    # Stage 2, construction. Without this the snapshot covers what the composer decided
+    # (stage 1) and what it emitted (stage 3) but not what it BUILT, so the matching
+    # algorithm or the dedup could change which composites exist and nothing would move.
+    for depth in (1, 2, 3, 4):
+        pool = constructible(analysis, depth, cap=200)
+        values[f"construction::depth{depth}"] = {
+            "n": len(pool),
+            "chains": [
+                {
+                    "components": list(c.components),
+                    "links": [[x.upstream, x.result, x.downstream, x.slot, x.tag] for x in c.links],
+                }
+                for c in pool[:12]
+            ],
+        }
 
     realizer = make_prompt_realizer(oracle)
     for case in cases():

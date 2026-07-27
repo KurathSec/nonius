@@ -24,6 +24,9 @@ ADAPTER = SRC / "adapters" / "spaghetti.py"
 #: Top-level package names that belong to Spaghetti Architect's source tree.
 FOREIGN = {"src", "bench", "eval"}
 
+#: Modules whose ``open`` takes the path first and the mode second, unlike ``Path.open``.
+_OPEN_MODULES = {"gzip", "io", "bz2", "lzma", "codecs", "os", "tarfile", "zipfile", "shutil"}
+
 CORE = sorted(p for p in SRC.rglob("*.py") if p != ADAPTER)
 
 
@@ -62,9 +65,12 @@ def test_adapter_opens_nothing_for_writing() -> None:
     tree = ast.parse(source, filename=str(ADAPTER))
 
     banned_attrs = {
+        "write",
+        "writelines",
         "write_text",
         "write_bytes",
         "mkdir",
+        "makedirs",
         "unlink",
         "rmdir",
         "rename",
@@ -74,27 +80,51 @@ def test_adapter_opens_nothing_for_writing() -> None:
         "remove",
         "rmtree",
         "copy",
+        "copy2",
         "copytree",
         "move",
     }
     for node in ast.walk(tree):
-        if isinstance(node, ast.Call):
-            func = node.func
-            if isinstance(func, ast.Attribute):
-                assert func.attr not in banned_attrs, (
-                    f"adapters/spaghetti.py:{node.lineno} calls {func.attr}(); the adapter "
-                    f"is read-only"
-                )
-            if isinstance(func, ast.Name) and func.id == "open":
-                mode = "r"
-                for kw in node.keywords:
-                    if kw.arg == "mode" and isinstance(kw.value, ast.Constant):
-                        mode = str(kw.value.value)
-                if len(node.args) > 1 and isinstance(node.args[1], ast.Constant):
-                    mode = str(node.args[1].value)
-                assert "w" not in mode and "a" not in mode and "+" not in mode, (
-                    f"adapters/spaghetti.py:{node.lineno} opens a file for writing"
-                )
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        # `open` reaches here as a bare name (builtin) and as an attribute
+        # (``Path.open``, ``gzip.open``, ``io.open``). Both take a mode, and both were
+        # invisible to an earlier version of this test that checked only the builtin.
+        name = func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", "")
+        if name == "open":
+            # Where the mode sits depends on the receiver, and getting this wrong is how
+            # the check either misses a write or trips over a legitimate read:
+            #   open(path, mode)        builtin      -> index 1
+            #   gzip.open(path, mode)   module-style -> index 1
+            #   path.open(mode)         Path object  -> index 0
+            receiver = func.value if isinstance(func, ast.Attribute) else None
+            module_style = isinstance(receiver, ast.Name) and receiver.id in _OPEN_MODULES
+            index = 0 if (isinstance(func, ast.Attribute) and not module_style) else 1
+
+            supplied: ast.expr | None = None
+            for kw in node.keywords:
+                if kw.arg == "mode":
+                    supplied = kw.value
+            if len(node.args) > index:
+                supplied = node.args[index]
+            if supplied is None:
+                continue  # no mode given: read, which is the default everywhere
+            # Fail closed on a mode this gate cannot read. A mode held in a variable is
+            # exactly how an earlier version of this check was defeated.
+            assert isinstance(supplied, ast.Constant), (
+                f"adapters/spaghetti.py:{node.lineno} opens a file with a mode this gate "
+                f"cannot read; write it as a literal so the read-only claim stays checkable"
+            )
+            mode = str(supplied.value)
+            assert not ({"w", "a", "x", "+"} & set(mode)), (
+                f"adapters/spaghetti.py:{node.lineno} opens a file with mode {mode!r}"
+            )
+        elif isinstance(func, ast.Attribute):
+            assert func.attr not in banned_attrs, (
+                f"adapters/spaghetti.py:{node.lineno} calls {func.attr}(); the adapter "
+                f"is read-only"
+            )
 
 
 def test_adapter_is_the_only_exempted_module() -> None:

@@ -76,6 +76,466 @@
       "c1_subject",
       "c2_key"
     ],
+    "construction::depth1": {
+      "chains": [
+        {
+          "components": [
+            "dual-a"
+          ],
+          "links": []
+        },
+        {
+          "components": [
+            "float-item"
+          ],
+          "links": []
+        },
+        {
+          "components": [
+            "lk-live"
+          ],
+          "links": []
+        },
+        {
+          "components": [
+            "lk-nocodomain"
+          ],
+          "links": []
+        },
+        {
+          "components": [
+            "mem-a"
+          ],
+          "links": []
+        },
+        {
+          "components": [
+            "sum-a"
+          ],
+          "links": []
+        },
+        {
+          "components": [
+            "sum-b"
+          ],
+          "links": []
+        },
+        {
+          "components": [
+            "thr-dead"
+          ],
+          "links": []
+        },
+        {
+          "components": [
+            "thr-live"
+          ],
+          "links": []
+        }
+      ],
+      "n": 9
+    },
+    "construction::depth2": {
+      "chains": [
+        {
+          "components": [
+            "dual-a",
+            "lk-live"
+          ],
+          "links": [
+            [
+              0,
+              "verdict_a",
+              1,
+              "key",
+              "str"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "dual-a",
+            "lk-nocodomain"
+          ],
+          "links": [
+            [
+              0,
+              "verdict_a",
+              1,
+              "key",
+              "str"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "float-item",
+            "lk-live"
+          ],
+          "links": [
+            [
+              0,
+              "verdict",
+              1,
+              "key",
+              "str"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "float-item",
+            "lk-nocodomain"
+          ],
+          "links": [
+            [
+              0,
+              "verdict",
+              1,
+              "key",
+              "str"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "sum-a",
+            "dual-a"
+          ],
+          "links": [
+            [
+              0,
+              "total",
+              1,
+              "subject_a",
+              "int"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "sum-a",
+            "mem-a"
+          ],
+          "links": [
+            [
+              0,
+              "total",
+              1,
+              "probe",
+              "int"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "sum-a",
+            "thr-live"
+          ],
+          "links": [
+            [
+              0,
+              "total",
+              1,
+              "subject",
+              "int"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "sum-b",
+            "dual-a"
+          ],
+          "links": [
+            [
+              0,
+              "total",
+              1,
+              "subject_a",
+              "int"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "sum-b",
+            "mem-a"
+          ],
+          "links": [
+            [
+              0,
+              "total",
+              1,
+              "probe",
+              "int"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "sum-b",
+            "thr-live"
+          ],
+          "links": [
+            [
+              0,
+              "total",
+              1,
+              "subject",
+              "int"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "thr-dead",
+            "lk-live"
+          ],
+          "links": [
+            [
+              0,
+              "verdict",
+              1,
+              "key",
+              "str"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "thr-dead",
+            "lk-nocodomain"
+          ],
+          "links": [
+            [
+              0,
+              "verdict",
+              1,
+              "key",
+              "str"
+            ]
+          ]
+        }
+      ],
+      "n": 14
+    },
+    "construction::depth3": {
+      "chains": [
+        {
+          "components": [
+            "sum-a",
+            "dual-a",
+            "lk-live"
+          ],
+          "links": [
+            [
+              0,
+              "total",
+              1,
+              "subject_a",
+              "int"
+            ],
+            [
+              1,
+              "verdict_a",
+              2,
+              "key",
+              "str"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "sum-a",
+            "dual-a",
+            "lk-nocodomain"
+          ],
+          "links": [
+            [
+              0,
+              "total",
+              1,
+              "subject_a",
+              "int"
+            ],
+            [
+              1,
+              "verdict_a",
+              2,
+              "key",
+              "str"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "sum-a",
+            "thr-live",
+            "lk-live"
+          ],
+          "links": [
+            [
+              0,
+              "total",
+              1,
+              "subject",
+              "int"
+            ],
+            [
+              1,
+              "verdict",
+              2,
+              "key",
+              "str"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "sum-a",
+            "thr-live",
+            "lk-nocodomain"
+          ],
+          "links": [
+            [
+              0,
+              "total",
+              1,
+              "subject",
+              "int"
+            ],
+            [
+              1,
+              "verdict",
+              2,
+              "key",
+              "str"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "sum-b",
+            "dual-a",
+            "lk-live"
+          ],
+          "links": [
+            [
+              0,
+              "total",
+              1,
+              "subject_a",
+              "int"
+            ],
+            [
+              1,
+              "verdict_a",
+              2,
+              "key",
+              "str"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "sum-b",
+            "dual-a",
+            "lk-nocodomain"
+          ],
+          "links": [
+            [
+              0,
+              "total",
+              1,
+              "subject_a",
+              "int"
+            ],
+            [
+              1,
+              "verdict_a",
+              2,
+              "key",
+              "str"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "sum-b",
+            "thr-live",
+            "lk-live"
+          ],
+          "links": [
+            [
+              0,
+              "total",
+              1,
+              "subject",
+              "int"
+            ],
+            [
+              1,
+              "verdict",
+              2,
+              "key",
+              "str"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "sum-b",
+            "thr-live",
+            "lk-nocodomain"
+          ],
+          "links": [
+            [
+              0,
+              "total",
+              1,
+              "subject",
+              "int"
+            ],
+            [
+              1,
+              "verdict",
+              2,
+              "key",
+              "str"
+            ]
+          ]
+        },
+        {
+          "components": [
+            "sum-b",
+            "sum-a",
+            "dual-a"
+          ],
+          "links": [
+            [
+              0,
+              "total",
+              2,
+              "subject_a",
+              "int"
+            ],
+            [
+              1,
+              "total",
+              2,
+              "subject_b",
+              "int"
+            ]
+          ]
+        }
+      ],
+      "n": 9
+    },
+    "construction::depth4": {
+      "chains": [],
+      "n": 0
+    },
     "link::dual-a.verdict_a->lk-live.key": {
       "distinct_outcomes": 2,
       "live": true,

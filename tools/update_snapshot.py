@@ -3,6 +3,8 @@
 
 This is the only supported way to move ``tests/snapshots/corpus_values.json``. It refuses:
 
+* a missing snapshot file, unless ``--create-baseline`` says so -- deleting it is the same
+  laundering route as emptying it, and cheaper;
 * any changed existing value without ``--confirm-spec-bump``;
 * ``--confirm-spec-bump`` when the spec MAJOR did not actually move -- the flag confirms
   a bump, it does not replace one;
@@ -11,7 +13,7 @@ This is the only supported way to move ``tests/snapshots/corpus_values.json``. I
 
 Adding new values needs no flag: a new case cannot rewrite the history of an old one.
 
-    python tools/update_snapshot.py [--confirm-spec-bump] [--check]
+    python tools/update_snapshot.py [--confirm-spec-bump] [--create-baseline] [--check]
 """
 
 from __future__ import annotations
@@ -44,6 +46,11 @@ def main(argv: list[str] | None = None) -> int:
         help="acknowledge that existing decisions changed and the spec MAJOR moved",
     )
     ap.add_argument(
+        "--create-baseline",
+        action="store_true",
+        help="bootstrap a snapshot when none exists; not a way past --confirm-spec-bump",
+    )
+    ap.add_argument(
         "--check", action="store_true", help="report what would change and write nothing"
     )
     args = ap.parse_args(argv)
@@ -51,6 +58,19 @@ def main(argv: list[str] | None = None) -> int:
     fresh = compute()
 
     if not SNAPSHOT.is_file():
+        # A missing baseline is not an empty one, and it is the cheaper laundering route:
+        # with nothing to compare against, every changed value looks like an addition and
+        # sails past the bump requirement. Refuse before the --check branch, because a
+        # working tree with no snapshot is broken rather than merely unreported.
+        if not args.create_baseline:
+            print(
+                f"refusing: {SNAPSHOT} does not exist. Regenerating from nothing would "
+                f"launder any changed decision past the spec MAJOR requirement. Restore it "
+                f"from version control; pass --create-baseline only when genuinely "
+                f"bootstrapping a new corpus.",
+                file=sys.stderr,
+            )
+            return 1
         if args.check:
             print(f"{SNAPSHOT} does not exist; it would be created")
             return 0
@@ -72,8 +92,7 @@ def main(argv: list[str] | None = None) -> int:
         print(
             f"refusing: the existing snapshot holds {len(old_values)} values against "
             f"{len(new_values)} live ones. A baseline that small cannot detect drift; it "
-            f"looks like it was emptied. Restore it from version control, or delete the "
-            f"file deliberately to regenerate from nothing.",
+            f"looks like it was emptied. Restore it from version control.",
             file=sys.stderr,
         )
         return 1

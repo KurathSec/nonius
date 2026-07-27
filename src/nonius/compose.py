@@ -531,8 +531,9 @@ def composite_id(chain: Chain) -> str:
     The spec version is deliberately NOT hashed. It is recorded alongside the id, in the
     emitted record, because it is a stamp on how the composite was decided rather than
     part of what the composite is. Hashing it would move every id on an editorial spec
-    patch -- a change that by definition alters no decision -- which is precisely the
-    "only if" direction EMIT-ALL-0003 claims.
+    patch -- a change that by definition alters no decision -- and so would break the
+    "only if" half of the rule. (That is not hypothetical: an earlier spec did hash it.
+    See EMIT-ALL-0005's rationale for the supersession.)
     """
     return content_hash(
         {

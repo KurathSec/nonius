@@ -25,6 +25,7 @@
   "audit": {
     "candidate_links": 16470,
     "caps": {
+      "alternative_link_assignments_enumerated": false,
       "diagnostic_cap": 25,
       "diagnostic_counts": {
         "link-dead": 10590
@@ -36,6 +37,7 @@
       ],
       "max_depth_search": 32,
       "max_depth_search_hit_cap": false,
+      "one_chain_per_node_sequence": true,
       "path_cap": 10000,
       "path_cap_reached_at_depths": [],
       "probe_cap": 64,

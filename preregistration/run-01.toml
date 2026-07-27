@@ -25,8 +25,17 @@ subject_commit = "826f4cbf8f4d4c7e2d8473374694360c43fbb820"
 depths = [2, 3, 5]
 composites_per_depth = 500
 profile = "max"
-languages = ["python", "javascript", "go", "java", "cpp"]
-selection = "all constructible chains at each depth, capped at composites_per_depth, seed 20260619"
+# ONE rendering cell is purchased. The realizer emits all five languages; buying every one
+# would multiply the budget by five, and the completion count below assumes it does not.
+language = "python"
+languages_emitted = ["python", "javascript", "go", "java", "cpp"]
+selection = """
+the first composites_per_depth chains of nonius.audit.constructible(analysis, depth) in its
+enumeration order -- paths first, then the fan-ins the dedup keeps -- with the cap applied
+after enumeration. Note this is one chain per node sequence, not every distinct composite
+over those items: alternative (result, slot) assignments along the same sequence are not
+enumerated (AUDIT-ALL-0004, caps.enumerated_shapes).
+"""
 excluded_depths = [8, 13]
 excluded_reason = "audit predicts 0.0000 for all four systems and floored = 1.0000"
 
@@ -66,15 +75,19 @@ id = "KT-1-product-vs-max"
 ruling = "BOUND-ALL-0001"
 statement = """
 Composite accuracy should track the product of the component accuracies, not their
-maximum. If measured accuracy for any system sits closer to the maximum than to the
-product at depth 3 or beyond, composition did not preserve the construct and the restored
-headroom is headroom on a different measurand.
+maximum. If measured accuracy for the system named below sits closer to the maximum than to
+the product at depth 3, composition did not preserve the construct and the restored headroom
+is headroom on a different measurand.
+
+Scoped to depth 3, not "3 or beyond". Depth 5 is refused a product bound by the reuse
+ceiling declared in [reuse], so there is nothing there to compare against; registering a
+depth-5 arm would be registering a comparison this design cannot make.
 """
 # The system is named, not selected. "The top system" would be ambiguous after the fact --
 # top on the singleton instrument, or on the composites? -- and a threshold whose scope is
 # decided after seeing the data is not a threshold.
 system = "deepseek-ai/DeepSeek-V4-Flash"
-fires_if = "for deepseek-ai/DeepSeek-V4-Flash, measured is closer to max_prediction than to product_prediction at depth 3 or 5"
+fires_if = "for deepseek-ai/DeepSeek-V4-Flash, measured is closer to max_prediction than to product_prediction at depth 3"
 predicted_product = { depth_2 = 0.3346, depth_3 = 0.0804, depth_5 = 0.0000 }
 note = "predicted values are from the reference audit, for the system named above"
 
@@ -96,6 +109,24 @@ statement = """
 Any pairwise system ordering inversion against the singleton ordering, beyond the
 replicate band, means comparability was destroyed rather than preserved -- which is the
 opposite of what this instrument is for.
+
+**But on this asset the independence null already inverts, and that is registered here
+rather than discovered later.** The predicted (product-bound) ordering on the constructible
+population matches the singleton ordering at depth 2 and departs from it at depth 3, where
+the strongest singleton system falls to third. Nothing about composition causes that: the
+depth-3 population is dominated by one item family on which the systems rank differently,
+so the inversion is a property of which composites the link graph can build.
+
+So the singleton-anchored test cannot discriminate at depth 3 on its own, and two readings
+are registered instead of one:
+  (a) against the singleton ordering -- expected to fire at depth 3, and reported as
+      evidence about the POPULATION, not about composition;
+  (b) against the predicted ordering at the same depth -- this is the discriminating one.
+      A measured ordering that departs from what the independence bound predicts, beyond
+      the band, is evidence about composition.
+Only (b) is treated as a kill test. Recording (a)'s expected failure in advance is the
+point: a threshold that the null already trips is not a threshold, and finding that out
+after the run would have been indistinguishable from a result.
 """
 singleton_order = [
   "meta-llama/Meta-Llama-3.1-8B-Instruct",
@@ -103,7 +134,9 @@ singleton_order = [
   "meta-llama/Llama-3.3-70B-Instruct-Turbo",
   "deepseek-ai/DeepSeek-V4-Flash",
 ]
-fires_if = "any adjacent pair inverts by more than the noise band"
+fires_if = "the MEASURED ordering departs from the PREDICTED ordering at the same depth, for any adjacent pair, by more than the noise band"
+predicted_order_matches_singleton = { depth_2 = true, depth_3 = false }
+note = "depth 5 is excluded here too: with no product bound there is no predicted ordering to compare against"
 
 [[threshold]]
 id = "KT-4-floor-not-ceiling"
@@ -142,11 +175,12 @@ Measured on the planned population, not derived from arithmetic:
 
 100 is a judgement, and this is what it decides. Depths 2 and 3 are priced; **depth 5 is
 refused**, and that is the point of declaring the ceiling in advance rather than after
-seeing which depths flatter the instrument. Every depth-5 chain on this asset lives inside
-one family's six near-duplicate programs -- the link graph has nowhere else to go that
-deep -- so its components are about as far from exchangeable as a population can be, and
-multiplying their marginal rates would produce a bound with no standing. The instrument
-declining to quote a number there is the instrument working.
+seeing which depths flatter the instrument. 720 of the 732 constructible depth-5 chains --
+including all 500 this design draws -- live inside one family's six near-duplicate
+programs, because the link graph has nowhere else to go that deep. Their components are
+about as far from exchangeable as a population can be, so multiplying marginal rates would
+produce a bound with no standing. The instrument declining to quote a number there is the
+instrument working.
 """
 
 [declared_limitations]
