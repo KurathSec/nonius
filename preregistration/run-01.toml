@@ -32,11 +32,19 @@ profile = "max"
 language = "python"
 languages_emitted = ["python", "javascript", "go", "java", "cpp"]
 selection = """
-the first composites_per_depth chains of nonius.audit.constructible(analysis, depth) in its
-enumeration order -- paths first, then the fan-ins the dedup keeps -- with the cap applied
-after enumeration. Note this is one chain per node sequence, not every distinct composite
-over those items: alternative (result, slot) assignments along the same sequence are not
-enumerated (AUDIT-ALL-0004, caps.enumerated_shapes).
+For the composed depths (2, 3, 5): the first composites_per_depth chains of
+nonius.audit.constructible(analysis, depth) in its enumeration order -- paths first, then
+the fan-ins the dedup keeps -- with the cap applied after enumeration. Note that the path
+enumeration yields one chain per node sequence rather than every distinct composite over
+those items: alternative (result, slot) assignments along the same sequence are not
+enumerated (AUDIT-ALL-0004, caps.paths_are_one_chain_per_node_sequence). At depth 2 the
+drawn 500 are all paths and span 500 distinct sequences.
+
+Depth 1 is drawn differently, and deliberately: the control arm is the union of the
+components that appear in the composed sets actually drawn above -- 55 items -- realized as
+singletons. It is NOT constructible(analysis, 1), which is the live-link graph's node set
+(59 items, four of which appear in no drawn chain), and NOT nonius.audit.singletons(items),
+which is all 100. Either would buy a different population from the one KT-0 reads.
 """
 excluded_depths = [8, 13]
 excluded_reason = "audit predicts 0.0000 for all four systems and floored = 1.0000"
@@ -80,7 +88,7 @@ credential = "external; liveness not guaranteed. If it is dead, nothing here run
 id = "KT-0-execution-validity"
 statement = """
 A run that returned nothing usable must not be readable as a result. This arm exists
-because none of the other three can tell those apart, and that is provable rather than
+because none of the other four can tell those apart, and that is provable rather than
 suspected: the product of accuracies in [0,1] is never greater than their maximum, so a
 measured accuracy of 0.0 is always at least as close to the product as to the max. KT-1
 therefore CANNOT fire on a dead harness. KT-2 quarantines only composites that beat their

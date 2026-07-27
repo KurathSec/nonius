@@ -445,7 +445,7 @@
         "depth": 13,
         "discriminating": 0.0,
         "floored": 1.0,
-        "m_star": 0.0,
+        "m_star": null,
         "n": 1,
         "source": "predicted",
         "top_two_gap": 0.0

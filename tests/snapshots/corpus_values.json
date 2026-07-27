@@ -135,6 +135,7 @@
       ],
       "n": 9
     },
+    "construction::depth1::all": "6a6df165f463167e",
     "construction::depth2": {
       "chains": [
         {
@@ -320,6 +321,7 @@
       ],
       "n": 14
     },
+    "construction::depth2::all": "07ebf18cb0f2381c",
     "construction::depth3": {
       "chains": [
         {
@@ -532,10 +534,12 @@
       ],
       "n": 9
     },
+    "construction::depth3::all": "2c90dff501a55a32",
     "construction::depth4": {
       "chains": [],
       "n": 0
     },
+    "construction::depth4::all": "4f53cda18c2baa0c",
     "link::dual-a.verdict_a->lk-live.key": {
       "distinct_outcomes": 2,
       "live": true,

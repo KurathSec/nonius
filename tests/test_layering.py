@@ -64,15 +64,37 @@ SHELL_RECEIVERS = {"subprocess", "os"}
 SHELL_SCOPED = {"system", "run", "call", "spawnl", "spawnv", "fork"}
 
 
-def _shells_out(node: ast.Call) -> bool:
+def _shell_aliases(tree: ast.Module) -> tuple[set[str], set[str]]:
+    """Local names bound to a shell module, and to a shell function directly.
+
+    ``import subprocess as sp`` and ``from os import system as go`` both defeat a check
+    that matches source names, and both are one line of work for anyone trying.
+    """
+    modules: set[str] = set(SHELL_RECEIVERS)
+    functions: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name.split(".")[0] in SHELL_RECEIVERS:
+                    modules.add(alias.asname or alias.name.split(".")[0])
+        elif isinstance(node, ast.ImportFrom):
+            if (node.module or "").split(".")[0] in SHELL_RECEIVERS:
+                for alias in node.names:
+                    if alias.name in SHELL_DISTINCTIVE | SHELL_SCOPED:
+                        functions.add(alias.asname or alias.name)
+    return modules, functions
+
+
+def _shells_out(node: ast.Call, modules: set[str], functions: set[str]) -> bool:
     func = node.func
     if isinstance(func, ast.Attribute):
         receiver = func.value
-        if isinstance(receiver, ast.Name) and receiver.id in SHELL_RECEIVERS:
+        if isinstance(receiver, ast.Name) and receiver.id in modules:
             return func.attr in SHELL_DISTINCTIVE | SHELL_SCOPED
         return func.attr in SHELL_DISTINCTIVE
+    name = getattr(func, "id", "")
     # A bare ``system(...)`` in this codebase came from ``os``; a bare ``run(...)`` did not.
-    return getattr(func, "id", "") in SHELL_DISTINCTIVE | {"system"}
+    return name in SHELL_DISTINCTIVE | {"system"} or name in functions
 
 
 @pytest.mark.parametrize("path", CORE, ids=lambda p: str(p.relative_to(SRC)))
@@ -88,6 +110,7 @@ def test_core_takes_no_dynamic_route_to_the_benchmark(path: Path) -> None:
     source = path.read_text(encoding="utf-8")
     tree = ast.parse(source, filename=str(path))
 
+    shell_modules, shell_functions = _shell_aliases(tree)
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
@@ -97,16 +120,34 @@ def test_core_takes_no_dynamic_route_to_the_benchmark(path: Path) -> None:
                 f"{rel}:{node.lineno} calls {name}(); the core loads nothing dynamically. "
                 f"Only oracle.py may, to load the practitioner's own callable."
             )
-        if _shells_out(node):
+        if _shells_out(node, shell_modules, shell_functions):
             raise AssertionError(f"{rel}:{node.lineno} shells out; the core does not")
 
-    # A literal naming the subject's tree is a dependency however it is used.
+    # A literal naming the subject's tree is a dependency however it is used. Derived from
+    # FOREIGN rather than hand-listed, so the two cannot drift apart -- an earlier version
+    # covered "src." and "bench." but only "src/" and "bench/", and never "eval" at all.
+    tokens = [
+        f"{quote}{pkg}{sep}"
+        for pkg in sorted(FOREIGN)
+        for quote in ('"', "'")
+        for sep in (".", "/")
+    ]
     for n, line in enumerate(source.splitlines(), start=1):
-        for token in ('"src.', "'src.", '"bench.', "'bench.", '"src/', "'bench/"):
+        for token in tokens:
             assert token not in line, (
-                f"{rel}:{n} names the subject's tree in a string literal; the core must "
-                f"run without that project present"
+                f"{rel}:{n} names the subject's tree in a string literal ({token!r}); the "
+                f"core must run without that project present"
             )
+
+    # sys.path is a route in itself, whatever is appended to it.
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute) and node.attr == "path":
+            if isinstance(node.value, ast.Name) and node.value.id == "sys":
+                raise AssertionError(
+                    f"{rel}:{node.lineno} touches sys.path; the core does not extend the "
+                    f"import path, and doing so is how a dependency arrives without an "
+                    f"import statement"
+                )
 
 
 def test_core_imports_without_the_benchmark_present() -> None:
@@ -120,11 +161,15 @@ def test_core_imports_without_the_benchmark_present() -> None:
 def test_adapter_opens_nothing_for_writing() -> None:
     """The adapter reads a third-party checkout and must never modify it.
 
-    Checked structurally: no ``open(..., "w")``, no ``Path.write_*``, no ``shutil`` or
-    ``os`` mutation call anywhere in the module.
+    Checked structurally, against a named set of mutating calls rather than an exhaustive
+    one: every ``open`` with a write mode (including a mode this gate cannot read), every
+    call whose name is in ``banned_attrs``, and every shell-out, with import aliases
+    resolved. A stdlib mutation whose name is not in that set would pass, which is why the
+    set is listed in full above rather than described.
     """
     source = ADAPTER.read_text(encoding="utf-8")
     tree = ast.parse(source, filename=str(ADAPTER))
+    shell_modules, shell_functions = _shell_aliases(tree)
 
     banned_attrs = {
         "write",
@@ -143,8 +188,29 @@ def test_adapter_opens_nothing_for_writing() -> None:
         "rmtree",
         "copy",
         "copy2",
+        "copyfile",
+        "copyfileobj",
+        "copymode",
+        "copystat",
         "copytree",
         "move",
+        "truncate",
+        "symlink",
+        "link",
+        "hardlink_to",
+        "symlink_to",
+        "mkfifo",
+        "mknod",
+        "utime",
+        "chown",
+        "lchmod",
+        "rename_to",
+        "renames",
+        "removedirs",
+        "unpack_archive",
+        "make_archive",
+        "extract",
+        "extractall",
     }
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
@@ -190,7 +256,7 @@ def test_adapter_opens_nothing_for_writing() -> None:
                 f"adapters/spaghetti.py:{node.lineno} calls {name}(); the adapter "
                 f"is read-only"
             )
-        elif _shells_out(node):
+        elif _shells_out(node, shell_modules, shell_functions):
             raise AssertionError(
                 f"adapters/spaghetti.py:{node.lineno} shells out; a subprocess can write "
                 f"anything and this gate cannot see inside one"

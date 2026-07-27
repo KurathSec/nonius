@@ -95,8 +95,9 @@ class Archive:
         per = self.per_item(item)
         # "every system" must mean every system in the archive, not every system that
         # happened to attempt this item: otherwise an item one system never saw can be
-        # labelled `dead` on the strength of the others.
-        if len(per) < len(self.systems):
+        # labelled `dead` on the strength of the others. An empty archive has no systems,
+        # so `0 < 0` would fall through and label everything `uniform-partial`.
+        if not per or len(per) < len(self.systems):
             return "unknown"
         vals = set(per.values())
         if vals == {1.0}:
@@ -124,6 +125,7 @@ class Archive:
 
 def from_records(records: Iterable[Mapping[str, object]]) -> Archive:
     out: list[Verdict] = []
+    seen: set[tuple[str, str, int]] = set()
     for n, rec in enumerate(records):
         try:
             raw = rec["correct"]
@@ -136,14 +138,21 @@ def from_records(records: Iterable[Mapping[str, object]]) -> Archive:
                     f"'correct' must be 0 or 1, got {raw!r}; a verdict is a verdict, "
                     f"not a score"
                 )
-            out.append(
-                Verdict(
-                    system=str(rec["system"]),
-                    item=str(rec["item"]),
-                    draw=int(rec["draw"]),  # type: ignore[call-overload]
-                    correct=1 if int(raw) else 0,
-                )
+            verdict = Verdict(
+                system=str(rec["system"]),
+                item=str(rec["item"]),
+                draw=int(rec["draw"]),  # type: ignore[call-overload]
+                correct=1 if int(raw) else 0,
             )
+            key = (verdict.system, verdict.item, verdict.draw)
+            if key in seen:
+                # `draw` is the replicate index and `k()` is the row count per cell, so a
+                # double-loaded archive would silently inflate k and re-weight every rate.
+                raise ValueError(
+                    f"duplicate (system, item, draw) {key}; each replicate appears once"
+                )
+            seen.add(key)
+            out.append(verdict)
         except (KeyError, TypeError, ValueError) as exc:
             raise ManifestError(f"archive record {n}: {exc}") from exc
     return Archive(tuple(out))

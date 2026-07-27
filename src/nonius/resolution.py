@@ -12,10 +12,12 @@ Two sources, never mixed and always labelled:
 the same tie test in every row, but they are not the same quantity across rows whose
 effective replicate depth differs. A rate estimated from k draws is a coarse grid; two
 systems tie more often on a coarse grid than on a fine one, so the discriminating fraction
-moves with k as well as with the instrument. The singleton row is a k-bounded estimate and
-a predicted composite row is the k -> infinity limit of the same quantity, so a difference
-between them is partly an artifact of how each was computed. Read the between-system gap,
-which does not have this problem, alongside them.
+moves with k as well as with the instrument. The singleton row counts ties among rates
+each estimated from k draws; a predicted composite row counts ties among products of those
+same rates, and multiplying them spreads the values apart, so the two rows do not tie at the
+same rate even before composition does anything. A difference between them is therefore
+partly an artifact of how each was computed. Read the between-system gap, which does not
+have this problem, alongside them.
 
 ``predicted``  computed from the archive's singleton rates under the independence bound.
               Free, and available before anything is emitted or bought. It is a null, not
@@ -61,7 +63,10 @@ class DepthReadout:
     floored: float
     discriminating: float
     top_two_gap: float
-    m_star: float
+    #: ``None`` when the row has too few composites for an interval to mean anything. A
+    #: single composite yields a zero-width bootstrap interval, and printing 0.0000 would
+    #: claim the instrument resolves any difference at all.
+    m_star: float | None
     #: Bounds applied while producing this row, reported never hidden (AUDIT-ALL-0004).
     caps: Mapping[str, object] = field(default_factory=dict)
 
@@ -93,7 +98,7 @@ def _row(
     systems = sorted({s for row in per_composite for s in row})
     n = len(per_composite)
     if n == 0 or not systems:
-        return DepthReadout(depth, 0, source, {}, 0.0, 0.0, 0.0, 0.0, 0.0, caps)
+        return DepthReadout(depth, 0, source, {}, 0.0, 0.0, 0.0, 0.0, None, caps)
 
     accuracy = {s: mean([row.get(s, 0.0) for row in per_composite]) for s in systems}
 
@@ -107,10 +112,15 @@ def _row(
     # m*: the smallest between-system difference this instrument can resolve, taken as the
     # widest 95% bootstrap interval on any system's mean. A gap narrower than that is
     # inside the instrument's own noise and must not be reported as a difference.
-    widths = [
-        ci95_for([row.get(s, 0.0) for row in per_composite], seed=seed) for s in systems
-    ]
-    m_star = max(widths) if widths else 0.0
+    # Below two composites a percentile bootstrap has nothing to resample, so it reports a
+    # zero-width interval -- which would read as a resolution floor of zero.
+    if n < 2:
+        m_star: float | None = None
+    else:
+        widths = [
+            ci95_for([row.get(s, 0.0) for row in per_composite], seed=seed) for s in systems
+        ]
+        m_star = max(widths) if widths else None
 
     return DepthReadout(
         depth=depth,

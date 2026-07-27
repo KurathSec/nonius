@@ -84,11 +84,14 @@ chaining the component oracles, the check compares that computation against itse
 emits an info diagnostic saying so. The check has force only for a realizer that reaches
 the gold independently.
 
-**The audit builds one chain per node sequence.** Along a path it takes the first
-admissible (result, slot) assignment and drops the rest, so the constructible population is
-much smaller than the set of distinct composites over the same items. Reported in every
-audit's `caps`, and it means the depth counts are a floor twice over: over shapes, and over
-link assignments within a shape.
+**Path enumeration builds one chain per node sequence.** It takes the first admissible
+(result, slot) assignment and drops the rest, so the constructible population is far smaller
+than the set of distinct composites over the same items. A fan-in can then add a second
+chain over a sequence a path already covered, when its assignment differs: on the reference
+asset that happens for 39 of the 690 depth-2 sequences, and in all 39 it is a different
+upstream *result* piped into the same slot. The bound is reported as
+`caps.paths_are_one_chain_per_node_sequence`, and it means the depth counts are a floor
+twice over: over shapes, and over link assignments within a shape.
 
 **At depth 5 on the reference asset the product bound is refused, not computed.** 720 of
 the 732 constructible depth-5 chains live inside one family's six near-duplicate programs.

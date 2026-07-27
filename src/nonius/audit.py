@@ -113,7 +113,7 @@ class AuditReport:
                     "floored": r.floored,
                     "discriminating": r.discriminating,
                     "top_two_gap": r.top_two_gap,
-                    "m_star": r.m_star,
+                    "m_star": r.m_star,  # null when the row has too few composites for an interval
                     "caps": dict(r.caps),
                 }
                 for r in self.readouts
@@ -331,9 +331,12 @@ def constructible(
 
     Paths first, then fan-ins (DEPTH-ALL-0002), deduplicated on shape *and* links -- two
     chains over the same components with different links are different composites with
-    different gold. One chain is materialised per node sequence: alternative (result,
-    slot) assignments along the same sequence are not enumerated, which is why
-    ``ENUMERATED_SHAPES`` is reported rather than assumed away.
+    different gold. The *path* enumeration materialises one chain per node sequence,
+    taking the first admissible (result, slot) assignment and dropping the rest; a fan-in
+    may then contribute a second chain over a sequence a path already covered, when its
+    assignment differs. So the pool is far smaller than the set of distinct composites
+    over the same items, which is why ``ENUMERATED_SHAPES`` is reported rather than
+    assumed away.
 
     At depth 1 this returns only items the live-link graph touches; for the singleton
     baseline use :func:`singletons`, which does not filter. Bounded by ``cap``.
@@ -447,7 +450,9 @@ def audit(
             # The largest bound of all, and the least visible. The path enumeration
             # materialises ONE chain per node sequence, taking the first admissible
             # (result, slot) assignment and dropping the rest; a fan-in may then add a
-            # second chain over the same sequence when it feeds a different slot. So the
+            # second chain over a sequence a path already covered, when its (result, slot)
+            # assignment differs -- on the reference asset all 39 such cases at depth 2
+            # differ in the RESULT piped into the same slot, not in the slot. So the
             # constructible population is much smaller than the set of distinct composites
             # over the same items, and this is the bound AUDIT-ALL-0004 requires stating.
             "paths_are_one_chain_per_node_sequence": True,

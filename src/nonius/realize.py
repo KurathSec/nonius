@@ -120,12 +120,30 @@ def make_prompt_realizer(oracle: Oracle) -> object:
             # Checked against the TEMPLATE, not the rendered text: after a one-pass fill a
             # substituted value may legitimately contain a placeholder, and refusing that
             # would defeat the very rescan-proofing _fill exists to provide.
-            missing = [s.name for s in item.slots if "{" + s.name + "}" in template and s.name not in shown]
+            missing = [
+                s.name
+                for s in item.slots
+                if "{" + s.name + "}" in template and s.name not in shown
+            ]
             if missing:
                 raise CompositionError(
                     f"{item.id}: slots {missing} have no value and no incoming link, so "
                     f"their placeholders would ship unfilled; give the item a binding for "
                     f"them in payload, or drop them from the manifest"
+                )
+            # A LINKED slot whose placeholder is absent from the template is worse than an
+            # unfilled one: the reference is never rendered, so the presentation says
+            # nothing about where the value comes from and the chain does not bind.
+            unreferenced = [
+                x.slot
+                for x in incoming.get(pos, ())
+                if "{" + x.slot + "}" not in template
+            ]
+            if unreferenced:
+                raise CompositionError(
+                    f"{item.id}: slots {unreferenced} are fed by a link but their "
+                    f"placeholders do not appear in the prompt template, so the "
+                    f"reference to the upstream answer would never be shown"
                 )
             parts.append(f"Part {pos + 1}.\n{rendered}")
 

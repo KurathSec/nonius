@@ -267,7 +267,14 @@ def summarize(
     bounds: Sequence[CompositeBound], *, depth: int, ceiling: float
 ) -> QuarantineReport:
     """Aggregate per-composite verdicts. ``ceiling`` is required (BOUND-ALL-0004)."""
-    assessed = [b for b in bounds if b.measured is not None and b.predicted is not None]
+    # A composite the rule could not be applied to is not an assessed one. Without the
+    # band requirement a depth where quarantine was impossible reports rate 0.0, which
+    # reads as a clean pass.
+    assessed = [
+        b
+        for b in bounds
+        if b.measured is not None and b.predicted is not None and b.band is not None
+    ]
     return QuarantineReport(
         depth=depth,
         assessed=len(assessed),

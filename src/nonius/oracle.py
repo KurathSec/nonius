@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import Protocol, runtime_checkable
 
 from nonius.errors import OracleError
-from nonius.model import Item, Link, Realization, Scalar
+from nonius.model import Item, Link, Realization, Scalar, tag_of
 
 
 @runtime_checkable
@@ -87,8 +87,8 @@ def load_callable(spec: str) -> object:
     else:
         try:
             module = importlib.import_module(target)
-        except ImportError as exc:
-            raise OracleError(f"cannot import {target!r}: {exc}") from exc
+        except Exception as exc:  # noqa: BLE001 - a user module; report, never traceback
+            raise OracleError(f"cannot import {target!r}: {exc!r}") from exc
 
     try:
         obj = getattr(module, attr)
@@ -117,4 +117,20 @@ def evaluate(oracle: Oracle, item: Item, bindings: Mapping[str, Scalar]) -> dict
             f"oracle for item {item.id!r} returned keys {sorted(got)}, "
             f"but the manifest declares {sorted(declared)}"
         )
+    # The tag is the whole basis of link admissibility, so a manifest that declares one
+    # type while the oracle returns another would generate links that type-check against
+    # a fiction. Checked here, at the first call, rather than as a gold disagreement later.
+    for result in item.results:
+        try:
+            actual = tag_of(raw[result.name])
+        except TypeError as exc:
+            raise OracleError(
+                f"oracle for item {item.id!r} returned a non-scalar for "
+                f"{result.name!r}: {exc}"
+            ) from exc
+        if actual != result.tag:
+            raise OracleError(
+                f"oracle for item {item.id!r} returned {result.name!r} as {actual}, "
+                f"but the manifest declares {result.tag}"
+            )
     return dict(raw)

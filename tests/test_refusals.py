@@ -101,6 +101,21 @@ def test_singleton_population_keeps_items_no_link_touches(items: Any, oracle: An
     assert "lk-miss" in every and "lk-miss" not in linked
 
 
+def test_the_construction_cap_actually_bounds(items: Any, oracle: Any) -> None:
+    """The drift gate passes cap=200 to pools of at most 14, so the cap is inert there.
+
+    A bound nothing exercises is a bound nobody has checked. This is the check.
+    """
+    from nonius.audit import constructible
+
+    analysis = analyze(items, oracle)
+    full = constructible(analysis, 2, cap=200)
+    assert len(full) > 3, "corpus too small to test the cap"
+    for cap in (1, 2, 3):
+        assert len(constructible(analysis, 2, cap=cap)) == cap
+    assert constructible(analysis, 2, cap=len(full) + 50) == full
+
+
 def test_a_refusing_oracle_is_not_reported_as_a_dead_link(items: Any) -> None:
     """LINK-ALL-0007: 'never varies' is a cause; it must not be asserted untested."""
     from nonius.model import Item, ResultVar, Scalar, Slot

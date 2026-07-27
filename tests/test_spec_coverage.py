@@ -4,8 +4,10 @@ Two directions, both mechanical:
 
 * every **active** ruling is covered -- by a calibration case that names it, or by a named
   test for the refusal-shaped rulings that have no value to compute;
-* every ruling-id-shaped string anywhere in ``src/`` resolves, including in comments and
-  docstrings, so a citation cannot rot into a lie.
+* every ruling-id-shaped string in first-party Python -- ``src/``, ``tests/``, ``tools/``
+  and ``validation/`` -- resolves AND names an active ruling, including in comments and
+  docstrings, so a citation cannot rot into a lie;
+* the same for shipped prose, and the text of a retired ruling is digest-pinned.
 """
 
 from __future__ import annotations
@@ -20,7 +22,10 @@ from nonius.spec.registry import all_rulings, get, spec_version
 
 SRC = ROOT.parent / "src"
 
-RULING_RE = re.compile(r"\b(?:CORE|DEPTH|LINK|EMIT|BOUND|AUDIT)-(?:ALL)-\d{4}\b")
+#: Any topic, not a hand-listed set: a new topic file would otherwise be invisible to
+#: every citation check while `_RULING_FILES` and `tools/render_rulings.py` both guard
+#: against exactly that drift.
+RULING_RE = re.compile(r"\b[A-Z]{2,10}-(?:ALL)-\d{4}\b")
 
 #: Rulings covered by a named test rather than a calibration case, because what they
 #: assert is a refusal and there is no number to hand-compute. Each entry names the test
@@ -50,10 +55,10 @@ UNCOVERED: frozenset[str] = frozenset()
 #: successor and rewrote both. Changing a digest here is almost always the bug, not the
 #: fix; pin a new entry only at the moment a ruling is superseded.
 FROZEN_SUPERSEDED: dict[str, str] = {
-    "AUDIT-ALL-0001": "acac3f28d14283e1",
-    "DEPTH-ALL-0001": "6bc41821b5f0d4f7",
-    "EMIT-ALL-0003": "e39f581463cf26e0",
-    "LINK-ALL-0002": "5c0c324e9cf715b1",
+    "AUDIT-ALL-0001": "6fe713f098a175bb",
+    "DEPTH-ALL-0001": "bd2336dd6644d094",
+    "EMIT-ALL-0003": "2976615c1b1bfb4f",
+    "LINK-ALL-0002": "7495bb6526f8fa2b",
 }
 
 
@@ -171,9 +176,9 @@ PROSE_NAMES: frozenset[str] = frozenset({"NOTICE", "LICENSE"})
 def _frozen_digest(ruling: object) -> str:
     import hashlib
 
-    # Everything tools/render_rulings.py publishes for a retired ruling, including the
-    # section it appears under and the successor it names: a record whose heading or
-    # successor could be rewritten unnoticed is not frozen.
+    # Every field of the record except `status`, which the set-equality assertion below
+    # covers: a retired ruling whose heading, successor or origin version could be
+    # rewritten unnoticed is not frozen.
     parts = (
         ruling.id,  # type: ignore[attr-defined]
         ruling.topic,  # type: ignore[attr-defined]
@@ -181,6 +186,7 @@ def _frozen_digest(ruling: object) -> str:
         ruling.statement,  # type: ignore[attr-defined]
         ruling.rationale,  # type: ignore[attr-defined]
         ruling.superseded_by,  # type: ignore[attr-defined]
+        ruling.since_spec,  # type: ignore[attr-defined]
         *ruling.examples,  # type: ignore[attr-defined]
     )
     return hashlib.sha256("\0".join(parts).encode("utf-8")).hexdigest()[:16]

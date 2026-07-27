@@ -61,6 +61,10 @@ def _slot(raw: Any, where: str) -> Slot:
     if "name" not in raw or "tag" not in raw:
         raise ManifestError(f"{where}: slot needs 'name' and 'tag'")
     accepts = raw.get("accepts")
+    # Present-but-malformed must be refused, not silently dropped: discarding it turns a
+    # declared set into "unknown", which changes what liveness is probed against.
+    if accepts is not None and not isinstance(accepts, list):
+        raise ManifestError(f"{where}.accepts: must be a list, got {type(accepts).__name__}")
     built: Slot = _built(
         lambda: Slot(
             name=str(raw["name"]),
@@ -83,6 +87,11 @@ def _result(raw: Any, where: str) -> ResultVar:
     if "name" not in raw or "tag" not in raw:
         raise ManifestError(f"{where}: result needs 'name' and 'tag'")
     codomain = raw.get("codomain")
+    if codomain is not None and not isinstance(codomain, list):
+        raise ManifestError(
+            f"{where}.codomain: must be a list, got {type(codomain).__name__}; a "
+            f"discarded codomain would silently become 'unbounded' and flip liveness"
+        )
     built: ResultVar = _built(
         lambda: ResultVar(
             name=str(raw["name"]),
@@ -104,6 +113,10 @@ def item_from_dict(raw: Any, where: str = "item") -> Item:
     if "id" not in raw:
         raise ManifestError(f"{where}: record needs an 'id'")
     item_id = str(raw["id"])
+    for field in ("slots", "results"):
+        value = raw.get(field, [])
+        if not isinstance(value, list):
+            raise ManifestError(f"{item_id}: {field} must be a list, got {type(value).__name__}")
 
     slots = tuple(
         _slot(s, f"{item_id}.slots[{i}]") for i, s in enumerate(raw.get("slots", []))

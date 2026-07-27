@@ -66,6 +66,18 @@ def compute() -> dict[str, Any]:
                 for c in pool[:12]
             ],
         }
+        # The first 12 leave the tail of a 14-chain pool outside the gate, so a change that
+        # only moved the last chains would not register. A digest over the whole pool
+        # closes that without growing the file.
+        values[f"construction::depth{depth}::all"] = content_hash(
+            [
+                [
+                    list(c.components),
+                    [[x.upstream, x.result, x.downstream, x.slot, x.tag] for x in c.links],
+                ]
+                for c in pool
+            ]
+        )
 
     realizer = make_prompt_realizer(oracle)
     for case in cases():
