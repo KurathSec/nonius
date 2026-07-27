@@ -86,14 +86,17 @@ class Archive:
         ``floored``       every system at zero;
         ``discriminating``systems disagree;
         ``uniform-partial`` systems agree on a rate that is neither 0 nor 1;
-        ``unknown``       the item is not in the archive.
+        ``unknown``       the item is missing for at least one system.
 
         This is a description of the *systems that produced the archive*, not a property
         of the item, and it is circular with any claim about which stratum recovers the
         most resolution. See docs/honesty.md.
         """
         per = self.per_item(item)
-        if not per:
+        # "every system" must mean every system in the archive, not every system that
+        # happened to attempt this item: otherwise an item one system never saw can be
+        # labelled `dead` on the strength of the others.
+        if len(per) < len(self.systems):
             return "unknown"
         vals = set(per.values())
         if vals == {1.0}:
@@ -123,12 +126,22 @@ def from_records(records: Iterable[Mapping[str, object]]) -> Archive:
     out: list[Verdict] = []
     for n, rec in enumerate(records):
         try:
+            raw = rec["correct"]
+            # A verdict is 1 or 0, never a score. Coercing anything int()-able would let a
+            # harness that emits partial credit load silently, with every value below 1.0
+            # floored to a failure -- corrupting strata, product predictions and the band
+            # with no diagnostic anywhere.
+            if raw not in (0, 1, True, False, "0", "1"):
+                raise ValueError(
+                    f"'correct' must be 0 or 1, got {raw!r}; a verdict is a verdict, "
+                    f"not a score"
+                )
             out.append(
                 Verdict(
                     system=str(rec["system"]),
                     item=str(rec["item"]),
                     draw=int(rec["draw"]),  # type: ignore[call-overload]
-                    correct=1 if int(rec["correct"]) else 0,  # type: ignore[call-overload]
+                    correct=1 if int(raw) else 0,
                 )
             )
         except (KeyError, TypeError, ValueError) as exc:
@@ -146,7 +159,7 @@ def _open(path: Path) -> Iterator[str]:
 
 
 def load(path: str | Path) -> Archive:
-    """Read a ``(system, item, draw, correct)`` archive from JSONL(.gz) or CSV.
+    """Read a ``(system, item, draw, correct)`` archive from JSONL(.gz), CSV or TSV.
 
     The plain four-column form is the fallback every harness can produce. Native readers
     for richer layouts belong in adapters, not here.
@@ -154,7 +167,8 @@ def load(path: str | Path) -> Archive:
     p = Path(path)
     if p.suffix in {".csv", ".tsv"}:
         with p.open(encoding="utf-8", newline="") as fh:
-            return from_records(list(csv.DictReader(fh)))
+            delimiter = "\t" if p.suffix == ".tsv" else ","
+            return from_records(list(csv.DictReader(fh, delimiter=delimiter)))
     return from_records(
         json.loads(line) for line in _open(p) if line.strip() and not line.startswith("#")
     )

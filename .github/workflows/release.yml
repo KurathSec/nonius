@@ -3,7 +3,8 @@ on:
   push:
     tags: ["v*"]
 permissions:
-  contents: write
+  # No step writes to the repository: the jobs read, build, and publish.
+  contents: read
   id-token: write
 
 jobs:
@@ -40,7 +41,10 @@ jobs:
           awk -v v="$version" '$0 ~ "^## \\["v"\\]" {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md \
             | grep -q '[^[:space:]]' || { echo "empty changelog section"; exit 1; }
 
-      - run: PIP_CONSTRAINT=constraints/build.txt python -m build
+      # setup-python provides pip, never `build`; install it pinned from the same file
+      # that pins the isolated PEP 517 environment below.
+      - run: pip install build==1.2.2 -c constraints/build.txt
+      - run: python -m build
         env: { PIP_CONSTRAINT: constraints/build.txt }
 
       - name: sdist must not ship excluded paths

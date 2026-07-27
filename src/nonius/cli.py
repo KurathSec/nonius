@@ -123,10 +123,11 @@ def _cmd_compose(argv: Sequence[str]) -> int:
     )
     args = p.parse_args(list(argv))
 
-    from nonius.audit import constructible
+    from nonius.audit import constructible, singletons
     from nonius.canonical import canonical_json
     from nonius.compose import analyze, composite_record, realize
     from nonius.manifest import index
+    from nonius.model import Diagnostic
     from nonius.oracle import load_callable
     from nonius.realize import make_prompt_realizer
 
@@ -149,8 +150,15 @@ def _cmd_compose(argv: Sequence[str]) -> int:
 
     records: list[dict[str, object]] = []
     problems = 0
+    # Deduplicated and insertion-ordered, so stderr is deterministic under any hash seed.
+    # These are the realizer's own disclosures -- notably that its gold-agreement check is
+    # vacuous -- and dropping them on the floor would make the tool quieter than honest.
+    disclosures: dict[tuple[str, str], Diagnostic] = {}
     for depth in args.depths:
-        pool = constructible(analysis, depth, cap=args.path_cap)[: args.limit]
+        available_chains = (
+            singletons(items) if depth == 1 else constructible(analysis, depth, cap=args.path_cap)
+        )
+        pool = available_chains[: args.limit]
         for chain in pool:
             strata = (
                 tuple(archive.stratum(c) for c in chain.components)
@@ -158,12 +166,17 @@ def _cmd_compose(argv: Sequence[str]) -> int:
                 else ()
             )
             try:
-                composite, _ = realize(chain, idx, oracle, realizer, strata=strata)
+                composite, diags = realize(chain, idx, oracle, realizer, strata=strata)
             except Exception as exc:  # noqa: BLE001 - refusal is the point; report it
                 problems += 1
                 print(f"error: {type(exc).__name__}: {exc}", file=sys.stderr)
                 continue
+            for d in diags:
+                disclosures.setdefault((d.code, d.message), d)
             records.append(composite_record(composite))
+
+    for d in disclosures.values():
+        print(f"{d.severity}: {d.code}: {d.message}", file=sys.stderr)
 
     if args.export == "nonius":
         payload = "".join(canonical_json(r) + "\n" for r in records)
@@ -171,6 +184,23 @@ def _cmd_compose(argv: Sequence[str]) -> int:
         from nonius.adapters.harness import EXPORTERS
 
         payload = EXPORTERS[args.export](records, language=args.language)
+        # An exporter drops any composite lacking the requested rendering. Silently
+        # emitting a short dataset that still looks plausible is the worse failure, so
+        # the shortfall is reported and a total wipeout is an error.
+        exported = len([x for x in payload.splitlines() if x.strip()])
+        if exported < len(records):
+            available: set[str] = set()
+            for r in records:
+                rendering = r.get("rendering", {})
+                if isinstance(rendering, dict):
+                    available.update(str(k) for k in rendering)
+            print(
+                f"error: {len(records) - exported} of {len(records)} composites have no "
+                f"{args.language!r} rendering and were dropped; this realizer emits "
+                f"{sorted(available) or ['(nothing)']}. Pass --language to pick one.",
+                file=sys.stderr,
+            )
+            problems += 1
     lines = payload.splitlines()
     if args.out:
         Path(args.out).write_text(payload, encoding="utf-8")
@@ -190,15 +220,20 @@ def _cmd_run(argv: Sequence[str]) -> int:
     p.add_argument("--prereg", required=True, help="pre-registration TOML")
     args = p.parse_args(list(argv))
 
-    from nonius.canonical import canonical_json  # noqa: F401  (kept for symmetry)
+    from nonius.errors import ManifestError
     from nonius.run import load_preregistration, plan
 
     prereg = load_preregistration(args.prereg)
-    records = [
-        json.loads(line)
-        for line in Path(args.composites).read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
+    records = []
+    for n, line in enumerate(
+        Path(args.composites).read_text(encoding="utf-8").splitlines(), start=1
+    ):
+        if not line.strip():
+            continue
+        try:
+            records.append(json.loads(line))
+        except json.JSONDecodeError as exc:
+            raise ManifestError(f"{args.composites} line {n}: {exc}") from exc
     print(plan(prereg, records))
     print(
         "\nThis verb cannot spend. Executing a run means calling nonius.run.execute() "

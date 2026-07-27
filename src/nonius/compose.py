@@ -71,7 +71,7 @@ def codomain_values(item: Item, result: str, *, cap: int = 64) -> tuple[Scalar, 
     if rv.tag == "int":
         return PROBE_INT[:cap]
     if rv.tag == "bool":
-        return PROBE_BOOL
+        return PROBE_BOOL[:cap]
     return PROBE_STR
 
 
@@ -125,21 +125,30 @@ class LinkAnalysis:
         )
 
 
+_PROBE_ERROR = "\x00error"
+
+
 def _probe_outcome(
     oracle: Oracle,
     item: Item,
     slot: str,
     value: Scalar,
-    cache: dict[tuple[str, str, str], str],
-) -> str:
+    cache: dict[tuple[str, str, str], tuple[str, str]],
+) -> tuple[str, str]:
+    """The downstream answer for one probed value, and why the probe failed if it did.
+
+    Returns ``(outcome, error)``. A refusing oracle is a dead probe, not a crash -- but it
+    is also not evidence that the downstream ignores its input, so the reason is carried
+    out rather than flattened into the outcome.
+    """
     key = (item.id, slot, canonical_json(value))
     hit = cache.get(key)
     if hit is not None:
         return hit
     try:
-        out = canonical_json(dict(evaluate(oracle, item, {slot: value})))
-    except Exception:  # noqa: BLE001 - a refusing oracle is a dead probe, not a crash
-        out = "\x00error"
+        out = (canonical_json(dict(evaluate(oracle, item, {slot: value}))), "")
+    except Exception as exc:  # noqa: BLE001 - reported, not swallowed and not fatal
+        out = (_PROBE_ERROR, repr(exc))
     cache[key] = out
     return out
 
@@ -162,7 +171,7 @@ def analyze(
     verdicts: list[LinkVerdict] = []
     diags: list[Diagnostic] = []
     counts: dict[str, int] = {}
-    cache: dict[tuple[str, str, str], str] = {}
+    cache: dict[tuple[str, str, str], tuple[str, str]] = {}
     seen_unbounded: set[str] = set()
 
     def note(diag: Diagnostic) -> None:
@@ -216,31 +225,47 @@ def analyze(
                         )
                         continue
 
-                    outcomes = {
+                    probed = [
                         _probe_outcome(oracle, down, slot.name, v, cache) for v in values
-                    }
-                    real = {o for o in outcomes if o != "\x00error"}
+                    ]
+                    real = {o for o, err in probed if o != _PROBE_ERROR}
+                    errors = [err for o, err in probed if o == _PROBE_ERROR]
                     live = len(real) > 1
-                    if not live:
+
+                    if not live and errors and not real:
+                        # Every probe was refused. The downstream did not ignore the
+                        # upstream answer; it was never given a usable one, and saying
+                        # otherwise would assert a cause that was never tested.
+                        note(
+                            Diagnostic(
+                                "warning",
+                                "oracle-raised",
+                                f"{up.id}.{rv.name} -> {down.id}.{slot.name}: the oracle "
+                                f"refused all {len(values)} probed values, so liveness "
+                                f"could not be decided; first error: {errors[0][:120]}",
+                                subject=f"{up.id}->{down.id}",
+                                ruling="LINK-ALL-0002",
+                            )
+                        )
+                        reason = "oracle refused every probed value; liveness undecided"
+                    elif not live:
                         note(
                             Diagnostic(
                                 "info",
                                 "link-dead",
                                 f"{up.id}.{rv.name} -> {down.id}.{slot.name}: downstream answer "
-                                f"is constant over {len(values)} probed values"
+                                f"is constant over {len(values) - len(errors)} probed values"
                                 + (f" ({slot.consumer})" if slot.consumer else ""),
                                 subject=f"{up.id}->{down.id}",
                                 ruling="LINK-ALL-0002",
                             )
                         )
+                        reason = "downstream answer constant over codomain"
+                    else:
+                        reason = "live"
+
                     verdicts.append(
-                        LinkVerdict(
-                            cand,
-                            live,
-                            len(real),
-                            len(values),
-                            "live" if live else "downstream answer constant over codomain",
-                        )
+                        LinkVerdict(cand, live, len(real), len(values), reason)
                     )
 
     return LinkAnalysis(
@@ -348,6 +373,43 @@ def enumerate_paths(
     return tuple(sorted(out))
 
 
+def _match_slots(
+    slots: Sequence[str],
+    options: Mapping[str, Sequence[Candidate]],
+    *,
+    exclude: str,
+    want: int,
+) -> dict[str, Candidate]:
+    """Assign distinct upstream components to distinct slots of one sink.
+
+    This is a bipartite matching, and first-fit greedy solves it only when the graph is
+    fortunate: if an early slot consumes the only upstream a later slot could have used,
+    greedy abandons a fan-in that exists. So a short greedy result is repaired with
+    augmenting paths (Kuhn's algorithm). Deterministic: slots and options are both already
+    in sorted order, and the search visits them in that order.
+    """
+    taken: dict[str, Candidate] = {}
+    owner: dict[str, str] = {}
+
+    def augment(slot: str, seen: set[str]) -> bool:
+        for cand in options[slot]:
+            if cand.upstream_item == exclude or cand.upstream_item in seen:
+                continue
+            seen.add(cand.upstream_item)
+            held = owner.get(cand.upstream_item)
+            if held is None or augment(held, seen):
+                taken[slot] = cand
+                owner[cand.upstream_item] = slot
+                return True
+        return False
+
+    for slot in slots:
+        if len(taken) == want:
+            break
+        augment(slot, set())
+    return taken
+
+
 def enumerate_fanins(
     analysis: LinkAnalysis, depth: int, *, cap: int = 10_000
 ) -> tuple[Chain, ...]:
@@ -368,16 +430,13 @@ def enumerate_fanins(
         slots = sorted(by_sink[sink])
         if len(slots) < depth - 1:
             continue
-        chosen: list[Candidate] = []
-        used: set[str] = {sink}
-        for slot in slots:
-            if len(chosen) == depth - 1:
-                break
-            for cand in sorted(by_sink[sink][slot], key=lambda c: (c.upstream_item, c.result)):
-                if cand.upstream_item not in used:
-                    chosen.append(cand)
-                    used.add(cand.upstream_item)
-                    break
+
+        options = {
+            slot: sorted(by_sink[sink][slot], key=lambda c: (c.upstream_item, c.result))
+            for slot in slots
+        }
+        taken = _match_slots(slots, options, exclude=sink, want=depth - 1)
+        chosen = [taken[slot] for slot in slots if slot in taken][: depth - 1]
         if len(chosen) != depth - 1:
             continue
         order = [c.upstream_item for c in chosen] + [sink]
@@ -467,14 +526,20 @@ def check_realization(
 
 
 def composite_id(chain: Chain) -> str:
-    """Content hash over shape, links and spec version (EMIT-ALL-0003)."""
+    """Content hash over the composite's shape and links (EMIT-ALL-0003).
+
+    The spec version is deliberately NOT hashed. It is recorded alongside the id, in the
+    emitted record, because it is a stamp on how the composite was decided rather than
+    part of what the composite is. Hashing it would move every id on an editorial spec
+    patch -- a change that by definition alters no decision -- which is precisely the
+    "only if" direction EMIT-ALL-0003 claims.
+    """
     return content_hash(
         {
             "components": list(chain.components),
             "links": [
                 [x.upstream, x.result, x.downstream, x.slot, x.tag] for x in chain.links
             ],
-            "spec": spec_version(),
         }
     )
 

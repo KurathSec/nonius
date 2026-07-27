@@ -63,6 +63,16 @@ class DepthReadout:
         return (ranked[0][0], ranked[1][0])
 
 
+def ci95_for(values: Sequence[float], *, seed: int = 0) -> float:
+    """Width of the seeded 95% bootstrap interval of the mean.
+
+    This is the quantity ``m*`` is a maximum over: a between-system difference narrower
+    than it sits inside the instrument's own noise.
+    """
+    lo, hi = ci95_bootstrap(values, seed=seed)
+    return hi - lo
+
+
 def _row(
     depth: int,
     source: Source,
@@ -89,9 +99,7 @@ def _row(
     # widest 95% bootstrap interval on any system's mean. A gap narrower than that is
     # inside the instrument's own noise and must not be reported as a difference.
     widths = [
-        hi - lo
-        for s in systems
-        for lo, hi in [ci95_bootstrap([row.get(s, 0.0) for row in per_composite], seed=seed)]
+        ci95_for([row.get(s, 0.0) for row in per_composite], seed=seed) for s in systems
     ]
     m_star = max(widths) if widths else 0.0
 
@@ -170,9 +178,22 @@ def measure(
 
     ``observed`` is ``{composite_id: {system: accuracy}}``. Quarantined composites are
     excluded, not counted as successes (BOUND-ALL-0003), and the exclusion is reported.
+
+    Every composite must carry a value for every system. A composite a system simply was
+    not run on is *not* a composite it failed, and imputing zero would silently report
+    an un-run system as the worst one. Ragged input is refused rather than averaged over.
     """
     drop = set(quarantined)
-    rows = [row for cid, row in sorted(observed.items()) if cid not in drop]
+    kept = {cid: row for cid, row in sorted(observed.items()) if cid not in drop}
+    systems = sorted({s for row in kept.values() for s in row})
+    ragged = sorted(cid for cid, row in kept.items() if sorted(row) != systems)
+    if ragged:
+        raise ValueError(
+            f"measure() got composites missing a system: {ragged[:5]}"
+            f"{' ...' if len(ragged) > 5 else ''}. Every scored composite must carry a "
+            f"value for all of {systems}; a missing system is not a failed one."
+        )
+    rows = list(kept.values())
     return _row(
         depth,
         "measured",
@@ -193,14 +214,21 @@ def singleton_row(archive: Archive, *, seed: int = 0) -> DepthReadout:
     This is the baseline every other row is read against, and it is computed from the
     archive alone -- no composition, no assumption, no sampling.
     """
-    rows = [archive.per_item(item) for item in archive.items]
-    rows = [r for r in rows if len(r) == len(archive.systems)]
+    available = [archive.per_item(item) for item in archive.items]
+    rows = [r for r in available if len(r) == len(archive.systems)]
     return _row(
         1,
         "predicted",
         rows,
         seed=seed,
-        caps={"population": "singleton", "items": len(rows)},
+        caps={
+            "population": "singleton",
+            "items_available": len(available),
+            "items_used": len(rows),
+            # Items missing for some system are dropped; saying so is the difference
+            # between a filtered population and a silently truncated one (AUDIT-ALL-0004).
+            "items_skipped_incomplete": len(available) - len(rows),
+        },
     )
 
 

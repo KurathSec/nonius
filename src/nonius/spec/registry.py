@@ -42,9 +42,11 @@ class Ruling:
     statement: str
     status: str = "active"  # active | draft | superseded
     since_spec: str = "0.1.0"
-    #: Calibration-corpus case ids that exercise this ruling. The coverage gate
-    #: (tests/test_spec_coverage.py) requires at least one, and requires the cited case
-    #: to cite the ruling back -- a self-attested example is vacuous.
+    #: Calibration-corpus case ids that exercise this ruling. May be empty: a ruling
+    #: about a refusal has no value to hand-compute, and is covered instead by a named
+    #: test listed in TEST_COVERED (tests/test_spec_coverage.py). What the gate does
+    #: require is that every cited case names the ruling back -- a self-attested example
+    #: is vacuous -- and that every active ruling is covered one way or the other.
     examples: tuple[str, ...] = ()
     superseded_by: str = ""
     #: Free-text record of why the decision went this way. Carries the evidence.

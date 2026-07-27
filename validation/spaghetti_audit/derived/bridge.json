@@ -3,25 +3,25 @@
   "rows": [
     {
       "depth": 2,
-      "predicted_composite": 0.326952093398,
+      "predicted_composite": 0.334609434537,
       "singleton": 0.8385,
       "system": "deepseek-ai-DeepSeek-V4-Flash"
     },
     {
       "depth": 2,
-      "predicted_composite": 0.0964681964573,
+      "predicted_composite": 0.0967028654169,
       "singleton": 0.7685,
       "system": "meta-llama-Llama-3.3-70B-Instruct-Turbo"
     },
     {
       "depth": 2,
-      "predicted_composite": 6.76328502415e-05,
+      "predicted_composite": 0.000128029263832,
       "singleton": 0.552416666667,
       "system": "meta-llama-Meta-Llama-3.1-8B-Instruct"
     },
     {
       "depth": 2,
-      "predicted_composite": 0.0951525764895,
+      "predicted_composite": 0.0950575369608,
       "singleton": 0.73825,
       "system": "mistralai-Mistral-Small-3.2-24B-Instruct-2506"
     },

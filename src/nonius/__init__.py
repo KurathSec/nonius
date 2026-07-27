@@ -15,6 +15,7 @@ would buy on the population it can really build.
 from __future__ import annotations
 
 from nonius._version import __version__
+from nonius.bound import ReuseCeilingExceeded, ReuseReport, guard_reuse
 from nonius.compose import (
     LinkAnalysis,
     LinkVerdict,
@@ -75,6 +76,8 @@ __all__ = [
     "Realization",
     "Realizer",
     "ResultVar",
+    "ReuseCeilingExceeded",
+    "ReuseReport",
     "Scalar",
     "Slot",
     "SpecError",
@@ -86,6 +89,7 @@ __all__ = [
     "enumerate_fanins",
     "enumerate_paths",
     "get",
+    "guard_reuse",
     "make_chain",
     "make_prompt_realizer",
     "realize",

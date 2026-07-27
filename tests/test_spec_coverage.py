@@ -1,4 +1,4 @@
-"""Gate 1 of 3: every ruling is exercised, and every cited ruling exists.
+"""Gate 2 of 3: every ruling is exercised, and every cited ruling exists.
 
 Two directions, both mechanical:
 
@@ -28,9 +28,10 @@ RULING_RE = re.compile(r"\b(?:CORE|DEPTH|LINK|EMIT|BOUND|AUDIT)-(?:ALL)-\d{4}\b"
 #: a test that no longer exists fails the build.
 TEST_COVERED: dict[str, str] = {
     "CORE-ALL-0002": "tests/test_determinism.py::test_canonical_json_is_stable",
+    "DEPTH-ALL-0002": "tests/test_corpus.py::test_case",
     "LINK-ALL-0004": "tests/test_refusals.py::test_slot_takes_one_link",
     "LINK-ALL-0005": "tests/test_refusals.py::test_cycles_are_refused",
-    "LINK-ALL-0006": "tests/test_refusals.py::test_reuse_multiplicity_is_counted",
+    "LINK-ALL-0006": "tests/test_refusals.py::test_reuse_above_the_ceiling_is_refused",
     "EMIT-ALL-0004": "tests/test_refusals.py::test_composing_and_auditing_touch_no_network",
     "BOUND-ALL-0002": "tests/test_refusals.py::test_no_band_without_replicates",
     "BOUND-ALL-0004": "tests/test_refusals.py::test_quarantine_rate_is_reported_against_a_ceiling",

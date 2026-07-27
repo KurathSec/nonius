@@ -8,7 +8,7 @@ should score a system on, and no number derived from it is a finding about any m
 
 ```
 items.jsonl        the shared item set, 10 items
-oracle.py          the oracle, four operations, deterministic and total
+oracle.py          the oracle, five operations, deterministic and total
 cases/<id>.toml    one scenario per file
 ```
 

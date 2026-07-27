@@ -1,5 +1,7 @@
 # Calibrated build environment for CI.
-# Pinned so a dependency release cannot silently change what the gates compare.
-pytest==8.3.4
-ruff==0.8.4
-mypy==1.14.0
+# Pinned so a dependency release cannot silently change what the gates compare, and
+# pinned to the versions the tree is actually clean under: a newer ruff enables new
+# lint rules, so an unpinned bump turns a green tree red without anything changing.
+pytest==9.1.1
+ruff==0.16.0
+mypy==2.3.0

@@ -4,25 +4,36 @@ rulings = ["CORE-ALL-0001", "CORE-ALL-0003"]
 kind = "manifest"
 computed_by = "hand"
 notes = """
-Counted by reading tests/corpus/items.jsonl.
+Counted by reading tests/corpus/items.jsonl. 10 records.
 
-10 records. Slots, by item:
-  sum-a 0, sum-b 0, thr-live 1, thr-dead 1, dual-a 2, lk-live 1, lk-miss 1,
-  lk-nocodomain 1, mem-a 1, float-item 1  =  10 slots.
-Results, by item:
-  sum-a 1, sum-b 1, thr-live 1, thr-dead 1, dual-a 2, lk-live 1, lk-miss 1,
-  lk-nocodomain 1, mem-a 1, float-item 1  =  11 results.
-Tags: slots  int 6 (thr-live, thr-dead, dual-a x2, mem-a, ... ) -- enumerated:
-  thr-live.subject int, thr-dead.subject int, dual-a.subject_a int,
-  dual-a.subject_b int, mem-a.probe int  = 5 int;
-  lk-live.key str, lk-miss.key str, lk-nocodomain.key str = 3 str;
-  float-item.subject float = 1 float.  5 + 3 + 1 = 9.
-  (dual-a contributes two, so slots total 10 -- recount: the nine above plus
-   nothing else; the tenth is dual-a's second slot already counted. Slots = 9.)
-Results tags: int 2 (sum-a, sum-b), str 8 (thr-live, thr-dead, dual-a x2,
-  lk-live, lk-miss, lk-nocodomain, float-item), bool 1 (mem-a). 2+8+1 = 11.
-CORE-ALL-0001 is exercised by mem-a: its result is declared bool, and a bool that
-reported itself as int would become type-compatible with every int slot.
+Slots, per item:
+  sum-a 0, sum-b 0, thr-live 1, thr-dead 1, dual-a 2,
+  lk-live 1, lk-miss 1, lk-nocodomain 1, mem-a 1, float-item 1
+  0 + 0 + 1 + 1 + 2 + 1 + 1 + 1 + 1 + 1 = 9
+
+Slot tags, enumerated:
+  int    thr-live.subject, thr-dead.subject, dual-a.subject_a, dual-a.subject_b,
+         mem-a.probe                                                          = 5
+  str    lk-live.key, lk-miss.key, lk-nocodomain.key                          = 3
+  float  float-item.subject                                                   = 1
+  5 + 3 + 1 = 9, which agrees with the per-item count above.
+
+Results, per item:
+  sum-a 1, sum-b 1, thr-live 1, thr-dead 1, dual-a 2,
+  lk-live 1, lk-miss 1, lk-nocodomain 1, mem-a 1, float-item 1
+  1 + 1 + 1 + 1 + 2 + 1 + 1 + 1 + 1 + 1 = 11
+  (An item with no slots still has results: sum-a and sum-b are pure producers.)
+
+Result tags, enumerated:
+  int   sum-a.total, sum-b.total                                              = 2
+  str   thr-live.verdict, thr-dead.verdict, dual-a.verdict_a, dual-a.verdict_b,
+        lk-live.route, lk-miss.route, lk-nocodomain.route, float-item.verdict = 8
+  bool  mem-a.present                                                         = 1
+  2 + 8 + 1 = 11, which agrees.
+
+CORE-ALL-0001 is what makes mem-a's declaration meaningful: its result is bool, and a tag
+function testing int before bool would report it as int, since bool subclasses int in
+Python. link-type-mismatch-001 shows what that error would cost.
 """
 
 [expect]

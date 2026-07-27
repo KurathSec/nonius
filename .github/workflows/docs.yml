@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
-      - run: pip install -e "." -c constraints/docs.txt -r constraints/docs.txt
+      - run: pip install -e ".[docs]" -c constraints/docs.txt
       # --strict: a broken transclusion is a broken claim, not a warning.
       - run: mkdocs build --strict
       - uses: actions/upload-pages-artifact@v3

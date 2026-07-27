@@ -10,7 +10,36 @@
 # snapshot without one.
 
 [spec]
-version = "0.1.0"
+version = "1.0.0"
+
+[[changelog]]
+version = "1.0.0"
+summary = """
+A correction release, made before any number was published under 0.1.0. Three decisions
+moved, so it is a MAJOR.
+
+Composite identity no longer hashes the spec version. Hashing it meant an editorial patch
+-- a change that by definition alters no decision -- moved every composite id, which is
+exactly the "only if" direction EMIT-ALL-0003 claims. The spec version is still recorded
+beside every emitted composite; it is a stamp on how the composite was decided, not part
+of what it is. Every id changed once, here, and will not move again for a spec change.
+
+DEPTH-ALL-0001 is superseded by DEPTH-ALL-0003. The old title and statement said links
+number depth minus one. That holds on a simple path and nowhere else: fan-out lets one
+component feed several slots, so a depth-2 chain can carry two links.
+
+AUDIT-ALL-0001 is superseded by AUDIT-ALL-0005. The old wording called the reported k
+"the largest constructible component count". It is the largest over the two shapes the
+audit enumerates, and a mixed DAG can exceed it -- demonstrably so on the shipped
+calibration corpus, where a four-component chain exists that the audit does not reach.
+The search space is now declared rather than the claim widened.
+
+Also corrected, none of which changes a decision and so none of which needed a
+supersession: AUDIT-ALL-0002's rationale said one item family could start a chain on the
+reference asset when two can; LINK-ALL-0006's reuse ceiling, previously stated but never
+implemented, is now enforced by `nonius.bound.guard_reuse`; and the path-enumeration cap
+is now reported, which AUDIT-ALL-0004 always required.
+"""
 
 [[changelog]]
 version = "0.1.0"

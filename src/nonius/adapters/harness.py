@@ -31,9 +31,11 @@ def lm_eval_dataset(
 ) -> str:
     """JSONL rows for an lm-evaluation-harness task.
 
-    One row per composite: the prompt, the gold as a JSON string, and the provenance
-    fields a result table needs (depth, components, spec version) so a score can be traced
-    back to the items it was composed from.
+    One row per composite: the prompt, the gold as a JSON string, and the provenance a
+    result table needs -- component count, longest path, the components themselves, the
+    strata and the spec version -- so a score can be traced back to what it was composed
+    from. Depth and path depth are both carried because DEPTH-ALL-0002 requires they never
+    be conflated.
     """
     rows: list[str] = []
     for record in composites:
@@ -45,6 +47,7 @@ def lm_eval_dataset(
                 {
                     "id": record["id"],
                     "depth": record["depth"],
+                    "path_depth": record.get("path_depth", record["depth"]),
                     "components": record["components"],
                     "spec": record.get("spec", ""),
                     "strata": record.get("strata", []),

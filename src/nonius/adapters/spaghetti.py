@@ -30,6 +30,7 @@ result by running it.
 
 from __future__ import annotations
 
+import contextlib
 import copy
 import dataclasses
 import functools
@@ -38,7 +39,7 @@ import gzip
 import json
 import os
 import sys
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
@@ -65,16 +66,40 @@ def home(explicit: str | os.PathLike[str] | None = None) -> Path:
     return path
 
 
+@contextlib.contextmanager
+def _read_only_import() -> Iterator[None]:
+    """Import from the subject without leaving anything behind in it.
+
+    Importing a module normally writes ``__pycache__/*.pyc`` next to its source. On a
+    checkout nonius does not own, that is a write -- so bytecode writing is disabled for
+    the duration of the import. Without this the adapter's read-only claim is false, and
+    ``git status`` in the subject repository grows untracked directories.
+    """
+    previous = sys.dont_write_bytecode
+    sys.dont_write_bytecode = True
+    try:
+        yield
+    finally:
+        sys.dont_write_bytecode = previous
+
+
 @functools.lru_cache(maxsize=4)
 def _sa(root: str) -> Any:
-    """Import the project's modules from a checkout, once."""
+    """Import the project's modules from a checkout, once.
+
+    The checkout is *appended* to ``sys.path``, never prepended. It exposes very generic
+    top-level names -- ``src``, ``bench``, ``eval``, ``tests``, ``config``, ``conftest``
+    -- and at position 0 those would shadow the host process's own modules of the same
+    name for the rest of its life.
+    """
     if root not in sys.path:
-        sys.path.insert(0, root)
-    from src.generators import REGISTRY  # noqa: TID253
-    from src.ir_models import IRProgram, scalar_tag  # noqa: TID253
-    from src.nodes.parser import parse  # noqa: TID253
-    from src.nodes.planner import Planner  # noqa: TID253
-    from src.nodes.validator import oracle as sa_oracle  # noqa: TID253
+        sys.path.append(root)
+    with _read_only_import():
+        from src.generators import REGISTRY  # noqa: TID253
+        from src.ir_models import IRProgram, scalar_tag  # noqa: TID253
+        from src.nodes.parser import parse  # noqa: TID253
+        from src.nodes.planner import Planner  # noqa: TID253
+        from src.nodes.validator import oracle as sa_oracle  # noqa: TID253
 
     return {
         "IRProgram": IRProgram,
@@ -287,34 +312,67 @@ def _merge(sa: Any, programs: Sequence[Any], links: Sequence[Link]) -> tuple[Any
         inputs.pop(target, None)
 
     merged = sa["IRProgram"]("1.0", "composite", inputs, ops)
-    _check_merged(merged, inputs)
+    _check_merged(sa, merged, inputs)
     return merged, tuple(suppressed)
 
 
-def _check_merged(merged: Any, inputs: Mapping[str, object]) -> None:
+def _check_merged(sa: Any, merged: Any, inputs: Mapping[str, object]) -> None:
     """Re-establish the parser invariants that still apply to a merged program.
 
-    ``parse()`` cannot be used on a composite (it requires every operand to be an input),
-    so the checks it would have run are restated here for everything except that one rule.
+    ``parse()`` cannot be used on a composite -- it requires every operand to be an input,
+    and a composite's whole point is that one operand is an earlier operation's result.
+    Everything else it checks still applies and is restated here: name resolution,
+    result_var collision, collection operands still being inputs, and the operand TYPE
+    constraints. The type checks matter most, because substitution is exactly what can
+    break them: the parser proved the ORIGINAL binding well-typed, and a link replaces it.
     """
-    declared = set(inputs)
+    declared: dict[str, str] = {}
+    for name, value in inputs.items():
+        if not isinstance(value, (list, dict)):
+            declared[name] = sa["scalar_tag"](value)
+
     for i, op in enumerate(merged.operations):
-        if op.result_var in declared:
+        if op.result_var in declared or op.result_var in inputs:
             raise CompositionError(f"merged[{i}]: result_var {op.result_var!r} collides")
         for key in ("collection_name", "map_name"):
-            name = getattr(op, key, None)
-            if name is not None and name not in inputs:
+            operand = getattr(op, key, None)
+            if operand is not None and operand not in inputs:
                 raise CompositionError(
-                    f"merged[{i}]: {key} {name!r} must still point at an input; a "
+                    f"merged[{i}]: {key} {operand!r} must still point at an input; a "
                     f"collection operand is never a substitution target"
                 )
-        for key in ("target_var", "key_var", "subject_var"):
-            name = getattr(op, key, None)
-            if name is not None and name not in declared:
+
+        # The scalar operand, and the tag it must carry after substitution.
+        want: tuple[str, str] | None = None
+        if op.op == "MEMBERSHIP_CHECK":
+            collection = inputs[op.collection_name]
+            assert isinstance(collection, list)
+            want = (op.target_var, _elem_tag(sa, collection))
+        elif op.op == "KEY_VALUE_LOOKUP":
+            want = (op.key_var, "str")
+        elif op.op == "CONDITIONAL_SELECT":
+            want = (op.subject_var, "int")
+
+        if want is not None:
+            operand, expected = want
+            if operand not in declared:
                 raise CompositionError(
-                    f"merged[{i}]: operand {name!r} is neither an input nor an earlier result"
+                    f"merged[{i}]: operand {operand!r} is neither an input nor an earlier result"
                 )
-        declared.add(op.result_var)
+            if declared[operand] != expected:
+                raise CompositionError(
+                    f"merged[{i}]: {op.op} operand {operand!r} is {declared[operand]}, but this "
+                    f"operation requires {expected}; the substitution is not type-compatible"
+                )
+
+        if op.op == "MEMBERSHIP_CHECK":
+            declared[op.result_var] = "bool"
+        elif op.op == "AGGREGATE":
+            declared[op.result_var] = "int"
+        elif op.op == "KEY_VALUE_LOOKUP":
+            declared[op.result_var] = sa["scalar_tag"](op.default_value)
+        else:
+            declared[op.result_var] = sa["scalar_tag"](op.then_value)
 
 
 def make_realizer(
@@ -401,9 +459,8 @@ def archive(
             rec = json.load(fh)
         programs[str(rec["stem"])] = sa["parse"](rec["ir"])
 
-    if str(root) not in sys.path:
-        sys.path.insert(0, str(root))
-    from bench.grade import _match, extract_json_obj  # noqa: TID253
+    with _read_only_import():
+        from bench.grade import _match, extract_json_obj  # noqa: TID253
 
     golds = {stem: sa["oracle"](program) for stem, program in programs.items()}
 

@@ -5,12 +5,14 @@ values a human can verify with arithmetic on paper. It makes no claim about mode
 capability, it is not an item set anyone should score a system on, and nothing derived
 from it is a finding. See tests/corpus/README.md and NOTICE.
 
-Four operations, chosen to cover the composable tags and both liveness outcomes:
+Five operations, chosen to cover the composable tags, both liveness outcomes, and the
+fan-in shape:
 
     sum       values: list[int]                       -> total: int
     threshold subject: int, cut: int, hi: str, lo: str -> verdict: str
     lookup    key: str, table: dict[str,str], default  -> route: str
     member    probe: int, pool: list[int]              -> present: bool
+    dual      subject_a: int, subject_b: int, cut     -> verdict_a, verdict_b: str
 
 Bindings are *overrides*: a slot named in ``bindings`` replaces the item's own payload
 value for that key, and every other key keeps the item's value. That is the contract the

@@ -75,7 +75,7 @@ def test_compose_emits_jsonl(capsys: pytest.CaptureFixture[str]) -> None:
         rec = json.loads(line)
         assert set(rec) >= {"id", "depth", "components", "links", "gold", "spec"}
         assert rec["depth"] == len(rec["components"])
-        assert len(rec["links"]) == rec["depth"] - 1 or rec["depth"] > 2
+        assert len(rec["links"]) == rec["depth"] - 1
 
 
 def test_compose_refuses_when_nothing_is_live(
@@ -110,8 +110,12 @@ def test_compose_refuses_when_nothing_is_live(
 
 
 def test_spec_verbs(capsys: pytest.CaptureFixture[str]) -> None:
+    from nonius.spec.registry import spec_version
+
     assert main(["spec", "version"]) == 0
-    assert capsys.readouterr().out.strip() == "0.1.0"
+    # Compared against the registry rather than a literal: a hardcoded version here would
+    # have to be edited on every spec bump, which is exactly how a test goes stale.
+    assert capsys.readouterr().out.strip() == spec_version()
 
     assert main(["spec", "list"]) == 0
     listing = capsys.readouterr().out

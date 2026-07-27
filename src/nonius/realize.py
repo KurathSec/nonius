@@ -17,6 +17,7 @@ merging the components into one program and running that program's own oracle.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping, Sequence
 
 from nonius.errors import CompositionError
@@ -61,10 +62,16 @@ def _template(item: Item) -> str:
 
 
 def _fill(template: str, values: Mapping[str, str]) -> str:
-    out = template
-    for name, text in values.items():
-        out = out.replace("{" + name + "}", text)
-    return out
+    """One pass over the template: text inserted for one slot is never rescanned.
+
+    Substituting slot by slot would let a value that happens to contain ``{other}`` be
+    re-expanded when a later slot is filled, so an item's own data could rewrite the
+    prompt around it.
+    """
+    if not values:
+        return template
+    pattern = re.compile("|".join(re.escape("{" + name + "}") for name in sorted(values)))
+    return pattern.sub(lambda m: values[m.group(0)[1:-1]], template)
 
 
 def make_prompt_realizer(oracle: Oracle) -> object:

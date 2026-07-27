@@ -33,8 +33,15 @@ class BridgeRow:
     system: str
     depth: int
     singleton: float
-    predicted_composite: float
+    #: ``None`` when no supplied chain had a computable prediction for this system. An
+    #: empty mean is 0.0, and printing 0.0 would be a fabricated bound -- the exact
+    #: failure ``product_prediction``'s None contract exists to prevent.
+    predicted_composite: float | None
     measured_composite: float | None
+    #: How many of the supplied chains had a computable prediction for this system.
+    #: Per-system, because a ragged archive drops different chains for different systems.
+    chains_used: int
+    chains_available: int
     #: The singleton accuracy the measured composite score implies, ``c ** (1/depth)``.
     #: Comparable to ``singleton`` only under independence and component exchangeability.
     implied_singleton: float | None
@@ -42,13 +49,19 @@ class BridgeRow:
     residual: float | None
 
     def line(self) -> str:
+        pred = (
+            "     --"
+            if self.predicted_composite is None
+            else f"{self.predicted_composite:7.4f}"
+        )
         meas = "     --" if self.measured_composite is None else f"{self.measured_composite:7.4f}"
         impl = "     --" if self.implied_singleton is None else f"{self.implied_singleton:7.4f}"
         resid = "      --" if self.residual is None else f"{self.residual:+8.4f}"
         return (
             f"{self.system[:28]:<28} d={self.depth:<2} "
-            f"singleton {self.singleton:7.4f}  predicted {self.predicted_composite:7.4f}  "
-            f"measured {meas}  implies {impl}  residual {resid}"
+            f"singleton {self.singleton:7.4f}  predicted {pred}  "
+            f"measured {meas}  implies {impl}  residual {resid} "
+            f"[{self.chains_used}/{self.chains_available} chains]"
         )
 
 
@@ -95,7 +108,7 @@ def build(
             for chain in chains
             if (p := product_prediction(archive, system, chain.components)) is not None
         ]
-        predicted = mean(preds)
+        predicted = mean(preds) if preds else None
         obs = (measured or {}).get(system)
         rows.append(
             BridgeRow(
@@ -103,9 +116,11 @@ def build(
                 depth=depth,
                 singleton=singleton,
                 predicted_composite=predicted,
+                chains_used=len(preds),
+                chains_available=len(chains),
                 measured_composite=obs,
                 implied_singleton=None if obs is None else imply_singleton(obs, depth),
-                residual=None if obs is None else obs - predicted,
+                residual=None if (obs is None or predicted is None) else obs - predicted,
             )
         )
     return tuple(rows)

@@ -47,22 +47,34 @@ def _scalar(raw: Any, where: str) -> Scalar:
     raise ManifestError(f"{where}: expected a scalar, got {type(raw).__name__}")
 
 
+def _built(build: Any, where: str) -> Any:
+    """Construct a model object, reporting its validation failure as a manifest error."""
+    try:
+        return build()
+    except ValueError as exc:
+        raise ManifestError(f"{where}: {exc}") from exc
+
+
 def _slot(raw: Any, where: str) -> Slot:
     if not isinstance(raw, dict):
         raise ManifestError(f"{where}: slot must be an object")
     if "name" not in raw or "tag" not in raw:
         raise ManifestError(f"{where}: slot needs 'name' and 'tag'")
     accepts = raw.get("accepts")
-    return Slot(
-        name=str(raw["name"]),
-        tag=_tag(raw["tag"], f"{where}.tag"),
-        accepts=(
-            tuple(_scalar(v, f"{where}.accepts") for v in accepts)
-            if isinstance(accepts, list)
-            else None
+    built: Slot = _built(
+        lambda: Slot(
+            name=str(raw["name"]),
+            tag=_tag(raw["tag"], f"{where}.tag"),
+            accepts=(
+                tuple(_scalar(v, f"{where}.accepts") for v in accepts)
+                if isinstance(accepts, list)
+                else None
+            ),
+            consumer=str(raw.get("consumer", "")),
         ),
-        consumer=str(raw.get("consumer", "")),
+        where,
     )
+    return built
 
 
 def _result(raw: Any, where: str) -> ResultVar:
@@ -71,15 +83,19 @@ def _result(raw: Any, where: str) -> ResultVar:
     if "name" not in raw or "tag" not in raw:
         raise ManifestError(f"{where}: result needs 'name' and 'tag'")
     codomain = raw.get("codomain")
-    return ResultVar(
-        name=str(raw["name"]),
-        tag=_tag(raw["tag"], f"{where}.tag"),
-        codomain=(
-            tuple(_scalar(v, f"{where}.codomain") for v in codomain)
-            if isinstance(codomain, list)
-            else None
+    built: ResultVar = _built(
+        lambda: ResultVar(
+            name=str(raw["name"]),
+            tag=_tag(raw["tag"], f"{where}.tag"),
+            codomain=(
+                tuple(_scalar(v, f"{where}.codomain") for v in codomain)
+                if isinstance(codomain, list)
+                else None
+            ),
         ),
+        where,
     )
+    return built
 
 
 def item_from_dict(raw: Any, where: str = "item") -> Item:

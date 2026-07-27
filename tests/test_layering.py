@@ -1,11 +1,13 @@
-"""The isolation seam, enforced rather than agreed (ARCHITECTURE.md section 2).
+"""Gate 3 of 3: the isolation seam, enforced rather than agreed (ARCHITECTURE.md §2).
 
 nonius's whole contribution is that the composition operator is factored *out* of the
 benchmark it was demonstrated on. If the core quietly imported that benchmark, the
 factoring would be a claim in a README rather than a property of the code.
 
-So: exactly one module may name Spaghetti Architect, and it is the adapter. This is also
-the anti-salami boundary in machine-checkable form -- see NOTICE.
+So: exactly one module may *import* Spaghetti Architect's source tree, and it is the
+adapter. Naming the project in prose is fine and several core modules do; what is enforced
+here is the import graph, plus the adapter's read-only promise. This is also the
+anti-salami boundary in machine-checkable form -- see NOTICE.
 """
 
 from __future__ import annotations

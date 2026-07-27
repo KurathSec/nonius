@@ -23,7 +23,7 @@ verdict: composable_to_depth_13
   items                 100
   candidate links     16470   type-compatible (LINK-ALL-0001)
   live links           5880    35.7%   admissible (LINK-ALL-0002)
-  ordered pairs         690     7.0% of 9900 carry a live link
+  live pairs            690     7.0% of 9900 ordered pairs carry a live link
   max components         13
 
   family                    items  can start  can continue  isolated
@@ -35,14 +35,22 @@ verdict: composable_to_depth_13
   status_router                 6          0             0         6
   threshold_select             14          0            14         0
 
+   depth     paths   fan-ins
+       1       100         0
+       2       690        39
+       3       120        14
+       5       720        12
+       8         0         4
+      13         0         1
+
   cannot compose in either direction: config_resolver, discovery_pipeline, status_router
   can only terminate a chain, never start one: allowlist, threshold_select
 ```
 
-Read that last block before the verdict. Three families cannot be composed in any
-direction, and two more can only ever sit at the end of a chain. The headline number says
-thirteen components are reachable; the reachability table says which items that is
-actually made of.
+Read the reachability table before the verdict. Three families cannot be composed in any
+direction, and two more can only ever sit at the end of a chain. `max components 13` is a
+floor over the two shapes the audit enumerates -- paths and single-sink fan-ins -- and a
+mixed shape can exceed it (AUDIT-ALL-0005); the table is what that number is made of.
 
 That readout costs nothing and takes seconds. Getting it *before* you emit a corpus and
 buy inference against it is the point.

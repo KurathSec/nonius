@@ -144,8 +144,8 @@ class AuditReport:
             f"  items            {self.items:>8}",
             f"  candidate links  {self.candidate_links:>8}   type-compatible (LINK-ALL-0001)",
             f"  live links       {self.live_links:>8}   {pct:>6}   admissible (LINK-ALL-0002)",
-            f"  ordered pairs    {self.live_pairs:>8}   {ppct:>6} of {self.ordered_pairs} "
-            f"carry a live link",
+            f"  live pairs       {self.live_pairs:>8}   {ppct:>6} of {self.ordered_pairs} "
+            f"ordered pairs carry a live link",
             f"  max components   {self.max_depth:>8}",
             "",
         ]
@@ -193,8 +193,21 @@ def _reach(items: Sequence[Item], analysis: LinkAnalysis) -> tuple[FamilyReach, 
     return tuple(out)
 
 
+#: The chain shapes the audit enumerates. A composite may legally be any DAG
+#: (``make_chain`` accepts one), but the audit searches these two, so the component count
+#: it reports is a lower bound on what is constructible, not the maximum over all shapes.
+#: Declared here and reported in every audit's ``caps`` (AUDIT-ALL-0004).
+ENUMERATED_SHAPES: tuple[str, ...] = ("path", "fan-in")
+
+
 def _max_depth(analysis: LinkAnalysis, *, path_cap: int) -> tuple[int, bool]:
-    """Largest constructible component count, and whether the search hit its cap."""
+    """Largest component count over the enumerated shapes, and whether the search capped.
+
+    Not the maximum over all DAG shapes: a mixed shape -- a fan-in whose sink then feeds a
+    further component -- can exceed this, and such a chain is perfectly legal. What is
+    reported is therefore a floor with its search space declared, which is the honest
+    reading of AUDIT-ALL-0004 rather than a claim of completeness.
+    """
     if not analysis.live:
         return 1, False
     best = 1
@@ -234,15 +247,29 @@ def _reasons(items: Sequence[Item], analysis: LinkAnalysis) -> tuple[str, ...]:
     if sinks:
         out.append("can only terminate a chain, never start one: " + ", ".join(sinks))
 
-    dead_tags: dict[str, int] = {}
     live_tags: set[str] = {c.tag for c in analysis.live}
-    for c in analysis.dead:
-        dead_tags[c.tag] = dead_tags.get(c.tag, 0) + 1
-    for tag, count in sorted(dead_tags.items()):
-        if tag not in live_tags:
+    tested: dict[str, int] = {}
+    unprobed: dict[str, int] = {}
+    for v in analysis.verdicts:
+        if v.live:
+            continue
+        bucket = tested if v.probed else unprobed
+        bucket[v.candidate.tag] = bucket.get(v.candidate.tag, 0) + 1
+
+    for tag in sorted(set(tested) | set(unprobed)):
+        if tag in live_tags:
+            continue
+        if tested.get(tag):
             out.append(
-                f"every {tag} link is dead ({count} candidates): the downstream answer "
-                f"never varies over the upstream codomain"
+                f"every {tag} link is dead ({tested[tag]} candidates): the downstream "
+                f"answer never varies over the upstream codomain"
+            )
+        if unprobed.get(tag):
+            # Never probed is not the same as probed and found constant; claiming the
+            # latter would assert a cause that was never tested.
+            out.append(
+                f"{unprobed[tag]} {tag} candidates were never probed: their upstream "
+                f"result declares no codomain and {tag} has no probe set (LINK-ALL-0003)"
             )
     return tuple(out)
 
@@ -269,22 +296,45 @@ def _paths_as_chains(analysis: LinkAnalysis, paths: Sequence[tuple[str, ...]]) -
     return chains
 
 
+def singletons(items: Sequence[Item]) -> tuple[Chain, ...]:
+    """The depth-1 population: every item, composed with nothing.
+
+    A depth-1 composite is the original item (DEPTH-ALL-0001), which is true of every
+    item regardless of whether any link touches it. This is deliberately NOT the
+    live-link graph's node set -- an item nothing can chain to is still a perfectly good
+    singleton, and dropping it would make the depth-1 baseline a different population
+    from the one the source instrument scored.
+    """
+    return tuple(make_chain((i.id,), []) for i in items)
+
+
 def constructible(
     analysis: LinkAnalysis, depth: int, *, cap: int = 10_000
 ) -> tuple[Chain, ...]:
-    """Every chain of exactly ``depth`` components the live-link graph can build.
+    """Chains of exactly ``depth`` components, over the shapes the audit enumerates.
 
-    Paths first, then fan-ins (DEPTH-ALL-0002). Bounded by ``cap``; callers report it.
+    Paths first, then fan-ins (DEPTH-ALL-0002), deduplicated on shape *and* links -- two
+    chains over the same components with different links are different composites with
+    different gold. One chain is materialised per node sequence: alternative (result,
+    slot) assignments along the same sequence are not enumerated, which is why
+    ``ENUMERATED_SHAPES`` is reported rather than assumed away.
+
+    At depth 1 this returns only items the live-link graph touches; for the singleton
+    baseline use :func:`singletons`, which does not filter. Bounded by ``cap``.
     """
     if depth == 1:
-        ids = sorted({c.upstream_item for c in analysis.live} | {c.downstream_item for c in analysis.live})
+        ids = sorted(
+            {c.upstream_item for c in analysis.live} | {c.downstream_item for c in analysis.live}
+        )
         return tuple(make_chain((i,), []) for i in ids[:cap])
     chains = _paths_as_chains(analysis, enumerate_paths(analysis, depth, cap=cap))
-    seen = {c.components for c in chains}
+    # Key on links as well as components: a fan-in and a path can visit the same items in
+    # the same order while joining them differently, and those are not the same composite.
+    seen = {(c.components, c.links) for c in chains}
     for fan in enumerate_fanins(analysis, depth, cap=cap):
-        if fan.components not in seen:
+        if (fan.components, fan.links) not in seen:
             chains.append(fan)
-            seen.add(fan.components)
+            seen.add((fan.components, fan.links))
     return tuple(chains[:cap])
 
 
@@ -310,6 +360,9 @@ def audit(
     chains_at: dict[int, int] = {}
     fanins_at: dict[int, int] = {}
     readouts: list[DepthReadout] = []
+    # Depths where enumeration stopped at the cap rather than running out of chains. A
+    # truncated search reads as "covered everything" unless it says so (AUDIT-ALL-0004).
+    truncated: list[int] = []
 
     wanted = sorted({d for d in depths if d >= 1} | {1})
     for depth in wanted:
@@ -323,6 +376,8 @@ def audit(
         fans = enumerate_fanins(analysis, depth, cap=path_cap)
         chains_at[depth] = len(paths)
         fanins_at[depth] = len(fans)
+        if len(paths) >= path_cap or len(fans) >= path_cap:
+            truncated.append(depth)
         if archive is not None:
             pool = constructible(analysis, depth, cap=path_cap)
             if pool:
@@ -355,7 +410,9 @@ def audit(
         caps={
             **dict(analysis.caps),
             "path_cap": path_cap,
+            "path_cap_reached_at_depths": truncated,
             "sample": sample,
+            "enumerated_shapes": list(ENUMERATED_SHAPES),
             "max_depth_search": MAX_DEPTH_SEARCH,
             "max_depth_search_hit_cap": capped,
             "seed": seed,

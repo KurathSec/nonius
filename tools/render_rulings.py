@@ -29,6 +29,14 @@ TOPICS = {
 
 def render() -> str:
     rulings = all_rulings()
+    # The page is rendered by iterating a fixed topic map, so a ruling in an unlisted
+    # topic would be silently omitted while the header count above still counted it.
+    stray = sorted({r.topic for r in rulings} - set(TOPICS))
+    if stray:
+        raise SystemExit(
+            f"tools/render_rulings.py: rulings exist in unlisted topics {stray}; "
+            f"add them to TOPICS or the page will under-report the spec"
+        )
     lines = [
         "# The rulings",
         "",

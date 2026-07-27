@@ -9,6 +9,7 @@ never be covered by nothing at all.
 from __future__ import annotations
 
 import socket
+from collections.abc import Mapping
 from typing import Any
 
 import pytest
@@ -16,7 +17,7 @@ from conftest import corpus_items, corpus_oracle
 
 from nonius.archive import Archive, Verdict
 from nonius.audit import audit
-from nonius.bound import assess, noise_band, summarize
+from nonius.bound import ReuseCeilingExceeded, assess, guard_reuse, noise_band, summarize
 from nonius.compose import analyze, make_chain, realize, reuse_multiplicity
 from nonius.errors import GoldDisagreementError, LinkError, LiteralLeakError
 from nonius.manifest import index
@@ -66,6 +67,59 @@ def test_reuse_multiplicity_is_counted() -> None:
     b = make_chain(("sum-b", "thr-live"), [Link(0, "total", 1, "subject", "int")])
     counts = reuse_multiplicity([a, b])
     assert counts == {"sum-a": 1, "sum-b": 1, "thr-live": 2}
+
+
+def test_reuse_above_the_ceiling_is_refused() -> None:
+    """LINK-ALL-0006: a set this correlated gets no product bound, only a refusal."""
+    chains = [
+        make_chain(("sum-a", "thr-live"), [Link(0, "total", 1, "subject", "int")]),
+        make_chain(("sum-a", "thr-dead"), [Link(0, "total", 1, "subject", "int")]),
+        make_chain(("sum-b", "thr-live"), [Link(0, "total", 1, "subject", "int")]),
+    ]
+    report = guard_reuse(chains, ceiling=2)
+    assert report.worst == ("sum-a", 2)
+    assert not report.exceeds_ceiling
+    assert "within ceiling" in report.line()
+
+    with pytest.raises(ReuseCeilingExceeded, match="LINK-ALL-0006"):
+        guard_reuse(chains, ceiling=1)
+
+    with pytest.raises(TypeError):
+        guard_reuse(chains)  # type: ignore[call-arg]
+
+
+def test_singleton_population_keeps_items_no_link_touches(items: Any, oracle: Any) -> None:
+    """DEPTH-ALL-0003: a depth-1 composite is the item, link or no link."""
+    from nonius.audit import constructible, singletons
+
+    analysis = analyze(items, oracle)
+    every = {c.components[0] for c in singletons(items)}
+    linked = {c.components[0] for c in constructible(analysis, 1)}
+    assert every == {i.id for i in items}
+    # lk-miss carries no live link, so the link graph loses it -- but it is still a
+    # perfectly good singleton, and the depth-1 baseline must not quietly change population.
+    assert "lk-miss" in every and "lk-miss" not in linked
+
+
+def test_a_refusing_oracle_is_not_reported_as_a_dead_link(items: Any) -> None:
+    """LINK-ALL-0002: 'never varies' is a cause; it must not be asserted untested."""
+    from nonius.model import Item, ResultVar, Scalar, Slot
+
+    def picky(item: Item, bindings: Mapping[str, Scalar]) -> dict[str, Scalar]:
+        if item.id == "down" and "n" in bindings:
+            raise RuntimeError("this oracle refuses substituted values")
+        return {"v": 1} if item.id == "up" else {"w": 2}
+
+    up = Item(id="up", results=(ResultVar("v", "int", codomain=(1, 2)),))
+    down = Item(
+        id="down", slots=(Slot("n", "int"),), results=(ResultVar("w", "int", codomain=(2,)),)
+    )
+    analysis = analyze([up, down], picky)
+    verdict = next(v for v in analysis.verdicts if v.candidate.downstream_item == "down")
+    assert not verdict.live
+    assert "refused" in verdict.reason
+    codes = {d.code for d in analysis.diagnostics}
+    assert "oracle-raised" in codes and "link-dead" not in codes
 
 
 def test_literal_leak_is_refused(items: Any, oracle: Any) -> None:

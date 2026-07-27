@@ -52,3 +52,23 @@ def cases() -> list[dict[str, Any]]:
 
 def case_ids() -> set[str]:
     return {c["id"] for c in cases()}
+
+
+def chain_for(case: dict[str, Any], items: Any) -> Any:
+    """Build a case's chain, taking each link's tag from the manifest.
+
+    The case files write links as 4-tuples with no tag, because the tag is not a free
+    choice -- it is the slot's declared type. Hard-coding it (say, to "") would make every
+    composite id in the drift snapshot the id of a chain the composer never emits.
+    """
+    from nonius.compose import make_chain
+    from nonius.manifest import index
+    from nonius.model import Link
+
+    exp = case["expect"]
+    idx = index(items)
+    components = tuple(exp["components"])
+    links = [
+        Link(u, r, d, s, idx[components[d]].slot(s).tag) for u, r, d, s in exp["links"]
+    ]
+    return make_chain(components, links)

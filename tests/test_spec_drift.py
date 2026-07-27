@@ -1,4 +1,4 @@
-"""Gate 2 of 3: composition drift.
+"""Gate 1 of 3: composition drift.
 
 A full snapshot of every decision the composer makes on the calibration corpus, stamped
 with the rulings version that produced it. A changed value is red until the snapshot is

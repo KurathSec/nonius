@@ -9,14 +9,13 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
-from conftest import cases, corpus_items, corpus_oracle
+from conftest import cases, chain_for, corpus_items, corpus_oracle
 
 from nonius.archive import Archive, Verdict
 from nonius.audit import audit
 from nonius.bound import assess, max_prediction, product_prediction
 from nonius.compose import analyze, composite_id, make_chain, realize
 from nonius.manifest import dumps, index, loads
-from nonius.model import Link
 from nonius.realize import make_prompt_realizer
 
 CASES = cases()
@@ -42,10 +41,8 @@ def _hdr(case: dict[str, Any]) -> str:
     return f"[{case['id']}] rulings in dispute: {', '.join(case['rulings'])}"
 
 
-def _chain(case: dict[str, Any]) -> Any:
-    exp = case["expect"]
-    links = [Link(u, r, d, s, "") for u, r, d, s in exp["links"]]
-    return make_chain(tuple(exp["components"]), links)
+def _chain(case: dict[str, Any], items: Any) -> Any:
+    return chain_for(case, items)
 
 
 @pytest.mark.parametrize("case", CASES, ids=IDS)
@@ -105,7 +102,7 @@ def test_case(case: dict[str, Any], items: Any, oracle: Any, analysis: Any) -> N
             assert exp["diagnostic"] in codes, f"{hdr} expected diagnostic {exp['diagnostic']}"
 
     elif kind == "chain":
-        chain = _chain(case)
+        chain = _chain(case, items)
         assert chain.depth == exp["depth"], f"{hdr} depth"
         assert chain.path_depth == exp["path_depth"], f"{hdr} path depth"
         assert len(chain.links) == exp["n_links"], f"{hdr} link count"
@@ -115,7 +112,7 @@ def test_case(case: dict[str, Any], items: Any, oracle: Any, analysis: Any) -> N
         assert composite.id == composite_id(chain), f"{hdr} id is not the content hash"
 
     elif kind == "suppression":
-        chain = _chain(case)
+        chain = _chain(case, items)
         composite, _ = realize(chain, index(items), oracle, make_prompt_realizer(oracle))
         r = composite.realization
         if exp.get("bindings_empty"):

@@ -1,44 +1,77 @@
 {
-  "spec_version": "0.1.0",
+  "spec_version": "1.0.0",
   "values": {
     "analysis::counts": {
       "candidates": 31,
       "live": 18,
       "live_pairs": 14
     },
+    "analysis::diagnostics": [
+      "codomain-unbounded:lk-nocodomain",
+      "link-dead:dual-a->lk-miss",
+      "link-dead:dual-a->lk-miss",
+      "link-dead:float-item->lk-miss",
+      "link-dead:lk-live->lk-miss",
+      "link-dead:lk-live->lk-nocodomain",
+      "link-dead:lk-miss->lk-live",
+      "link-dead:lk-miss->lk-nocodomain",
+      "link-dead:sum-a->thr-dead",
+      "link-dead:sum-b->thr-dead",
+      "link-dead:thr-dead->lk-miss",
+      "link-dead:thr-live->lk-miss",
+      "slot-tag-not-composable:float-item"
+    ],
     "chain-depth3-path-001::depth": 3,
+    "chain-depth3-path-001::diagnostics": [
+      "gold-route-chained:EMIT-ALL-0002"
+    ],
     "chain-depth3-path-001::gold": {
       "c0_total": 6,
       "c1_verdict": "low",
       "c2_route": "ignore"
     },
-    "chain-depth3-path-001::id": "4c9b0aa79787a537",
+    "chain-depth3-path-001::id": "de03df966a028096",
     "chain-depth3-path-001::path_depth": 3,
+    "chain-depth3-path-001::rendering": {
+      "text": "4d1124d663b84d60"
+    },
     "chain-depth3-path-001::suppressed": [
       "c1_subject",
       "c2_key"
     ],
     "chain-fanin-depth3-001::depth": 3,
+    "chain-fanin-depth3-001::diagnostics": [
+      "gold-route-chained:EMIT-ALL-0002"
+    ],
     "chain-fanin-depth3-001::gold": {
       "c0_total": 6,
       "c1_total": 30,
       "c2_verdict_a": "low",
       "c2_verdict_b": "high"
     },
-    "chain-fanin-depth3-001::id": "892b3aaeec75c4c3",
+    "chain-fanin-depth3-001::id": "34cdc263066a6d2e",
     "chain-fanin-depth3-001::path_depth": 2,
+    "chain-fanin-depth3-001::rendering": {
+      "text": "b53a3db402019dce"
+    },
     "chain-fanin-depth3-001::suppressed": [
       "c2_subject_a",
       "c2_subject_b"
     ],
     "chain-suppression-001::depth": 3,
+    "chain-suppression-001::diagnostics": [
+      "gold-route-chained:EMIT-ALL-0002"
+    ],
     "chain-suppression-001::gold": {
       "c0_total": 6,
       "c1_verdict": "low",
       "c2_route": "ignore"
     },
-    "chain-suppression-001::id": "4c9b0aa79787a537",
+    "chain-suppression-001::id": "de03df966a028096",
     "chain-suppression-001::path_depth": 3,
+    "chain-suppression-001::rendering": {
+      "text": "4d1124d663b84d60"
+    },
     "chain-suppression-001::suppressed": [
       "c1_subject",
       "c2_key"

@@ -28,8 +28,10 @@ and explains why — is a first-class output rather than a diagnostic.
 ```
 
 The core is benchmark-agnostic and **must run with no benchmark installed**. Exactly one
-module may name a specific benchmark — `adapters/spaghetti.py` — and it is the only one
-ruff's `banned-module-level-imports` exempts.
+module may *import* a specific benchmark — `adapters/spaghetti.py`. Naming one in prose is
+fine and several core modules do; what is enforced is the import graph. Two paths are
+exempted from ruff's `banned-module-level-imports`: the adapter, and the layering test
+that checks the rest.
 
 This is not tidiness. The entire contribution is that the operator is factored *out* of
 the benchmark it was demonstrated on; if the core imported that benchmark, the factoring
@@ -93,12 +95,23 @@ manufactures quarantine faster than it manufactures difficulty.
 Chains are DAGs, not only paths. **Fan-in** — several upstream components feeding distinct
 slots of one downstream component — raises component count without lengthening the longest
 path (DEPTH-ALL-0002). On a corpus whose link graph is shallow it is the only way to reach
-higher depths without authoring items. Depth means component count; path depth is reported
-separately and the two are never conflated.
+higher depths without authoring items. Depth means component count and does not determine
+the link count (DEPTH-ALL-0003); path depth is reported separately and the two are never
+conflated.
+
+Assigning distinct upstreams to a sink's slots is a bipartite matching, so the greedy seed
+is repaired by augmenting paths: a first-fit that let an early slot take the only upstream
+a later slot could have used would abandon fan-ins that exist.
+
+**What construction does not enumerate.** Paths and single-sink fan-ins, and nothing else.
+A mixed shape — a fan-in whose sink then feeds a further component — is a legal composite
+that `make_chain` accepts and the audit does not find. So the reported component count is a
+floor with its search space declared (AUDIT-ALL-0005), not a maximum.
 
 ### 6.3 Realization, and the two by-construction checks
 
 - **Literal suppression** (EMIT-ALL-0001). No linked slot may survive as a literal binding.
+  Checked exactly, against the bindings the realizer declares, rather than by grepping text.
   The obvious reading of "substitute the answer into the input literals of the next item"
   produces exactly this bug, and it is fatal rather than cosmetic: the answer is printed,
   the system reads it, and the whole emitted set beats its own bound.
@@ -156,8 +169,9 @@ predicted resolution on the **constructible** population. Verdict:
 
 Predictions are computed on composites the link graph can actually build (AUDIT-ALL-0002).
 A uniform prediction describes items the composer cannot emit; on the reference corpus the
-two agree to three decimal places on the discriminating fraction at depth 3 while
-differing 4.6-fold on the between-system gap.
+two differ by 0.0008 on the discriminating fraction at depth 3 (0.7164 against 0.7172)
+while differing 4.6-fold on the between-system gap (0.0294 against 0.1362) — so a uniform
+prediction can look right on one axis while being badly wrong on the one being bought.
 
 Every bound the audit applies to its own search — probe cap, path cap, sample size,
 diagnostic cap — is reported alongside what it withheld. A silently truncated search reads
@@ -193,10 +207,11 @@ per-platform; cross-OS byte-identity is not claimed.
 
 ## 15. The three gates
 
-1. **Composition drift** — a full value snapshot of every link verdict and composite gold
-   on the calibration corpus, stamped with the spec version. `tools/update_snapshot.py` is
-   the only way to move it and refuses without a real spec MAJOR bump; a deleted case
-   counts as a change, so "delete, regenerate, re-add" is closed off.
+1. **Composition drift** — a full value snapshot of every link verdict, composite gold,
+   rendering hash and diagnostic on the calibration corpus, stamped with the spec version.
+   `tools/update_snapshot.py` is the only way to move it and refuses without a real spec
+   MAJOR bump; a deleted case counts as a change, so "delete, regenerate, re-add" is
+   closed off.
 2. **Ruling coverage** — every active ruling is exercised by a calibration case or by a
    named test, every example cites back, and every ruling-id-shaped string in `src/`
    resolves, including in comments.

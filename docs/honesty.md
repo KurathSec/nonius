@@ -52,8 +52,9 @@ weaker answer and it is v1's answer.
 
 **Component exchangeability.** `c ** (1/depth)` treats a chain's components as
 interchangeable draws. They are not, and heavy reuse makes it worse, which is why reuse
-multiplicity is reported and the bound is refused above a declared ceiling
-(LINK-ALL-0006).
+multiplicity is reported and `nonius.bound.guard_reuse` refuses to price a set whose worst
+component exceeds a declared ceiling — a parameter with no default, because how much reuse
+is tolerable depends on how the bound will be read (LINK-ALL-0006).
 
 **The probe set.** Liveness for an unbounded int codomain is decided against eleven
 declared values. A different probe set would move some links between live and dead, which
@@ -80,18 +81,20 @@ the gold independently.
 ## Two units, and why both appear
 
 The composer works on **programs**. The benchmark scores **items**, which on the reference
-corpus are program × profile × language. The audit reports 100 programs; the archive
-reports 1500 items. Both are true, neither is a rounding of the other, and every number in
-the derived artifacts is labelled with its unit. Mixing them would make a saturation
-statistic look like a composability statistic.
+corpus are program × profile × language. The audit and the archive it uses report 100
+programs, pooling the fifteen rendering cells as replicates; the separately recorded
+item-level statistics report all 1500 items. Both are true, neither is a rounding of the
+other, and every number in the derived artifacts is labelled with its unit. Mixing them
+would make a saturation statistic look like a composability statistic.
 
 ## The reference audit is a negative result
 
 On the benchmark nonius was demonstrated against, the four families that are actually
-saturated — 1110 of 1500 items, sitting at 0.99–1.00 for the top three systems — **cannot
-be composed at all.** The only families that can start a chain are the two the systems are
-worst at. Every constructible composite therefore contains an already-hard component, and
-composition on that asset cannot address the saturation it was pointed at.
+saturated — 900 of 1500 items, sitting at 0.99–1.00 for the top three systems — **cannot
+start a chain**, and three of them (540 items) cannot appear in a composite at all. The
+only two families that can start a chain are the two the systems are worst at. Every
+constructible composite therefore contains an already-hard component, and composition on
+that asset cannot address the saturation it was pointed at.
 
 That is reported as the finding rather than buried, because a tool whose most valuable
 output is "don't bother, and here is why" has to be willing to say it about itself.

@@ -11,7 +11,7 @@ comparable to numbers published under the new one.
 
 ## [Unreleased]
 
-- package 0.1.0.dev0 · spec 0.1.0
+- package 0.1.0.dev0 · spec 1.0.0
 
 First working shape. The composer, the composability audit, the independence-product
 bound with its quarantine rule, the bridge table, the resolution readout, a
@@ -34,3 +34,11 @@ implicit, and the middle one is the reason this release exists at all:
 The reference audit in `validation/spaghetti_audit/` reports a real benchmark that the
 operator largely declines to compose, and says why. No paid run has been executed;
 `preregistration/run-01.toml` is designed and unexecuted.
+
+Composition spec 1.0.0 corrects three decisions before any number was published under
+0.1.0, and the correction is itself worth recording: an adversarial review of the whole
+project found that the audit's headline component count was called a maximum when it is a
+floor over two enumerated shapes, that a stated reuse ceiling was never implemented, and
+that hashing the spec version into a composite id made every id move on an editorial
+patch. All three are fixed rather than reworded — see the spec changelog in
+`src/nonius/spec/rulings/index.toml`.

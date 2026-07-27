@@ -17,7 +17,7 @@ scholarly artifact, and a report that quietly measured nothing is worse than no 
 from __future__ import annotations
 
 import copy
-import json
+import dataclasses
 import subprocess
 import sys
 from pathlib import Path
@@ -31,7 +31,7 @@ from nonius.bridge import build as build_bridge  # noqa: E402
 from nonius.canonical import canonical_json  # noqa: E402
 from nonius.compose import analyze, composite_record, realize  # noqa: E402
 from nonius.manifest import index  # noqa: E402
-from nonius.resolution import predict, table  # noqa: E402
+from nonius.resolution import ci95_for, predict  # noqa: E402
 from nonius.spec.registry import spec_version  # noqa: E402
 
 DERIVED = ROOT / "derived"
@@ -82,6 +82,9 @@ def _item_level_stats(home: Path) -> dict[str, object]:
     disc = sum(1 for row in complete if len({round(row[s], 12) for s in systems}) > 1)
     means = {s: sum(row[s] for row in complete) / n for s in systems}
     ranked = sorted(means.values(), reverse=True)
+    # The same resolution floor the composed rows carry, so the singleton gap is read
+    # against a floor rather than quoted bare.
+    m_star = max(ci95_for([row[s] for row in complete], seed=SEED) for s in systems)
 
     return {
         "unit": "item = program x profile x language",
@@ -89,6 +92,7 @@ def _item_level_stats(home: Path) -> dict[str, object]:
         "systems": systems,
         "mean_accuracy": means,
         "top_two_gap": ranked[0] - ranked[1],
+        "m_star": m_star,
         "dead_all_systems_perfect": dead,
         "dead_fraction": dead / n,
         "floored_all_systems_fail": floored,
@@ -116,12 +120,18 @@ def _uniform_contrast(items: object, analysis: object, arch: object) -> list[dic
         if not pool:
             continue
         c = predict(pool, arch, depth=depth, seed=SEED, sample=20_000)  # type: ignore[arg-type]
-        u = predict(
-            [Chain(tuple(rng.sample(ids, depth)), ()) for _ in range(5000)],
-            arch,  # type: ignore[arg-type]
-            depth=depth,
-            seed=SEED,
-            sample=20_000,
+        # predict() stamps population="constructible" unconditionally, and this arm is
+        # deliberately the opposite. Relabel it rather than letting the readout assert
+        # something false about where its rows came from.
+        u = dataclasses.replace(
+            predict(
+                [Chain(tuple(rng.sample(ids, depth)), ()) for _ in range(5000)],
+                arch,  # type: ignore[arg-type]
+                depth=depth,
+                seed=SEED,
+                sample=20_000,
+            ),
+            caps={"population": "uniform", "note": "sampled uniformly over all items"},
         )
         for label, row in (("constructible", c), ("uniform", u)):
             rows.append(
@@ -144,10 +154,10 @@ def _validate_toolchains(home: Path, analysis: object, idx: object) -> dict[str,
     gold, and here an actual compiler and runtime are asked whether that gold is what the
     program produces.
     """
-    sys.path.insert(0, str(home))
-    from src.nodes.validator import validate  # noqa: TID253
+    sa = sp._sa(str(home))  # appends the checkout to sys.path, bytecode-free
+    with sp._read_only_import():
+        from src.nodes.validator import validate  # noqa: TID253
 
-    sa = sp._sa(str(home))
     realizer = sp.make_realizer(home, profile="max")
 
     outcomes: dict[str, int] = {}
@@ -307,7 +317,8 @@ def _markdown(payload: dict[str, object], report: object) -> str:
         f"{item['floored_all_systems_fail']} ({item['floored_fraction']:.1%}) are failed by "
         f"all four, and {item['discriminating']} ({item['discriminating_fraction']:.1%}) "
         f"discriminate. The gap between the top two systems is "
-        f"{item['top_two_gap']:.4f}.",
+        f"{item['top_two_gap']:.4f}, against a resolution floor m* of "
+        f"{item['m_star']:.4f}.",
         "",
         "## Constructible against uniform",
         "",

@@ -30,9 +30,14 @@
         "link-dead": 10590
       },
       "diagnostics_withheld": 10565,
+      "enumerated_shapes": [
+        "path",
+        "fan-in"
+      ],
       "max_depth_search": 32,
       "max_depth_search_hit_cap": false,
       "path_cap": 10000,
+      "path_cap_reached_at_depths": [],
       "probe_cap": 64,
       "probe_int": [
         0,
@@ -309,7 +314,9 @@
           "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.73825
         },
         "caps": {
-          "items": 100,
+          "items_available": 100,
+          "items_skipped_incomplete": 0,
+          "items_used": 100,
           "population": "singleton"
         },
         "dead": 0.18,
@@ -323,14 +330,14 @@
       },
       {
         "accuracy": {
-          "deepseek-ai-DeepSeek-V4-Flash": 0.326952093398,
-          "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.0964681964573,
-          "meta-llama-Meta-Llama-3.1-8B-Instruct": 6.76328502415e-05,
-          "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.0951525764895
+          "deepseek-ai-DeepSeek-V4-Flash": 0.334609434537,
+          "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.0967028654169,
+          "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.000128029263832,
+          "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.0950575369608
         },
         "caps": {
-          "chains_available": 690,
-          "chains_used": 690,
+          "chains_available": 729,
+          "chains_used": 729,
           "population": "constructible",
           "sample_size": 20000,
           "sampled": false,
@@ -338,12 +345,12 @@
         },
         "dead": 0.0,
         "depth": 2,
-        "discriminating": 0.51884057971,
-        "floored": 0.48115942029,
-        "m_star": 0.0616443236715,
-        "n": 690,
+        "discriminating": 0.544581618656,
+        "floored": 0.455418381344,
+        "m_star": 0.0608396204847,
+        "n": 729,
         "source": "predicted",
-        "top_two_gap": 0.23048389694
+        "top_two_gap": 0.237906569121
       },
       {
         "accuracy": {
@@ -446,7 +453,7 @@
       "cannot compose in either direction: config_resolver, discovery_pipeline, status_router",
       "can only terminate a chain, never start one: allowlist, threshold_select"
     ],
-    "spec": "0.1.0",
+    "spec": "1.0.0",
     "verdict": "composable_to_depth_13"
   },
   "item_level": {
@@ -456,6 +463,7 @@
     "discriminating_fraction": 0.327333333333,
     "floored_all_systems_fail": 213,
     "floored_fraction": 0.142,
+    "m_star": 0.0510833333333,
     "mean_accuracy": {
       "deepseek-ai-DeepSeek-V4-Flash": 0.8385,
       "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.7685,
@@ -475,11 +483,11 @@
   "population_contrast": [
     {
       "depth": 2,
-      "discriminating": 0.51884057971,
-      "floored": 0.48115942029,
-      "n": 690,
+      "discriminating": 0.544581618656,
+      "floored": 0.455418381344,
+      "n": 729,
       "population": "constructible",
-      "top_two_gap": 0.23048389694
+      "top_two_gap": 0.237906569121
     },
     {
       "depth": 2,
@@ -524,7 +532,7 @@
   ],
   "provenance": {
     "access": "read-only",
-    "nonius_spec": "0.1.0",
+    "nonius_spec": "1.0.0",
     "seed": 20260619,
     "subject": "Spaghetti Architect",
     "subject_commit": "826f4cbf8f4d4c7e2d8473374694360c43fbb820",
@@ -537,7 +545,7 @@
           "agg_stats_W96",
           "threshold_select_T4"
         ],
-        "composite": "9bd5ea46c5620c5e",
+        "composite": "ca154b6b0f84ecae",
         "depth": 2,
         "languages": {
           "cpp": "PASS",
@@ -552,7 +560,7 @@
           "agg_stats_W96",
           "threshold_select_T4_v0"
         ],
-        "composite": "dfb7bb53acca38d7",
+        "composite": "4e3797e1278ea5e6",
         "depth": 2,
         "languages": {
           "cpp": "PASS",
@@ -568,7 +576,7 @@
           "fsm_transition",
           "fsm_transition_v0"
         ],
-        "composite": "f6e239ec39035808",
+        "composite": "5582bd6eff7ff03d",
         "depth": 3,
         "languages": {
           "cpp": "PASS",
@@ -584,7 +592,7 @@
           "fsm_transition",
           "fsm_transition_v1"
         ],
-        "composite": "88414dbf37b12781",
+        "composite": "7a66dc1bb704d77e",
         "depth": 3,
         "languages": {
           "cpp": "PASS",
@@ -602,7 +610,7 @@
           "fsm_transition_v1",
           "fsm_transition"
         ],
-        "composite": "413b90833f636a07",
+        "composite": "6afaff44698949bc",
         "depth": 5,
         "languages": {
           "cpp": "PASS",
@@ -620,7 +628,7 @@
           "fsm_transition_v1",
           "fsm_transition_v3"
         ],
-        "composite": "8fac83de95de161a",
+        "composite": "badd91545f26f27e",
         "depth": 5,
         "languages": {
           "cpp": "PASS",

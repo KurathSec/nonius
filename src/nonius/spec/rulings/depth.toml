@@ -1,6 +1,8 @@
 [[ruling]]
 id = "DEPTH-ALL-0001"
 topic = "depth"
+status = "superseded"
+superseded_by = "DEPTH-ALL-0003"
 title = "Depth is the number of components; links number depth minus one"
 statement = """
 A composite's depth is its component count. A depth-1 composite is a single item and is
@@ -32,3 +34,36 @@ reach higher depths without authoring items, and it is reported separately from 
 depth so the two are never conflated.
 """
 examples = ["chain-fanin-depth3-001"]
+
+[[ruling]]
+id = "DEPTH-ALL-0003"
+topic = "depth"
+title = "Depth is the number of components, and does not determine the link count"
+since_spec = "1.0.0"
+statement = """
+A composite's depth is its component count. A depth-1 composite is a single item and is
+identical to the singleton it came from, which is what makes the bridge table exact at
+depth 1.
+
+Depth does not determine how many links a composite has, in either direction. A simple
+path of d components carries d-1 links; a fan-in of d components also carries d-1, but
+only one along any path; and fan-out -- one component feeding several slots -- lets a
+chain carry more than d-1. Component count is the quantity the independence product bound
+is taken over, which is why it is the one called depth. Longest path is reported beside it
+and never as it.
+"""
+rationale = """
+Supersedes DEPTH-ALL-0001, whose title and statement both asserted that links number
+depth minus one. That is true only of a simple path. Counter-example on the shipped
+calibration corpus: a chain over sum-a and dual-a with links sum-a.total -> subject_a and
+sum-a.total -> subject_b has depth 2 and two links. LINK-ALL-0004 bounds incoming links
+per slot, not per component, so nothing forbids it.
+
+The convention still has to be pinned before anything is measured, because the two
+readings of "depth" differ by one item and the difference is visible in published
+arithmetic. A source record for this work predicted that a system at 0.8385 single-item
+accuracy 'lands near 0.35 at d=5'. 0.8385^5 = 0.4145 and 0.8385^6 = 0.3476, so the 0.35
+figure was computed from six components -- that record was counting links and calling the
+count d. Under this ruling that prediction is a depth-6 prediction.
+"""
+examples = ["chain-depth3-path-001"]

@@ -16,6 +16,9 @@ results — things a benchmark with an execution oracle already has but never ex
              "prompt": "Report high if {subject} >= 10, otherwise low."}}
 ```
 
+The records above are wrapped for reading. JSONL means **one record per line**: unwrap
+them before saving, or the manifest will not parse.
+
 `codomain` is the exact set of values a result can take. Declare it when you know it: it
 is what liveness is decided against. Omit it and an int falls back to the versioned probe
 set, while a str carries no live link at all.

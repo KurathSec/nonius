@@ -1,21 +1,35 @@
 [case]
 id = "audit-verdict-001"
-rulings = ["AUDIT-ALL-0001", "AUDIT-ALL-0004"]
+rulings = ["AUDIT-ALL-0001", "AUDIT-ALL-0005", "AUDIT-ALL-0004"]
 kind = "audit"
 computed_by = "hand"
 notes = """
-The whole calibration item set. Counted by hand from the link structure:
+The whole calibration item set, and the distinction AUDIT-ALL-0005 exists to make.
 
-Live links exist, and the deepest constructible component count is 3, reached two ways --
-the path sum-a -> thr-live -> lk-live, and the fan-in {sum-a, sum-b} -> dual-a. Nothing
-reaches 4: lk-live and lk-miss produce str values that no remaining slot accepts live, and
-dual-a has only two slots.
+The audit enumerates two shapes: simple paths, and single-sink fan-ins. Over those two,
+the deepest component count is 3, reached both ways:
+  path    sum-a -> thr-live -> lk-live
+  fan-in  {sum-a, sum-b} -> dual-a
 
-So the verdict is composable_to_depth_3, and every bound the search applied is reported.
+Neither shape reaches 4. A path cannot: lk-live and lk-miss produce str values, and the
+only live str slots are the lookups' own key slots, which the path has already used. A
+single-sink fan-in cannot: the widest sink is dual-a with two slots, giving 3 components.
+
+A depth-4 composite DOES exist, and it is not a path or a fan-in but a mix of both:
+  {sum-a, sum-b} -> dual-a -> lk-live
+with links sum-a.total -> dual-a.subject_a, sum-b.total -> dual-a.subject_b and
+dual-a.verdict_a -> lk-live.key. All three links are live, make_chain accepts it, and it
+realizes to gold {c0_total: 6, c1_total: 30, c2_verdict_a: "low", c2_verdict_b: "high",
+c3_route: "ignore"}.
+
+So the reported k is a floor over the enumerated shapes, not the maximum over all shapes.
+That is precisely what AUDIT-ALL-0005 says and what AUDIT-ALL-0001 got wrong, and this
+case is the counter-example that forced the supersession. `caps.enumerated_shapes`
+records the search space; every other bound the audit applied is reported beside it.
 """
 
 [expect]
 verdict = "composable_to_depth_3"
 max_depth = 3
 items = 10
-caps_present = ["probe_cap", "path_cap", "max_depth_search", "seed"]
+caps_present = ["probe_cap", "path_cap", "max_depth_search", "seed", "enumerated_shapes"]

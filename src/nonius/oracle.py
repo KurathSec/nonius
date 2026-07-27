@@ -79,7 +79,11 @@ def load_callable(spec: str) -> object:
             raise OracleError(f"cannot import {path}")
         module = importlib.util.module_from_spec(module_spec)
         sys.modules[mod_name] = module
-        module_spec.loader.exec_module(module)
+        try:
+            module_spec.loader.exec_module(module)
+        except Exception as exc:  # noqa: BLE001 - a user module; report, never traceback
+            del sys.modules[mod_name]
+            raise OracleError(f"{path} failed while importing: {exc!r}") from exc
     else:
         try:
             module = importlib.import_module(target)

@@ -44,7 +44,7 @@ dependencies = []
 # checkout, so this extra declares no requirement -- it exists to name the seam.
 spaghetti = []
 dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.10"]
-docs = ["mkdocs-material>=9", "mkdocstrings[python]>=0.25"]
+docs = ["mkdocs>=1.6", "mkdocs-material>=9"]
 
 [project.scripts]
 # The tool-gap record (research/g1/toolgap.jsonl) writes the invocation as

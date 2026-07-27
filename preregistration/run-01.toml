@@ -10,7 +10,7 @@
 [run]
 id = "run-01"
 status = "designed_not_executed"
-spec = "0.1.0"
+spec = "1.0.0"
 subject = "Spaghetti Architect comprehend items, public dev split"
 subject_commit = "826f4cbf8f4d4c7e2d8473374694360c43fbb820"
 
@@ -60,7 +60,7 @@ product at depth 3 or beyond, composition did not preserve the construct and the
 headroom is headroom on a different measurand.
 """
 fires_if = "measured is closer to max_prediction than to product_prediction, for the top system, at depth >= 3"
-predicted_product = { depth_2 = 0.3270, depth_3 = 0.0804, depth_5 = 0.0000 }
+predicted_product = { depth_2 = 0.3346, depth_3 = 0.0804, depth_5 = 0.0000 }
 note = "predicted values are for deepseek-ai/DeepSeek-V4-Flash, from the reference audit"
 
 [[threshold]]
@@ -102,10 +102,12 @@ singleton_discriminating_program_level = 0.7200
 fires_if = "best-depth discriminating fraction - singleton discriminating fraction < 0.05, on the matching unit"
 note = """
 This one is already in trouble on the free prediction, and saying so now is the point of
-pre-registering it. At the program level the singleton discriminates on 0.7200 and the
-best predicted composite depth is 3 at 0.7164 -- BELOW the baseline, so on the predicted
-numbers this threshold fires. The measured run is what decides, but the design is
-committed to reporting that outcome rather than reaching for a depth that flatters it.
+pre-registering it. At the program level -- the unit the composed rows are computed on --
+the singleton discriminates on 0.7200, and the best predicted composite depth is 3 at
+0.7164, BELOW the baseline. Depth 2 predicts 0.5446, further below. So on the predicted
+numbers this threshold fires at every depth. The measured run is what decides, but the
+design is committed to reporting that outcome rather than reaching for a depth, or a unit,
+that flatters it.
 """
 
 [declared_limitations]
@@ -120,7 +122,7 @@ about which stratum recovers the most resolution is circular in the stratificati
 not in the gold, and would need a fifth system that contributed nothing to it.
 """
 component_reuse = """
-500 composites per depth drawn from 690 depth-2 chains over 26 usable upstream programs
+500 composites per depth drawn from 729 depth-2 chains over 26 usable upstream programs
 forces heavy reuse, so the per-item rates behind the product bound are not exchangeable.
 Reuse multiplicity is reported per component (LINK-ALL-0006) and the bound is refused
 above the declared ceiling.

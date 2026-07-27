@@ -20,7 +20,7 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from nonius.errors import NoniusError
+from nonius.errors import ManifestError, NoniusError
 from nonius.spec.registry import require
 
 _R_OFFLINE = require("EMIT-ALL-0004")
@@ -135,10 +135,41 @@ def execute(
             f"'authorised' deliberately, in the file, before running"
         )
 
+    # Validate the whole set BEFORE buying anything. A mid-loop refusal has already spent
+    # money on the records it got through, which defeats the point of refusing.
+    by_depth: dict[int, int] = {}
+    for n, record in enumerate(composites):
+        rendering = record.get("rendering", {})
+        if not isinstance(rendering, dict):
+            raise ManifestError(
+                f"composite {record.get('id', n)!r}: 'rendering' must be an object, "
+                f"got {type(rendering).__name__}"
+            )
+        try:
+            depth = int(record["depth"])  # type: ignore[call-overload]
+        except (KeyError, TypeError, ValueError) as exc:
+            raise ManifestError(f"composite {record.get('id', n)!r}: bad 'depth': {exc}") from exc
+        if depth not in prereg.depths:
+            raise NotAuthorised(
+                f"composite {record.get('id', n)!r} is depth {depth}, which is not in the "
+                f"pre-registered depth set {list(prereg.depths)}. The run must buy the "
+                f"population that was registered, or the thresholds are read against "
+                f"something else."
+            )
+        by_depth[depth] = by_depth.get(depth, 0) + 1
+
+    over = {d: n for d, n in sorted(by_depth.items()) if n > prereg.composites_per_depth}
+    if over:
+        raise NotAuthorised(
+            f"more composites supplied than pre-registered: {over} against "
+            f"composites_per_depth={prereg.composites_per_depth}. Trim the set "
+            f"deliberately rather than letting the run decide what to drop."
+        )
+
     out: list[dict[str, object]] = []
     for record in composites:
         rendering = record.get("rendering", {})
-        assert isinstance(rendering, dict)
+        assert isinstance(rendering, dict)  # re-established by the pre-pass above
         prompt = rendering.get(language)
         if prompt is None:
             continue

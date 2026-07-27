@@ -19,18 +19,75 @@ rate every time (BOUND-ALL-0004).
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 from nonius.archive import Archive
+from nonius.compose import reuse_multiplicity
+from nonius.errors import NoniusError
 from nonius.model import Chain
 from nonius.spec.registry import require
 from nonius.stats import ci95_bootstrap, mean
 
 _R_PRODUCT = require("BOUND-ALL-0001")
+_R_REUSE = require("LINK-ALL-0006")
 _R_BAND = require("BOUND-ALL-0002")
 _R_QUARANTINE = require("BOUND-ALL-0003")
 _R_CEILING = require("BOUND-ALL-0004")
+
+
+class ReuseCeilingExceeded(NoniusError):
+    """A component appears in more composites than the declared ceiling allows."""
+
+
+@dataclass(frozen=True, slots=True)
+class ReuseReport:
+    """How often each component is reused across an emitted set (LINK-ALL-0006)."""
+
+    ceiling: int
+    multiplicity: Mapping[str, int]
+
+    @property
+    def worst(self) -> tuple[str, int]:
+        if not self.multiplicity:
+            return ("", 0)
+        item, count = max(sorted(self.multiplicity.items()), key=lambda kv: kv[1])
+        return (item, count)
+
+    @property
+    def exceeds_ceiling(self) -> bool:
+        return self.worst[1] > self.ceiling
+
+    def line(self) -> str:
+        item, count = self.worst
+        verdict = "OVER CEILING" if self.exceeds_ceiling else "within ceiling"
+        return (
+            f"component reuse: worst is {item or '(none)'} in {count} composites "
+            f"against declared ceiling {self.ceiling} [{verdict}]"
+        )
+
+
+def guard_reuse(chains: Sequence[Chain], *, ceiling: int) -> ReuseReport:
+    """Refuse to price a set whose components are reused past the declared ceiling.
+
+    A component appearing in many composites makes the per-item accuracies the product
+    bound multiplies non-exchangeable, so the bound over-counts. ``ceiling`` has no
+    default on purpose: how much reuse is tolerable depends on how the bound will be read,
+    so the caller has to say (LINK-ALL-0006).
+
+    Raises :class:`ReuseCeilingExceeded` rather than returning a bound nobody should
+    quote.
+    """
+    report = ReuseReport(ceiling=ceiling, multiplicity=reuse_multiplicity(chains))
+    if report.exceeds_ceiling:
+        item, count = report.worst
+        raise ReuseCeilingExceeded(
+            f"{_R_REUSE}: component {item!r} appears in {count} of {len(list(chains))} "
+            f"composites, above the declared reuse ceiling of {ceiling}. The independence "
+            f"product bound over-counts on a set this correlated; raise the ceiling "
+            f"deliberately or emit a less reused set."
+        )
+    return report
 
 
 def product_prediction(
@@ -115,6 +172,18 @@ def assess(
     ``measured`` is the observed composite accuracy per system. Without it the assessment
     is a prediction only and nothing is quarantined -- a prediction cannot exceed itself.
     """
+    # Computed once, not per system: k() is O(systems x items x verdicts), and the
+    # message must describe the archive rather than assume why the band is missing.
+    no_band_reason = ""
+    if band is None:
+        k = archive.k()
+        no_band_reason = (
+            f"no noise band supplied; the archive supports none (k={k} < 2), so no quarantine"
+            if k < 2
+            else f"no noise band supplied (the archive would support one at k={k}), "
+            f"so no quarantine"
+        )
+
     out: list[CompositeBound] = []
     for system in archive.systems:
         predicted = product_prediction(archive, system, chain.components)
@@ -127,7 +196,7 @@ def assess(
         elif predicted is None:
             reason = "no prediction; a component is missing from the archive"
         elif band is None:
-            reason = "no noise band; the archive supports none (k < 2), so no quarantine"
+            reason = no_band_reason
         elif obs - predicted > band:
             quarantined = True
             reason = (

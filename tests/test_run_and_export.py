@@ -100,9 +100,14 @@ def test_lm_eval_export(records: list[dict[str, object]]) -> None:
         "c1_verdict": "low",
         "c2_route": "ignore",
     }
+    # What makes the chain bind: every linked slot is a *reference* to where the value
+    # comes from, and the computed value itself is nowhere in the text. Asserted on the
+    # numeric answer, because the string answer ("low") is also a word the lookup item's
+    # own prompt legitimately contains -- absence of that would be the wrong test.
+    answer = json.loads(row["answer"])
     assert "the value of `total` computed in Part 1" in row["prompt"]
-    # The upstream answer must not be readable anywhere in the exported prompt.
-    assert "Part 2.\n" in row["prompt"]
+    assert "the value of `verdict` computed in Part 2" in row["prompt"]
+    assert str(answer["c0_total"]) not in row["prompt"]
 
     yaml = lm_eval_task_yaml(dataset_path="composites.jsonl")
     assert "exact_match" in yaml and "temperature: 0.0" in yaml

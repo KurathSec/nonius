@@ -1,6 +1,6 @@
 [case]
 id = "chain-depth3-path-001"
-rulings = ["DEPTH-ALL-0001", "EMIT-ALL-0002", "EMIT-ALL-0003"]
+rulings = ["DEPTH-ALL-0001", "DEPTH-ALL-0003", "EMIT-ALL-0002", "EMIT-ALL-0003"]
 kind = "chain"
 computed_by = "hand"
 notes = """

@@ -48,6 +48,22 @@ def tag_of(value: Scalar) -> TypeTag:
     raise TypeError(f"not a scalar: {type(value).__name__}")
 
 
+def _check_tags(values: tuple[Scalar, ...] | None, tag: TypeTag, where: str) -> None:
+    """Every declared value must actually carry the declared tag (CORE-ALL-0001).
+
+    Without this the tag is a label rather than a fact, and a declared codomain of
+    booleans on an ``int`` result would make every numeric slot look type-compatible --
+    the precise confusion CORE-ALL-0001 exists to prevent, arriving through the manifest
+    instead of through the tag function.
+    """
+    for value in values or ():
+        actual = tag_of(value)
+        if actual != tag:
+            raise ValueError(
+                f"{where}: {value!r} is {actual}, but the declared tag is {tag}"
+            )
+
+
 @dataclass(frozen=True, slots=True)
 class Slot:
     """A named, typed input slot of an item: somewhere an upstream answer can go."""
@@ -62,6 +78,9 @@ class Slot:
     #: audit so a practitioner can see which construct kills their links.
     consumer: str = ""
 
+    def __post_init__(self) -> None:
+        _check_tags(self.accepts, self.tag, f"slot {self.name!r} accepts")
+
 
 @dataclass(frozen=True, slots=True)
 class ResultVar:
@@ -73,6 +92,9 @@ class ResultVar:
     #: ``None`` means unbounded, and liveness probing falls back to the declared probe
     #: set (LINK-ALL-0003).
     codomain: tuple[Scalar, ...] | None = None
+
+    def __post_init__(self) -> None:
+        _check_tags(self.codomain, self.tag, f"result {self.name!r} codomain")
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,7 +175,13 @@ class Chain:
 
     @property
     def depth(self) -> int:
-        """Depth is the number of components (DEPTH-ALL-0001). Links number depth - 1."""
+        """Depth is the number of components (DEPTH-ALL-0001), not the link count.
+
+        The two coincide on a simple path and nowhere else. Fan-in gives depth-1 links
+        into one sink; fan-out lets one component feed several slots, so a chain can carry
+        more links than ``depth - 1``. Only the component count is what the product bound
+        is taken over, which is why it is the one called depth.
+        """
         return len(self.components)
 
     @property

@@ -14,4 +14,7 @@ site/
 # second fence (pyproject [tool.hatch.build.targets.sdist]).
 /paper/
 /scratch/
-CLAUDE.md
+
+# CLAUDE.md is deliberately NOT ignored: it is the house-rules file and belongs in the
+# repository. It is excluded from the sdist instead, because it is for contributors
+# working in the tree rather than for anyone installing the package.
