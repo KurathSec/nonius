@@ -19,7 +19,8 @@ results — things a benchmark with an execution oracle already has but never ex
 The records above are wrapped for reading. JSONL means **one record per line**: unwrap
 them before saving, or the manifest will not parse.
 
-They are the first two items of the shipped calibration corpus, `tests/corpus/items.jsonl`.
+They are the first and third items of the shipped calibration corpus,
+`tests/corpus/items.jsonl`.
 The rest of this page runs against that whole file, which is why its verdict is deeper than
 two items alone could reach.
 

@@ -152,7 +152,19 @@ def plan(prereg: Preregistration, composites: Sequence[Mapping[str, object]]) ->
             "execute() WOULD REFUSE this set: " + "; ".join(refusals) + ".",
             "Trim the set deliberately rather than letting the run decide what to drop.",
         ]
-    lines += ["", "NOTHING HAS BEEN RUN. Pass an explicit authorisation to execute."]
+    if prereg.status != "authorised":
+        refusals.append(f"the pre-registration's status is {prereg.status!r}")
+        lines += [
+            "",
+            f"execute() would also refuse on status: this file says {prereg.status!r}, and "
+            f"only 'authorised' runs. Changing it is a deliberate act in the file, not a "
+            f"flag on the command line.",
+        ]
+    lines += [
+        "",
+        "NOTHING HAS BEEN RUN, and this verb cannot run anything. Executing means calling "
+        "nonius.run.execute() from your own code, with your own model client.",
+    ]
     return "\n".join(lines)
 
 

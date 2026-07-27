@@ -49,10 +49,9 @@ Calibration cases: `link-float-refused-001`
 
 ### `DEPTH-ALL-0001` — Depth is the number of components; links number depth minus one — **superseded**
 
-A composite's depth is its component count. A depth-1 composite has one component and no
-links, so its gold is that component's own answer and the bridge table is exact at depth 1
-(p**1 = p). Its *presentation* is still the realizer's, which may wrap the item; identity
-of the measurement is what depth 1 guarantees, not identity of the rendered text. A depth-d composite carries d-1 links along any path, but the shape is a DAG,
+A composite's depth is its component count. A depth-1 composite is a single item and is
+identical to the singleton it came from, which is what makes the bridge table exact at
+depth 1. A depth-d composite carries d-1 links along any path, but the shape is a DAG,
 not necessarily a path: a fan-in composite with one sink and d-1 upstream components has
 depth d and d-1 links.
 

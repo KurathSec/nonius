@@ -14,9 +14,15 @@ table, so both probes return the default:
   key="high" -> miss -> "unknown"
   key="low"  -> miss -> "unknown"
 
-One distinct answer over two probed values. The downstream answer does not depend on the
-upstream answer, so a system can skip thr-live entirely and still be scored correct.
-This is the failure mode that makes type compatibility insufficient.
+One distinct answer over two probed values: the downstream answer does not depend on the
+upstream answer.
+
+What that costs is dependence, not difficulty. The composite's gold still carries
+c0_verdict as well as c1_route, so both components must be answered and the composite still
+sits on its product bound -- a system cannot skip thr-live and be scored correct, and the
+quarantine gate will never flag this item. It is simply not a chain: nothing is carried
+from the first part to the second. That is the failure mode type compatibility cannot see,
+and it is why liveness is enforced when the item is built (LINK-ALL-0007).
 """
 
 [expect]

@@ -1,73 +1,97 @@
 {
-  "note": "An arithmetic re-expression under an independence assumption, not a proof of measurement equivalence. Measured columns are absent because no composite has been run against any system: the paid run is designed and pre-registered, not executed.",
+  "note": "An arithmetic re-expression under an independence assumption, not a proof of measurement equivalence. Measured columns are absent because no composite has been run against any system: the paid run is designed and pre-registered, not executed. Note also that the two columns are computed on different populations: `singleton` is the mean over every archive item, while `predicted_composite` is the mean over the components of the supplied chains, which is a small and skewed subset of them. They are comparable as currencies, not as samples.",
   "rows": [
     {
+      "chains_available": 729,
+      "chains_used": 729,
       "depth": 2,
       "predicted_composite": 0.334609434537,
       "singleton": 0.8385,
       "system": "deepseek-ai-DeepSeek-V4-Flash"
     },
     {
+      "chains_available": 729,
+      "chains_used": 729,
       "depth": 2,
       "predicted_composite": 0.0967028654169,
       "singleton": 0.7685,
       "system": "meta-llama-Llama-3.3-70B-Instruct-Turbo"
     },
     {
+      "chains_available": 729,
+      "chains_used": 729,
       "depth": 2,
       "predicted_composite": 0.000128029263832,
       "singleton": 0.552416666667,
       "system": "meta-llama-Meta-Llama-3.1-8B-Instruct"
     },
     {
+      "chains_available": 729,
+      "chains_used": 729,
       "depth": 2,
       "predicted_composite": 0.0950575369608,
       "singleton": 0.73825,
       "system": "mistralai-Mistral-Small-3.2-24B-Instruct-2506"
     },
     {
+      "chains_available": 134,
+      "chains_used": 134,
       "depth": 3,
       "predicted_composite": 0.0804425787728,
       "singleton": 0.8385,
       "system": "deepseek-ai-DeepSeek-V4-Flash"
     },
     {
+      "chains_available": 134,
+      "chains_used": 134,
       "depth": 3,
       "predicted_composite": 0.172201492537,
       "singleton": 0.7685,
       "system": "meta-llama-Llama-3.3-70B-Instruct-Turbo"
     },
     {
+      "chains_available": 134,
+      "chains_used": 134,
       "depth": 3,
       "predicted_composite": 0.0,
       "singleton": 0.552416666667,
       "system": "meta-llama-Meta-Llama-3.1-8B-Instruct"
     },
     {
+      "chains_available": 134,
+      "chains_used": 134,
       "depth": 3,
       "predicted_composite": 0.142835820896,
       "singleton": 0.73825,
       "system": "mistralai-Mistral-Small-3.2-24B-Instruct-2506"
     },
     {
+      "chains_available": 732,
+      "chains_used": 732,
       "depth": 5,
       "predicted_composite": 0.0,
       "singleton": 0.8385,
       "system": "deepseek-ai-DeepSeek-V4-Flash"
     },
     {
+      "chains_available": 732,
+      "chains_used": 732,
       "depth": 5,
       "predicted_composite": 0.00250455373406,
       "singleton": 0.7685,
       "system": "meta-llama-Llama-3.3-70B-Instruct-Turbo"
     },
     {
+      "chains_available": 732,
+      "chains_used": 732,
       "depth": 5,
       "predicted_composite": 0.0,
       "singleton": 0.552416666667,
       "system": "meta-llama-Meta-Llama-3.1-8B-Instruct"
     },
     {
+      "chains_available": 732,
+      "chains_used": 732,
       "depth": 5,
       "predicted_composite": 0.0144808743169,
       "singleton": 0.73825,

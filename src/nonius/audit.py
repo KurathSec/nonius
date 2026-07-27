@@ -201,7 +201,7 @@ def _reach(items: Sequence[Item], analysis: LinkAnalysis) -> tuple[FamilyReach, 
 ENUMERATED_SHAPES: tuple[str, ...] = ("path", "fan-in")
 
 
-def _max_depth(analysis: LinkAnalysis, *, path_cap: int) -> tuple[int, bool]:
+def _max_depth(analysis: LinkAnalysis) -> tuple[int, bool]:
     """Largest component count over the enumerated shapes, and whether the search capped.
 
     Not the maximum over all DAG shapes: a mixed shape -- a fan-in whose sink then feeds a
@@ -338,20 +338,33 @@ def constructible(
     At depth 1 this returns only items the live-link graph touches; for the singleton
     baseline use :func:`singletons`, which does not filter. Bounded by ``cap``.
     """
+    return tuple(x for group in _split(analysis, depth, cap=cap) for x in group)[:cap]
+
+
+def _split(
+    analysis: LinkAnalysis, depth: int, *, cap: int
+) -> tuple[tuple[Chain, ...], tuple[Chain, ...]]:
+    """The constructible pool, separated into paths and the fan-ins dedup actually kept.
+
+    One enumeration serves both the reported columns and the sampled pool, so the two can
+    never disagree about what was built.
+    """
     if depth == 1:
         ids = sorted(
             {c.upstream_item for c in analysis.live} | {c.downstream_item for c in analysis.live}
         )
-        return tuple(make_chain((i,), []) for i in ids[:cap])
-    chains = _paths_as_chains(analysis, enumerate_paths(analysis, depth, cap=cap))
+        return tuple(make_chain((i,), []) for i in ids[:cap]), ()
+
+    paths = _paths_as_chains(analysis, enumerate_paths(analysis, depth, cap=cap))
     # Key on links as well as components: a fan-in and a path can visit the same items in
     # the same order while joining them differently, and those are not the same composite.
-    seen = {(c.components, c.links) for c in chains}
+    seen = {(c.components, c.links) for c in paths}
+    fans: list[Chain] = []
     for fan in enumerate_fanins(analysis, depth, cap=cap):
         if (fan.components, fan.links) not in seen:
-            chains.append(fan)
+            fans.append(fan)
             seen.add((fan.components, fan.links))
-    return tuple(chains[:cap])
+    return tuple(paths), tuple(fans)
 
 
 def audit(
@@ -371,7 +384,7 @@ def audit(
     n = len(items)
     ordered_pairs = n * (n - 1)
     live_pairs = len(analysis.live_pairs())
-    max_depth, capped = _max_depth(analysis, path_cap=path_cap)
+    max_depth, capped = _max_depth(analysis)
 
     chains_at: dict[int, int] = {}
     fanins_at: dict[int, int] = {}
@@ -388,18 +401,14 @@ def audit(
             if archive is not None:
                 readouts.append(singleton_row(archive, seed=seed))
             continue
-        paths = enumerate_paths(analysis, depth, cap=path_cap)
-        fans = enumerate_fanins(analysis, depth, cap=path_cap)
-        pool = constructible(analysis, depth, cap=path_cap)
+        # One enumeration for both the columns and the pool: the fan-in column reports what
+        # the dedup kept, because at depth 2 a "fan-in" is one upstream feeding one slot,
+        # which is also a path.
+        paths, fans = _split(analysis, depth, cap=path_cap)
+        pool = (paths + fans)[:path_cap]
         chains_at[depth] = len(paths)
-        # Report fan-ins that the dedup actually kept. At depth 2 a "fan-in" is a single
-        # upstream feeding one slot, which is also a path, so the raw count double-counts
-        # every one that a path already covers.
-        path_shapes = {(c.components, c.links) for c in _paths_as_chains(analysis, paths)}
-        fanins_at[depth] = sum(
-            1 for f in fans if (f.components, f.links) not in path_shapes
-        )
-        if len(paths) >= path_cap or len(fans) >= path_cap or len(pool) >= path_cap:
+        fanins_at[depth] = len(fans)
+        if len(pool) >= path_cap:
             truncated.append(depth)
         if archive is not None:
             if pool:

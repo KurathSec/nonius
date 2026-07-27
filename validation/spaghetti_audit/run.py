@@ -268,6 +268,8 @@ def main() -> int:
                     "depth": r.depth,
                     "singleton": r.singleton,
                     "predicted_composite": r.predicted_composite,
+                    "chains_used": r.chains_used,
+                    "chains_available": r.chains_available,
                 }
                 for r in build_bridge(pool, arch, depth=depth)
             ]
@@ -285,7 +287,11 @@ def main() -> int:
 BRIDGE_NOTE = (
     "An arithmetic re-expression under an independence assumption, not a proof of "
     "measurement equivalence. Measured columns are absent because no composite has been "
-    "run against any system: the paid run is designed and pre-registered, not executed."
+    "run against any system: the paid run is designed and pre-registered, not executed. "
+    "Note also that the two columns are computed on different populations: `singleton` is "
+    "the mean over every archive item, while `predicted_composite` is the mean over the "
+    "components of the supplied chains, which is a small and skewed subset of them. They "
+    "are comparable as currencies, not as samples."
 )
 
 

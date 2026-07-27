@@ -12,7 +12,7 @@
 [run]
 id = "run-01"
 status = "designed_not_executed"
-spec = "1.0.0"
+spec = "1.1.0"
 subject = "Spaghetti Architect comprehend items, public dev split"
 subject_commit = "826f4cbf8f4d4c7e2d8473374694360c43fbb820"
 
@@ -130,12 +130,23 @@ that flatters it.
 # top-level table rather than a [[threshold]], because load_preregistration() reads the
 # quarantine ceiling out of the threshold list and a second `ceiling` key there would
 # silently override it.
-ceiling = 120
+ceiling = 100
 note = """
-The maximum number of composites any single component may appear in. 120 is roughly
-1134 planned composites / 26 usable upstream programs, rounded up: it permits the reuse
-this population forces and refuses a set materially more correlated than that. Declared in
-advance so the product bound cannot be quoted on a set nobody agreed to beforehand.
+The maximum number of composites any single component may appear in, above which
+`guard_reuse` refuses to report a product bound at that depth.
+
+Measured on the planned population, not derived from arithmetic:
+  depth 2:  500 composites over 49 distinct components, worst  33 (7% of the set)
+  depth 3:  134 composites over 22 distinct components, worst  60 (45%)
+  depth 5:  500 composites over  6 distinct components, worst 428 (86%)
+
+100 is a judgement, and this is what it decides. Depths 2 and 3 are priced; **depth 5 is
+refused**, and that is the point of declaring the ceiling in advance rather than after
+seeing which depths flatter the instrument. Every depth-5 chain on this asset lives inside
+one family's six near-duplicate programs -- the link graph has nowhere else to go that
+deep -- so its components are about as far from exchangeable as a population can be, and
+multiplying their marginal rates would produce a bound with no standing. The instrument
+declining to quote a number there is the instrument working.
 """
 
 [declared_limitations]
@@ -150,9 +161,12 @@ about which stratum recovers the most resolution is circular in the stratificati
 not in the gold, and would need a fifth system that contributed nothing to it.
 """
 component_reuse = """
-The run draws 500 of 729 chains at depth 2, all 134 at depth 3, and 500 of 732 at depth 5,
-over 26 usable upstream programs (agg_stats 20 + fsm_transition 6). That forces heavy
-reuse, so the per-item rates behind the product bound are not exchangeable. Reuse
-multiplicity is reported per component and `nonius.bound.guard_reuse` refuses to price a
-set whose worst component exceeds the ceiling declared in [reuse] below (LINK-ALL-0006).
+The run draws 500 of 729 chains at depth 2, all 134 at depth 3, and 500 of 732 at depth 5.
+Reuse is forced by the link graph and it worsens sharply with depth: 49 distinct components
+at depth 2, 22 at depth 3, and 6 at depth 5, where a single program appears in 86% of the
+set. So the per-item rates behind the product bound are not exchangeable, and at depth 5
+they are not close. Reuse multiplicity is reported per component and
+`nonius.bound.guard_reuse` refuses to price a set whose worst component exceeds the ceiling
+declared in [reuse] above (LINK-ALL-0006) -- which, at the declared ceiling of 100, means
+depth 5 gets no product bound and its row will carry measured accuracy only.
 """

@@ -70,9 +70,12 @@ id, with the old one keeping `status = "superseded"` and naming its successor. `
 refuses a superseded id, so a decision that moves takes its citations with it or the import
 fails.
 
-Within an **unreleased** spec cycle a ruling authored in that same cycle may still be
-amended in place, and the amendment is recorded in the cycle's changelog stanza. What is
-protected is a meaning someone could already have published a number under.
+A ruling that **no released version has ever carried** may still be amended in place, and
+the amendment is recorded in the changelog stanza of the cycle that makes it — not the one
+that authored it. What immutability protects is a meaning someone could already have
+published a number under; until a version ships, there is no such meaning. Once superseded,
+a ruling's text is frozen outright and `tests/test_spec_coverage.py` pins a digest of it,
+because a retired ruling is the record of a decision rather than a draft.
 
 ## 5. Errors
 
@@ -86,7 +89,7 @@ the CLI and carried in the audit report as data.
 
 Enumerate every type-compatible substitution (LINK-ALL-0001), then decide which are
 **live**: a link is admissible only if the downstream's answer varies as the substituted
-slot ranges over the upstream result's codomain (LINK-ALL-0002).
+slot ranges over the upstream result's codomain (LINK-ALL-0007).
 
 This is the load-bearing idea. Type compatibility is necessary and nowhere near
 sufficient. Measured on the reference corpus, 32.2% of ordered item pairs are

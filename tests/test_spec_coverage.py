@@ -42,6 +42,20 @@ TEST_COVERED: dict[str, str] = {
 #: empty list. It is empty today and should stay that way.
 UNCOVERED: frozenset[str] = frozenset()
 
+#: Superseded means FROZEN. The text of a retired ruling is the historical record of a
+#: decision someone could already have published a number under, so it is never edited --
+#: a new meaning gets a new id (ARCHITECTURE.md section 4). These digests make that
+#: mechanical rather than a habit, because the way it actually got broken was a blind
+#: string replacement that matched the same sentence in a retired ruling and its
+#: successor and rewrote both. Changing a digest here is almost always the bug, not the
+#: fix; pin a new entry only at the moment a ruling is superseded.
+FROZEN_SUPERSEDED: dict[str, str] = {
+    "AUDIT-ALL-0001": "c5a10da8c06d57f5",
+    "DEPTH-ALL-0001": "c6579288c15772eb",
+    "EMIT-ALL-0003": "b91d0039b9c5c6f8",
+    "LINK-ALL-0002": "02b3379c6497cf15",
+}
+
 
 def test_every_active_ruling_is_covered() -> None:
     by_case: dict[str, list[str]] = {}
@@ -92,6 +106,82 @@ def test_every_cited_ruling_resolves(path: Path) -> None:
         assert get(rid).id == rid, f"{path}: phantom ruling {rid}"
 
 
+#: Files whose ruling citations are HISTORY, not current-tense claims, and so may name a
+#: superseded id: the spec's own changelog and ruling text (a supersession has to name what
+#: it replaced), the package changelog's record of what each version decided, and the corpus
+#: cases, which list both a retired ruling and its successor so the example still cites back.
+HISTORICAL_CITATIONS: frozenset[str] = frozenset(
+    {
+        "CHANGELOG.md",
+        "src/nonius/spec/rulings/index.toml",
+        "src/nonius/spec/rulings/audit.toml",
+        "src/nonius/spec/rulings/core.toml",
+        "src/nonius/spec/rulings/bound.toml",
+        "src/nonius/spec/rulings/depth.toml",
+        "src/nonius/spec/rulings/emit.toml",
+        "src/nonius/spec/rulings/link.toml",
+        "docs/spec/rulings.md",
+    }
+)
+
+#: Prose files whose ruling citations are read as the current rule.
+PROSE_GLOBS: tuple[str, ...] = ("*.md", "*.toml")
+
+
+def _frozen_digest(ruling: object) -> str:
+    import hashlib
+
+    parts = (
+        ruling.id,  # type: ignore[attr-defined]
+        ruling.title,  # type: ignore[attr-defined]
+        ruling.statement,  # type: ignore[attr-defined]
+        ruling.rationale,  # type: ignore[attr-defined]
+        *ruling.examples,  # type: ignore[attr-defined]
+    )
+    return hashlib.sha256("\0".join(parts).encode("utf-8")).hexdigest()[:16]
+
+
+def test_prose_cites_live_rulings() -> None:
+    """A superseded id in current-tense prose reads as the current rule, and is not.
+
+    ``require()`` guards code citations; nothing guarded prose. Round 3 of this project's
+    own review found five documents still presenting retired rulings as live, including the
+    one whose stated argument the spec had explicitly retracted as wrong.
+    """
+    root = ROOT.parent
+    stale: list[str] = []
+    for pattern in PROSE_GLOBS:
+        for path in sorted(root.rglob(pattern)):
+            rel = path.relative_to(root).as_posix()
+            if rel.startswith((".venv/", "site/", "tests/corpus/cases/")) or rel in HISTORICAL_CITATIONS:
+                continue
+            for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+                for rid in RULING_RE.findall(line):
+                    if get(rid).status == "superseded":
+                        stale.append(f"{rel}:{n} cites {rid} (-> {get(rid).superseded_by})")
+    assert not stale, "prose cites superseded rulings as current:\n  " + "\n  ".join(stale)
+
+
+def test_superseded_ruling_text_is_frozen() -> None:
+    """A retired ruling's words are a record, not a draft.
+
+    Round 3 of this project's own review found DEPTH-ALL-0001's statement had been rewritten
+    in place while it was already superseded -- collateral from a string replacement that
+    matched both it and its successor. Nothing caught it, because the only check on retired
+    rulings was that they named a live successor.
+    """
+    superseded = {r.id: r for r in all_rulings() if r.status == "superseded"}
+    assert set(superseded) == set(FROZEN_SUPERSEDED), (
+        "a ruling was superseded without pinning its text (or a pin outlived its ruling): "
+        f"{sorted(set(superseded) ^ set(FROZEN_SUPERSEDED))}"
+    )
+    for rid, ruling in sorted(superseded.items()):
+        assert _frozen_digest(ruling) == FROZEN_SUPERSEDED[rid], (
+            f"{rid} is superseded, so its text is frozen history, and it changed. "
+            f"Restore it; if the decision needs restating, supersede the successor."
+        )
+
+
 def test_superseded_rulings_name_an_active_successor() -> None:
     for ruling in all_rulings():
         if ruling.status == "superseded":
@@ -129,6 +219,23 @@ def test_no_module_binds_itself_to_a_superseded_ruling() -> None:
                 f"{path.relative_to(SRC)} binds to {rid}, which is "
                 f"{get(rid).status} (successor: {get(rid).superseded_by})"
             )
+
+
+def test_changelog_stamp_matches_the_live_spec() -> None:
+    """The [Unreleased] entry states two versions; both must be the real ones.
+
+    CHANGELOG.md's own preamble makes the stamp load-bearing and RELEASING.md cuts a
+    release by promoting that exact line, so a stale stamp ships a wrong claim. Round 2
+    rewrote the prose under this stamp and left the stamp itself behind.
+    """
+    from nonius._version import __version__
+
+    text = (ROOT.parent / "CHANGELOG.md").read_text(encoding="utf-8")
+    stamps = re.findall(r"^- package (\S+) . spec (\S+)$", text, re.M)
+    assert stamps, "CHANGELOG.md has no `- package X . spec Y` stamp"
+    package, spec = stamps[0]
+    assert package == __version__, f"changelog says package {package}, code says {__version__}"
+    assert spec == spec_version(), f"changelog says spec {spec}, registry says {spec_version()}"
 
 
 def test_spec_version_is_semver() -> None:

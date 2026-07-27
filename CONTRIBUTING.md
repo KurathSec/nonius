@@ -32,7 +32,13 @@ A ruling is one decision, with an immutable id, cited from the code that impleme
 ## Superseding a ruling
 
 **A ruling id is immutable forever**: changing what an existing id *means* silently
-rewrites the history of every number ever published under it.
+rewrites the history of every number ever published under it. Once a ruling is superseded
+its text is frozen outright, and `tests/test_spec_coverage.py` pins a digest of it.
+
+The one exception, stated in `ARCHITECTURE.md` §4: a ruling authored in the *current
+unreleased* spec cycle may still be amended in place, with the amendment recorded in that
+cycle's changelog stanza. What immutability protects is a meaning someone could already
+have published a number under.
 
 On the old stanza, add exactly two fields and change nothing else:
 
@@ -61,7 +67,8 @@ rewrite the history of an old one.
 
 An adapter supplies `items()`, an `oracle`, optionally a native `realizer`, and optionally
 an `archive`. It lives in `src/nonius/adapters/` and is the **only** place a specific
-benchmark may be named.
+benchmark may be *imported*. Naming one in prose is fine; what is enforced is the import
+graph.
 
 If it reads someone else's repository, it reads it read-only, and `tests/test_layering.py`
 will check that structurally: no `open(..., "w")`, no `write_text`, no `mkdir`, no

@@ -39,7 +39,7 @@ def test_preregistration_loads_and_declares_a_ceiling() -> None:
     assert prereg.id == "run-01"
     assert prereg.quarantine_ceiling == 0.20
     assert prereg.depths == (2, 3, 5)
-    assert prereg.reuse_ceiling == 120
+    assert prereg.reuse_ceiling == 100
 
     # The cap does not bind at depth 3: the link graph holds only 134 chains there, so a
     # budget computed from the cap alone would overstate the run by a third.

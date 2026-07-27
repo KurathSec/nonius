@@ -11,7 +11,7 @@ comparable to numbers published under the new one.
 
 ## [Unreleased]
 
-- package 0.1.0.dev0 · spec 1.0.0
+- package 0.1.0.dev0 · spec 1.1.0
 
 First working shape. The composer, the composability audit, the independence-product
 bound with its quarantine rule, the bridge table, the resolution readout, a
@@ -21,7 +21,7 @@ adapter, and exporters for lm-evaluation-harness and Inspect AI.
 Composition spec 0.1.0 fixes three decisions that the surrounding literature leaves
 implicit, and the middle one is the reason this release exists at all:
 
-- **Depth counts components, not links** (DEPTH-ALL-0001). The two readings differ by one
+- **Depth counts components, not links** (DEPTH-ALL-0003). The two readings differ by one
   item and the difference shows up in published arithmetic.
 - **A link is admissible only if it is live** (LINK-ALL-0007). Type compatibility is
   necessary and nowhere near sufficient. On the reference corpus 32.2% of ordered item

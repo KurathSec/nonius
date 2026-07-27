@@ -33,7 +33,7 @@ They are chosen to make each decision visible in isolation:
 | `float-item` | a float slot, never composable, though its str result can still start a chain |
 
 The pair `thr-live` / `thr-dead` is the corpus's reason for existing. They are
-type-identical and one of them is useless, which is the whole argument for `LINK-ALL-0002`
+type-identical and one of them is useless, which is the whole argument for `LINK-ALL-0007`
 compressed into two records.
 
 ## Editor hygiene

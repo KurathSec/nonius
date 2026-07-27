@@ -15,6 +15,13 @@ version = "1.1.0"
 [[changelog]]
 version = "1.1.0"
 summary = """
+DEPTH-ALL-0003, authored in 1.0.0 and unreleased, was amended in place here: its first
+draft said a depth-1 composite "is identical to the singleton it came from", which
+overstates the case -- the measurement is identical, the rendered presentation is the
+realizer's. Amending a ruling no released version has carried is allowed
+(ARCHITECTURE.md section 4); what immutability protects is a meaning someone could already
+have published a number under. The amendment is recorded here, in the cycle that made it.
+
 LINK-ALL-0002 is superseded by LINK-ALL-0007. A MINOR: no decision changes, no value moves,
 and every link verdict is what it was. What changes is the stated reason for the rule, and
 it needed changing because it was wrong.
@@ -62,11 +69,6 @@ implemented, is now enforced by `nonius.bound.guard_reuse`; and the audit now re
 *which depths hit* the path-enumeration cap, not merely what the cap was, which is what
 AUDIT-ALL-0004 asked for.
 
-DEPTH-ALL-0003 was itself amended within this same unreleased cycle: its first draft said a
-depth-1 composite "is identical to the singleton it came from", which overstates the case
--- the measurement is identical, the rendered presentation is the realizer's. Amending a
-ruling authored in an unreleased cycle is allowed; what immutability protects is a meaning
-someone could already have published a number under.
 """
 
 [[changelog]]
