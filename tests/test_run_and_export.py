@@ -50,6 +50,39 @@ def test_preregistration_loads_and_declares_a_ceiling() -> None:
     assert declared == prereg.planned_completions
 
 
+def test_a_second_quarantine_ceiling_is_refused(tmp_path: Path) -> None:
+    """Selected by the ruling it cites, not by position.
+
+    The loader used to take the last threshold carrying a key named `ceiling`, so an
+    unrelated threshold could silently replace the quarantine one. Six review rounds
+    documented that footgun in three places; this removes it.
+    """
+    two = tmp_path / "two-ceilings.toml"
+    two.write_text(
+        '[run]\nid = "x"\nstatus = "designed_not_executed"\n'
+        "[population]\ndepths = [2]\ncomposites_per_depth = 1\n"
+        '[systems]\nmodels = ["m"]\nk = 1\n'
+        '[[threshold]]\nid = "a"\nruling = "BOUND-ALL-0004"\nceiling = 0.20\n'
+        '[[threshold]]\nid = "b"\nruling = "BOUND-ALL-0004"\nceiling = 0.99\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(NotAuthorised, match="2 quarantine ceilings"):
+        load_preregistration(two)
+
+    # A `ceiling` key that cites no ruling is not the quarantine ceiling, and saying so is
+    # better than silently adopting it.
+    unnamed = tmp_path / "unnamed.toml"
+    unnamed.write_text(
+        '[run]\nid = "x"\nstatus = "designed_not_executed"\n'
+        "[population]\ndepths = [2]\ncomposites_per_depth = 1\n"
+        '[systems]\nmodels = ["m"]\nk = 1\n'
+        '[[threshold]]\nid = "reuse-ish"\nceiling = 120\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(NotAuthorised, match="none cites"):
+        load_preregistration(unnamed)
+
+
 def test_preregistration_without_a_ceiling_is_refused(tmp_path: Path) -> None:
     """BOUND-ALL-0004: no ceiling means the gate could only ever confirm itself."""
     bad = tmp_path / "no-ceiling.toml"

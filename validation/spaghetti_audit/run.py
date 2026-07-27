@@ -27,6 +27,7 @@ sys.path.insert(0, str(ROOT.parent.parent / "src"))
 
 from nonius.adapters import spaghetti as sp  # noqa: E402
 from nonius.audit import audit, constructible  # noqa: E402
+from nonius.bound import noise_band  # noqa: E402
 from nonius.bridge import build as build_bridge  # noqa: E402
 from nonius.canonical import canonical_json  # noqa: E402
 from nonius.compose import analyze, composite_record, realize  # noqa: E402
@@ -230,6 +231,10 @@ def main() -> int:
                 / len(arch.items)
                 for s in arch.systems
             },
+            # The band every quarantine verdict is read against, emitted rather than
+            # hand-copied: it was the last number in the repository that no generator
+            # produced, and it was wrong by a digit.
+            "noise_band": noise_band(arch, seed=SEED),
             "strata": {
                 name: sum(1 for i in arch.items if arch.stratum(i) == name)
                 for name in ("dead", "floored", "discriminating", "uniform-partial")

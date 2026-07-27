@@ -79,15 +79,34 @@ def load_preregistration(path: str | Path) -> Preregistration:
     pop = data.get("population", {})
     systems = data.get("systems", {})
 
-    ceiling = None
-    for threshold in data.get("threshold", []):
-        if "ceiling" in threshold:
-            ceiling = float(threshold["ceiling"])
-    if ceiling is None:
+    # Selected by the ruling the threshold cites, not by position. An earlier version took
+    # the LAST threshold carrying a key named `ceiling`, so adding an unrelated threshold
+    # with a `ceiling` key silently replaced the quarantine one -- a footgun that was
+    # documented in three places instead of removed.
+    quarantine = [
+        t
+        for t in data.get("threshold", [])
+        if "ceiling" in t and str(t.get("ruling", "")) == _R_CEILING
+    ]
+    if len(quarantine) > 1:
+        raise NotAuthorised(
+            f"{path} declares {len(quarantine)} quarantine ceilings "
+            f"({[t.get('id') for t in quarantine]}); exactly one threshold may cite "
+            f"{_R_CEILING}"
+        )
+    if not quarantine:
+        stray = [t.get("id") for t in data.get("threshold", []) if "ceiling" in t]
         raise NotAuthorised(
             f"{path} declares no quarantine ceiling; without one the validity gate can "
-            f"only confirm itself ({_R_CEILING})"
+            f"only confirm itself ({_R_CEILING})."
+            + (
+                f" Thresholds {stray} carry a `ceiling` key but none cites {_R_CEILING}; "
+                f"a ceiling that names no ruling is not the quarantine ceiling."
+                if stray
+                else ""
+            )
         )
+    ceiling = float(quarantine[0]["ceiling"])
 
     planned = {
         int(str(key).removeprefix("depth_")): int(value)

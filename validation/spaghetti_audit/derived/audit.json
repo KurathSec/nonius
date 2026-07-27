@@ -8,6 +8,7 @@
       "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.552416666667,
       "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.73825
     },
+    "noise_band": 0.0136770833333,
     "strata": {
       "dead": 18,
       "discriminating": 72,

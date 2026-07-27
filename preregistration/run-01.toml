@@ -182,7 +182,8 @@ singleton_order = [
 fires_if = "the MEASURED ordering departs from the PREDICTED ordering at the same depth, for any adjacent pair, by more than the noise band"
 predicted_order_matches_singleton = { depth_2 = true, depth_3 = false }
 note = """
-The yardstick is the replicate noise band (0.0136 on this archive), and it is narrower than
+The yardstick is the replicate noise band (0.0137 on this archive, emitted as
+archive.noise_band in the reference audit), and it is narrower than
 the instrument's own resolution floor: m* at depth 3 is 0.1192, and every adjacent predicted
 gap at that depth is below it. So a departure large enough to clear the band can still be
 smaller than the smallest difference the composed instrument resolves, and reading it as a
