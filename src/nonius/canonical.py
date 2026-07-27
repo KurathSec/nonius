@@ -46,7 +46,7 @@ def canonical_json(obj: Any, *, indent: int | None = None) -> str:
 def content_hash(obj: Any) -> str:
     """A stable 16-hex-digit content hash over any JSON-representable value.
 
-    Truncated sha256. Used for composite identity (EMIT-ALL-0003), where the hash must
+    Truncated sha256. Used for composite identity (EMIT-ALL-0005), where the hash must
     change if and only if the composite's meaning changes.
     """
     return hashlib.sha256(canonical_json(obj).encode("utf-8")).hexdigest()[:16]

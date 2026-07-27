@@ -77,6 +77,39 @@ def test_no_value_changed() -> None:
         )
 
 
+def test_a_collapsed_baseline_is_refused(tmp_path: Path) -> None:
+    """The cheap version of delete-and-regenerate: empty the baseline instead.
+
+    With no old values to compare against, every real value looks like an addition and
+    sails past the bump requirement. A baseline that small is not a baseline.
+    """
+    import json as _json
+    import shutil
+    import subprocess
+    import sys as _sys
+
+    backup = tmp_path / "snapshot.json"
+    shutil.copy(SNAPSHOT, backup)
+    try:
+        for keep in (0, 1):  # emptied, and merely gutted
+            data = _json.loads(backup.read_text(encoding="utf-8"))
+            keys = sorted(data["values"])
+            data["values"] = {k: data["values"][k] for k in keys[: keep * (len(keys) // 3)]}
+            SNAPSHOT.write_text(
+                _json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+            )
+            done = subprocess.run(
+                [_sys.executable, "tools/update_snapshot.py"],
+                cwd=ROOT.parent,
+                capture_output=True,
+                text=True,
+            )
+            assert done.returncode == 1, f"keep={keep} was accepted: {done.stdout}"
+            assert "looks like it was emptied" in done.stderr
+    finally:
+        shutil.copy(backup, SNAPSHOT)
+
+
 def test_snapshot_is_canonical_bytes() -> None:
     """The file is the artifact; a reformat is a diff nobody can review."""
     raw = SNAPSHOT.read_text(encoding="utf-8")

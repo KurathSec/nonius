@@ -10,7 +10,26 @@
 # snapshot without one.
 
 [spec]
-version = "1.0.0"
+version = "1.1.0"
+
+[[changelog]]
+version = "1.1.0"
+summary = """
+LINK-ALL-0002 is superseded by LINK-ALL-0007. A MINOR: no decision changes, no value moves,
+and every link verdict is what it was. What changes is the stated reason for the rule, and
+it needed changing because it was wrong.
+
+The old statement justified liveness by claiming that with a dead link "a system can skip
+the upstream component entirely and still be scored correct". It cannot: the composite's
+gold carries every component's results qualified by position (EMIT-ALL-0005), so skipping
+the upstream fails the composite on the upstream's own key. The corollary matters too --
+a dead-link composite does not beat its product bound, so the quarantine gate never catches
+one, and any claim that it does was wrong.
+
+The rule stands on the corrected reason. A dead link costs dependence, not difficulty: the
+composite is still failed if either component fails, but it is a conjunction of items rather
+than a chain, and depth stops meaning how far an answer was carried.
+"""
 
 [[changelog]]
 version = "1.0.0"
@@ -18,15 +37,17 @@ summary = """
 A correction release, made before any number was published under 0.1.0. Three decisions
 moved, so it is a MAJOR.
 
-Composite identity no longer hashes the spec version. Hashing it meant an editorial patch
--- a change that by definition alters no decision -- moved every composite id, which is
-exactly the "only if" direction EMIT-ALL-0003 claims. The spec version is still recorded
-beside every emitted composite; it is a stamp on how the composite was decided, not part
-of what it is. Every id changed once, here, and will not move again for a spec change.
+EMIT-ALL-0003 is superseded by EMIT-ALL-0005. Composite identity no longer hashes the spec
+version: hashing it meant an editorial patch -- a change that by definition alters no
+decision -- moved every composite id, which is exactly the "only if" direction the ruling
+itself claims. The version is still recorded beside every emitted composite; it is a stamp
+on how the composite was decided, not part of what it is. Every id changed once, here, and
+will not move again for a spec change.
 
 DEPTH-ALL-0001 is superseded by DEPTH-ALL-0003. The old title and statement said links
-number depth minus one. That holds on a simple path and nowhere else: fan-out lets one
-component feed several slots, so a depth-2 chain can carry two links.
+number depth minus one, as a general rule. It is not one: it holds for a simple path and
+for a single-sink fan-in, but fan-out lets one component feed several slots, so a depth-2
+chain can carry two links.
 
 AUDIT-ALL-0001 is superseded by AUDIT-ALL-0005. The old wording called the reported k
 "the largest constructible component count". It is the largest over the two shapes the
@@ -37,8 +58,15 @@ The search space is now declared rather than the claim widened.
 Also corrected, none of which changes a decision and so none of which needed a
 supersession: AUDIT-ALL-0002's rationale said one item family could start a chain on the
 reference asset when two can; LINK-ALL-0006's reuse ceiling, previously stated but never
-implemented, is now enforced by `nonius.bound.guard_reuse`; and the path-enumeration cap
-is now reported, which AUDIT-ALL-0004 always required.
+implemented, is now enforced by `nonius.bound.guard_reuse`; and the audit now reports
+*which depths hit* the path-enumeration cap, not merely what the cap was, which is what
+AUDIT-ALL-0004 asked for.
+
+DEPTH-ALL-0003 was itself amended within this same unreleased cycle: its first draft said a
+depth-1 composite "is identical to the singleton it came from", which overstates the case
+-- the measurement is identical, the rendered presentation is the realizer's. Amending a
+ruling authored in an unreleased cycle is allowed; what immutability protects is a meaning
+someone could already have published a number under.
 """
 
 [[changelog]]

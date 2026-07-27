@@ -13,6 +13,13 @@ historical number can be read on the new scale and a new number on the old one.
 proof of measurement equivalence. Every failure of independence is inherited. If the
 residual column is large, the assumption is wrong and the re-expression is wrong with it;
 that column exists so the failure is visible rather than buried.
+
+**And the two columns are not computed on the same population.** ``singleton`` is the mean
+over every item in the archive; ``predicted_composite`` is the mean over the components of
+the supplied chains, which on a real corpus is a small, skewed subset of them -- only items
+a live link touches. So the columns are comparable as *currencies*, not as samples, and a
+difference between them is not by itself evidence about composition. ``chains_used`` is
+printed on every row for the same reason.
 """
 
 from __future__ import annotations
@@ -69,7 +76,7 @@ def reexpress(singleton: float, depth: int) -> float:
     """A historical singleton score, expressed on the composed instrument's scale.
 
     ``p ** depth`` -- the independence bound read forwards. Exact at depth 1 by
-    construction (DEPTH-ALL-0001), and increasingly assumption-laden after that.
+    construction (DEPTH-ALL-0003), and increasingly assumption-laden after that.
     """
     if not 0.0 <= singleton <= 1.0:
         raise ValueError(f"singleton accuracy out of range: {singleton}")

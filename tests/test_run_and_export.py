@@ -39,7 +39,15 @@ def test_preregistration_loads_and_declares_a_ceiling() -> None:
     assert prereg.id == "run-01"
     assert prereg.quarantine_ceiling == 0.20
     assert prereg.depths == (2, 3, 5)
-    assert prereg.estimated_completions == 3 * 500 * 4 * 3
+    assert prereg.reuse_ceiling == 120
+
+    # The cap does not bind at depth 3: the link graph holds only 134 chains there, so a
+    # budget computed from the cap alone would overstate the run by a third.
+    assert prereg.ceiling_completions == 3 * 500 * 4 * 3
+    assert prereg.planned_composites == {2: 500, 3: 134, 5: 500}
+    assert prereg.planned_completions == (500 + 134 + 500) * 4 * 3 == 13608
+    declared = int(str(prereg.raw["budget"]["estimated_completions"]))  # type: ignore[index]
+    assert declared == prereg.planned_completions
 
 
 def test_preregistration_without_a_ceiling_is_refused(tmp_path: Path) -> None:
@@ -63,10 +71,22 @@ def test_plan_spends_nothing_and_says_so(records: list[dict[str, object]]) -> No
     assert "depth  3" in text
 
 
-def test_plan_flags_depths_outside_the_preregistration() -> None:
+def test_plan_forecasts_the_refusals_execute_enforces() -> None:
+    """plan() and execute() must agree, or the plan describes a different run."""
     prereg = load_preregistration(PREREG)
-    text = plan(prereg, [{"id": "x", "depth": 8}])
-    assert "NOT in the pre-registered depth set" in text
+
+    off_depth = plan(prereg, [{"id": "x", "depth": 8}])
+    assert "REFUSED: not in the pre-registered depth set" in off_depth
+    assert "execute() WOULD REFUSE this set" in off_depth
+
+    over_cap = plan(
+        prereg, [{"id": f"c{n}", "depth": 2} for n in range(prereg.composites_per_depth + 1)]
+    )
+    assert "over the 500 cap" in over_cap
+    assert "execute() WOULD REFUSE this set" in over_cap
+
+    ok = plan(prereg, [{"id": "c", "depth": 2}])
+    assert "WOULD REFUSE" not in ok
 
 
 def test_execute_refuses_without_authorisation(records: list[dict[str, object]]) -> None:

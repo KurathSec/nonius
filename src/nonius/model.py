@@ -175,7 +175,7 @@ class Chain:
 
     @property
     def depth(self) -> int:
-        """Depth is the number of components (DEPTH-ALL-0001), not the link count.
+        """Depth is the number of components (DEPTH-ALL-0003), not the link count.
 
         The two coincide on a simple path and nowhere else. Fan-in gives depth-1 links
         into one sink; fan-out lets one component feed several slots, so a chain can carry
@@ -267,7 +267,7 @@ class Diagnostic:
 
 
 def qualified(component_index: int, name: str) -> str:
-    """The name a component's result carries in a composite's gold (EMIT-ALL-0003).
+    """The name a component's result carries in a composite's gold (EMIT-ALL-0005).
 
     Components are prefixed by position, not by item id, so two uses of the same item in
     one composite stay distinguishable and the gold's key set is a function of the

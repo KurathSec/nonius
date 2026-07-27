@@ -102,7 +102,7 @@ def test_singleton_population_keeps_items_no_link_touches(items: Any, oracle: An
 
 
 def test_a_refusing_oracle_is_not_reported_as_a_dead_link(items: Any) -> None:
-    """LINK-ALL-0002: 'never varies' is a cause; it must not be asserted untested."""
+    """LINK-ALL-0007: 'never varies' is a cause; it must not be asserted untested."""
     from nonius.model import Item, ResultVar, Scalar, Slot
 
     def picky(item: Item, bindings: Mapping[str, Scalar]) -> dict[str, Scalar]:

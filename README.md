@@ -17,14 +17,14 @@ item is authored, and no model is called.
 It also tells you when the answer is no.
 
 ```console
-$ nonius audit --items items.jsonl --oracle ./oracle.py:answer
+$ nonius audit --items items.jsonl --oracle ./oracle.py:answer --depths 1,2,3,5,8,13
 verdict: composable_to_depth_13
 
   items                 100
   candidate links     16470   type-compatible (LINK-ALL-0001)
-  live links           5880    35.7%   admissible (LINK-ALL-0002)
+  live links           5880    35.7%   admissible (LINK-ALL-0007)
   live pairs            690     7.0% of 9900 ordered pairs carry a live link
-  max components         13
+  deepest reached        13   over paths and fan-ins; a floor, not a maximum (AUDIT-ALL-0005)
 
   family                    items  can start  can continue  isolated
   agg_stats                    20         20             0         0
@@ -48,8 +48,8 @@ verdict: composable_to_depth_13
 ```
 
 Read the reachability table before the verdict. Three families cannot be composed in any
-direction, and two more can only ever sit at the end of a chain. `max components 13` is a
-floor over the two shapes the audit enumerates -- paths and single-sink fan-ins -- and a
+direction, and two more can only ever sit at the end of a chain. `deepest reached 13` is a
+floor over the two shapes the audit enumerates — paths and single-sink fan-ins — and a
 mixed shape can exceed it (AUDIT-ALL-0005); the table is what that number is made of.
 
 That readout costs nothing and takes seconds. Getting it *before* you emit a corpus and
@@ -89,10 +89,14 @@ would guess.
 
 Type compatibility is not the binding constraint. A link only *binds* if the downstream
 answer actually varies as the substituted slot ranges over the upstream result's codomain.
-If it does not, a system can skip the upstream component entirely and still be scored
-correct — and that composite will exceed its own independence product bound and be
-quarantined. A composer that checks types alone manufactures quarantine faster than it
-manufactures difficulty.
+If it does not, the composite is still harder than either item alone — both components
+must be answered — but it is a **conjunction, not a chain**. Nothing was carried from one
+item to the next, so depth counts how many items were printed together rather than how far
+an answer travelled, and the measurement is no longer about composition.
+
+That failure is invisible after the fact. A conjunction sits exactly on the independence
+product bound, so the validity gate never flags it; liveness has to be enforced when the
+item is built.
 
 Measured on the reference corpus (100 committed programs, four systems, k=8, temperature
 0): **3190 of 9900 ordered item pairs (32.2%) are type-compatible, but only 690 (7.0%)

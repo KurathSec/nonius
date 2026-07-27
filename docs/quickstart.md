@@ -19,6 +19,10 @@ results — things a benchmark with an execution oracle already has but never ex
 The records above are wrapped for reading. JSONL means **one record per line**: unwrap
 them before saving, or the manifest will not parse.
 
+They are the first two items of the shipped calibration corpus, `tests/corpus/items.jsonl`.
+The rest of this page runs against that whole file, which is why its verdict is deeper than
+two items alone could reach.
+
 `codomain` is the exact set of values a result can take. Declare it when you know it: it
 is what liveness is decided against. Omit it and an int falls back to the versioned probe
 set, while a str carries no live link at all.
@@ -39,7 +43,7 @@ def answer(item, bindings):
 ## 3. Audit before you compose
 
 ```console
-$ nonius audit --items items.jsonl --oracle ./oracle.py:answer
+$ nonius audit --items tests/corpus/items.jsonl --oracle tests/corpus/oracle.py:answer
 verdict: composable_to_depth_3
 ```
 
@@ -50,7 +54,7 @@ you have spent nothing.
 ## 4. Compose
 
 ```console
-$ nonius compose --items items.jsonl --oracle ./oracle.py:answer \
+$ nonius compose --items tests/corpus/items.jsonl --oracle tests/corpus/oracle.py:answer \
       --depths 2,3 --limit 500 --out composites.jsonl
 ```
 

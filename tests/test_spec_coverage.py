@@ -103,5 +103,33 @@ def test_superseded_rulings_name_an_active_successor() -> None:
             )
 
 
+def test_require_refuses_a_superseded_ruling() -> None:
+    """A decision that moved must take its citations with it.
+
+    Round 2 of the project's own review found three modules still bound to rulings that had
+    been superseded in round 1, because `require()` only checked existence. This is that
+    hole closed, and the test that keeps it closed.
+    """
+    from nonius.errors import SpecError
+    from nonius.spec.registry import require
+
+    superseded = [r for r in all_rulings() if r.status == "superseded"]
+    assert superseded, "expected at least one superseded ruling to test against"
+    for ruling in superseded:
+        with pytest.raises(SpecError, match="superseded"):
+            require(ruling.id)
+
+
+def test_no_module_binds_itself_to_a_superseded_ruling() -> None:
+    """Every ``require(...)`` argument in src/ names an active ruling."""
+    call = re.compile(r'require\(\s*"([A-Z]+-ALL-\d{4})"\s*\)')
+    for path in sorted(SRC.rglob("*.py")):
+        for rid in call.findall(path.read_text(encoding="utf-8")):
+            assert get(rid).status == "active", (
+                f"{path.relative_to(SRC)} binds to {rid}, which is "
+                f"{get(rid).status} (successor: {get(rid).superseded_by})"
+            )
+
+
 def test_spec_version_is_semver() -> None:
     assert re.fullmatch(r"\d+\.\d+\.\d+", spec_version())

@@ -48,7 +48,7 @@ def test_audit_json_goes_to_stdout(capsys: pytest.CaptureFixture[str]) -> None:
 def test_audit_human_output_names_the_rulings(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["audit", "--items", ITEMS, "--oracle", ORACLE]) == 0
     out = capsys.readouterr().out
-    assert "LINK-ALL-0001" in out and "LINK-ALL-0002" in out
+    assert "LINK-ALL-0001" in out and "LINK-ALL-0007" in out
     assert "verdict:" in out
 
 

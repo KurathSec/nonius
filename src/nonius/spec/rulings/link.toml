@@ -12,6 +12,8 @@ examples = ["link-live-threshold-001", "link-type-mismatch-001"]
 [[ruling]]
 id = "LINK-ALL-0002"
 topic = "link"
+status = "superseded"
+superseded_by = "LINK-ALL-0007"
 title = "A link is admissible only if it is live over the upstream codomain"
 statement = """
 A link is admissible iff the downstream item's result set takes more than one distinct
@@ -37,13 +39,15 @@ id = "LINK-ALL-0003"
 topic = "link"
 title = "An unbounded codomain is probed with a declared, versioned set"
 statement = """
-When an upstream result declares no codomain, liveness is tested against the declared
-probe set rather than against an arbitrary sample, so that a liveness verdict is
-reproducible and reviewable. The probe set is part of the spec and changing it is a
-spec-major change, because it can move a link from dead to live and therefore change
-which composites exist.
+When an upstream result declares no codomain, liveness is tested against the versioned
+probe set for its tag rather than against an arbitrary sample, so that a liveness verdict
+is reproducible and reviewable. A probe set is part of the spec and changing one is a
+spec-major change, because it can move a link from dead to live and therefore change which
+composites exist.
 
-The v1 probe set for int is: 0, 1, 2, 5, 10, 50, 100, 1000, 10000, 60000, -1.
+The v1 probe sets are: int = 0, 1, 2, 5, 10, 50, 100, 1000, 10000, 60000, -1;
+bool = false, true; str = empty. A str result with no declared codomain therefore carries
+no live link at all, which is a refusal rather than a verdict of dead.
 """
 rationale = """
 Chosen to straddle the decision boundaries a comparison-based consumer is likely to
@@ -89,3 +93,40 @@ with no default: a caller must state it, because the tolerable amount depends on
 bound will be read.
 """
 examples = []
+
+[[ruling]]
+id = "LINK-ALL-0007"
+topic = "link"
+title = "A link is admissible only if it is live over the upstream codomain"
+since_spec = "1.1.0"
+statement = """
+A link is admissible iff the downstream item's result set takes more than one distinct
+value as the substituted slot ranges over the upstream result variable's codomain. A link
+that fails this test is dead: the downstream answer does not depend on the upstream answer.
+Liveness is measured by running the oracle, never inferred from a declaration.
+
+What a dead link costs is dependence, not difficulty. Both components still have to be
+answered -- the composite's gold carries every component's results, qualified by position
+-- so a dead-link composite is still failed if either component is failed, and its accuracy
+still tracks the product. What it is not is a *chain*: it is a conjunction of items that
+happen to be printed together. Depth then counts how many items were stapled into one
+prompt rather than how far an answer was carried, and the instrument stops measuring the
+thing composition was supposed to measure.
+"""
+rationale = """
+Supersedes LINK-ALL-0002, whose statement justified the rule by claiming that with a dead
+link "a system can skip the upstream component entirely and still be scored correct". That
+is false under this project's own gold construction, and the project's own review caught
+it. EMIT-ALL-0005 qualifies every component's results by position, so the composite's gold
+contains the upstream's own answer; a system that skips the upstream fails the composite on
+that key. It follows that a dead-link composite does not beat its independence product
+bound either, so the quarantine gate (BOUND-ALL-0003) does not catch dead links -- it
+catches shortcuts that make a composite *easier* than the product, such as a literal leak.
+
+The rule survives on the corrected reason, which is about the measurand rather than about
+scoring. The evidence for its importance is unchanged: on a committed four-model archive of
+100 programs, 3190 of 9900 ordered item pairs (32.2%) are type-compatible but only 690
+(7.0%) carry a live link, so a composer that checks types alone would emit a set that is
+roughly four-fifths conjunctions while calling them chains.
+"""
+examples = ["link-dead-lookup-miss-001", "link-live-threshold-001"]

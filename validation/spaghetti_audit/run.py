@@ -63,7 +63,7 @@ def _item_level_stats(home: Path) -> dict[str, object]:
     """The archive's discrimination, at the unit the benchmark actually scores.
 
     The audit composes *programs*, so its archive pools the fifteen rendering cells and
-    reports 100 items. The benchmark itself scores 1500 items -- program x profile x
+    reports 100 programs. The benchmark itself scores 1500 items -- program x profile x
     language. Both are true and they are not the same number, so both are recorded here
     and each is labelled with its unit.
     """
@@ -154,16 +154,19 @@ def _validate_toolchains(home: Path, analysis: object, idx: object) -> dict[str,
     gold, and here an actual compiler and runtime are asked whether that gold is what the
     program produces.
     """
-    sa = sp._sa(str(home))  # appends the checkout to sys.path, bytecode-free
-    with sp._read_only_import():
-        from src.nodes.validator import validate  # noqa: TID253
+    # Through the adapter, never by importing the subject here: the seam is the point, and
+    # tests/test_layering.py only guards src/, so a direct import in this file would be an
+    # unchecked second entrance.
+    sa = sp._sa(str(home))
+    validate = sa["validate"]
 
     realizer = sp.make_realizer(home, profile="max")
 
+    tc_depths, tc_cap, tc_per_depth = (2, 3, 5), 40, 2
     outcomes: dict[str, int] = {}
     checked: list[dict[str, object]] = []
-    for depth in (2, 3, 5):
-        for chain in constructible(analysis, depth, cap=40)[:2]:  # type: ignore[arg-type]
+    for depth in tc_depths:
+        for chain in constructible(analysis, depth, cap=tc_cap)[:tc_per_depth]:  # type: ignore[arg-type]
             composite, _ = realize(chain, idx, sp.oracle, realizer)  # type: ignore[arg-type]
             programs = [
                 sa["parse"](copy.deepcopy(idx[c].payload["ir"]))  # type: ignore[index]
@@ -189,6 +192,15 @@ def _validate_toolchains(home: Path, analysis: object, idx: object) -> dict[str,
             "gold that the merged program's oracle predicted. SKIP means the toolchain is "
             "absent on this machine, which is honest locally and would be a no-op in CI."
         ),
+        # A sample, and a small one. Stating the selection is what stops the outcome tally
+        # from reading as coverage of the whole emitted set (AUDIT-ALL-0004).
+        "selection": {
+            "depths": list(tc_depths),
+            "composites_per_depth": tc_per_depth,
+            "composites_checked": len(checked),
+            "languages_per_composite": 5,
+            "note": "a spot check, not a sweep: the emitted set is far larger",
+        },
         "outcomes": outcomes,
         "composites": checked,
     }
@@ -337,13 +349,18 @@ def _markdown(payload: dict[str, object], report: object) -> str:
 
     tv = payload["toolchain_validation"]
     assert isinstance(tv, dict)
+    sel = tv["selection"]
+    assert isinstance(sel, dict)
     lines += [
         "",
         "## Do the emitted composites actually run?",
         "",
         str(tv["note"]),
         "",
-        f"Outcomes across five toolchains: `{tv['outcomes']}`.",
+        f"Outcomes across five toolchains: `{tv['outcomes']}` -- "
+        f"{sel['composites_checked']} composites x {sel['languages_per_composite']} "
+        f"languages, sampled {sel['composites_per_depth']} per depth from "
+        f"{sel['depths']}. A spot check, not a sweep.",
         "",
     ]
     return "\n".join(lines) + "\n"

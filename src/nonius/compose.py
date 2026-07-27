@@ -5,9 +5,9 @@ Three stages, in order, and each is refusable:
 1. **Analysis** -- enumerate every type-compatible substitution between items
    (LINK-ALL-0001), then decide which of them are *live*: a link is admissible only if
    the downstream's answer actually varies as the substituted slot ranges over the
-   upstream result's codomain (LINK-ALL-0002). This is the stage that does the work. On
-   a real corpus most type-compatible links are dead, and a composer that skips this
-   stage emits a mostly degenerate item set.
+   upstream result's codomain (LINK-ALL-0007). This is the stage that does the work. On a
+   real corpus most type-compatible links are dead, and a composer that skips this stage
+   emits conjunctions of items while calling them chains.
 
 2. **Construction** -- assemble chains and fan-ins from live links, acyclic and in
    topological order (LINK-ALL-0004, LINK-ALL-0005).
@@ -44,13 +44,13 @@ from nonius.oracle import Oracle, Realizer, evaluate
 from nonius.spec.registry import require, spec_version
 
 _R_TYPE = require("LINK-ALL-0001")
-_R_LIVE = require("LINK-ALL-0002")
+_R_LIVE = require("LINK-ALL-0007")
 _R_PROBE = require("LINK-ALL-0003")
 _R_SLOT_ONCE = require("LINK-ALL-0004")
 _R_ACYCLIC = require("LINK-ALL-0005")
 _R_SUPPRESS = require("EMIT-ALL-0001")
 _R_AGREE = require("EMIT-ALL-0002")
-_R_HASH = require("EMIT-ALL-0003")
+_R_HASH = require("EMIT-ALL-0005")
 
 #: The versioned probe set for an unbounded int codomain (LINK-ALL-0003). Changing it is
 #: a spec-major change: it can move a link from dead to live and therefore change which
@@ -64,7 +64,7 @@ PROBE_STR: tuple[str, ...] = ()
 
 
 def codomain_values(item: Item, result: str, *, cap: int = 64) -> tuple[Scalar, ...]:
-    """The values a result can take, for liveness probing (LINK-ALL-0002/0003)."""
+    """The values a result can take, for liveness probing (LINK-ALL-0007/LINK-ALL-0003)."""
     rv = item.result(result)
     if rv.codomain is not None:
         return tuple(rv.codomain[:cap])
@@ -244,7 +244,7 @@ def analyze(
                                 f"refused all {len(values)} probed values, so liveness "
                                 f"could not be decided; first error: {errors[0][:120]}",
                                 subject=f"{up.id}->{down.id}",
-                                ruling="LINK-ALL-0002",
+                                ruling="LINK-ALL-0007",
                             )
                         )
                         reason = "oracle refused every probed value; liveness undecided"
@@ -257,7 +257,7 @@ def analyze(
                                 f"is constant over {len(values) - len(errors)} probed values"
                                 + (f" ({slot.consumer})" if slot.consumer else ""),
                                 subject=f"{up.id}->{down.id}",
-                                ruling="LINK-ALL-0002",
+                                ruling="LINK-ALL-0007",
                             )
                         )
                         reason = "downstream answer constant over codomain"
@@ -324,7 +324,7 @@ def make_chain(components: Sequence[str], links: Sequence[Link]) -> Chain:
 
 
 def singleton(item_id: str) -> Chain:
-    """A depth-1 chain: the original item, unchanged (DEPTH-ALL-0001)."""
+    """A depth-1 chain: the original item, unchanged (DEPTH-ALL-0003)."""
     return Chain(components=(item_id,), links=())
 
 
@@ -526,7 +526,7 @@ def check_realization(
 
 
 def composite_id(chain: Chain) -> str:
-    """Content hash over the composite's shape and links (EMIT-ALL-0003).
+    """Content hash over the composite's shape and links (EMIT-ALL-0005).
 
     The spec version is deliberately NOT hashed. It is recorded alongside the id, in the
     emitted record, because it is a stamp on how the composite was decided rather than

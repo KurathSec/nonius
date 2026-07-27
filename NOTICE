@@ -6,12 +6,15 @@ Licensed under the MIT License. See LICENSE.
 PROVENANCE OF MEASUREMENT PRIMITIVES
 ------------------------------------
 
-src/nonius/stats.py is a verbatim port of codecaliper's
-validation/bw_faithfulness/stats.py, which was itself ported from Spaghetti Architect's
-bench/grade.py (MIT, same author). Five functions: mean, stdev, ci95_bootstrap, _ranks,
-spearman. Copied rather than depended upon, deliberately: they are the only statistics
-this instrument needs, and adding a numeric stack to obtain them would put a
-floating-point implementation detail between an archive and a published number.
+src/nonius/stats.py is adapted from codecaliper's validation/bw_faithfulness/stats.py,
+which was itself ported from Spaghetti Architect's bench/grade.py (MIT, same author). Five
+functions: mean, stdev, ci95_bootstrap, _ranks, spearman. The definitions are the same; the
+bodies were re-typed, with explicit accumulation loops and math.sqrt in place of generator
+expressions and `** 0.5`, to satisfy mypy --strict without ignore comments.
+
+Copied rather than depended upon, deliberately: they are the only statistics this
+instrument needs, and adding a numeric stack to obtain them would put a floating-point
+implementation detail between an archive and a published number.
 
 The discipline this repository is built on -- immutable versioned rulings with an
 import-time citation check, a full-value drift snapshot, an update tool that refuses

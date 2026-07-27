@@ -32,7 +32,7 @@ from nonius.oracle import Oracle
 from nonius.resolution import DepthReadout, predict, singleton_row, table
 from nonius.spec.registry import require, spec_version
 
-_R_VERDICT = require("AUDIT-ALL-0001")
+_R_VERDICT = require("AUDIT-ALL-0005")
 _R_POPULATION = require("AUDIT-ALL-0002")
 _R_OFFLINE = require("AUDIT-ALL-0003")
 _R_CAPS = require("AUDIT-ALL-0004")
@@ -143,10 +143,11 @@ class AuditReport:
         lines += [
             f"  items            {self.items:>8}",
             f"  candidate links  {self.candidate_links:>8}   type-compatible (LINK-ALL-0001)",
-            f"  live links       {self.live_links:>8}   {pct:>6}   admissible (LINK-ALL-0002)",
+            f"  live links       {self.live_links:>8}   {pct:>6}   admissible (LINK-ALL-0007)",
             f"  live pairs       {self.live_pairs:>8}   {ppct:>6} of {self.ordered_pairs} "
             f"ordered pairs carry a live link",
-            f"  max components   {self.max_depth:>8}",
+            f"  deepest reached  {self.max_depth:>8}   over paths and fan-ins; a floor, "
+            f"not a maximum (AUDIT-ALL-0005)",
             "",
         ]
         if self.reach:
@@ -250,19 +251,34 @@ def _reasons(items: Sequence[Item], analysis: LinkAnalysis) -> tuple[str, ...]:
     live_tags: set[str] = {c.tag for c in analysis.live}
     tested: dict[str, int] = {}
     unprobed: dict[str, int] = {}
+    refused: dict[str, int] = {}
     for v in analysis.verdicts:
         if v.live:
             continue
-        bucket = tested if v.probed else unprobed
+        # Three distinct causes, and only the first is "the downstream ignores its input".
+        # `probed` counts values attempted; `distinct_outcomes` counts those that produced
+        # an answer at all, so a link whose every probe was refused has probed > 0 and
+        # distinct_outcomes == 0.
+        if not v.probed:
+            bucket = unprobed
+        elif v.distinct_outcomes == 0:
+            bucket = refused
+        else:
+            bucket = tested
         bucket[v.candidate.tag] = bucket.get(v.candidate.tag, 0) + 1
 
-    for tag in sorted(set(tested) | set(unprobed)):
+    for tag in sorted(set(tested) | set(unprobed) | set(refused)):
         if tag in live_tags:
             continue
         if tested.get(tag):
             out.append(
                 f"every {tag} link is dead ({tested[tag]} candidates): the downstream "
                 f"answer never varies over the upstream codomain"
+            )
+        if refused.get(tag):
+            out.append(
+                f"{refused[tag]} {tag} candidates could not be decided: the oracle refused "
+                f"every probed value, so liveness was never established either way"
             )
         if unprobed.get(tag):
             # Never probed is not the same as probed and found constant; claiming the
@@ -299,7 +315,7 @@ def _paths_as_chains(analysis: LinkAnalysis, paths: Sequence[tuple[str, ...]]) -
 def singletons(items: Sequence[Item]) -> tuple[Chain, ...]:
     """The depth-1 population: every item, composed with nothing.
 
-    A depth-1 composite is the original item (DEPTH-ALL-0001), which is true of every
+    A depth-1 composite is the original item (DEPTH-ALL-0003), which is true of every
     item regardless of whether any link touches it. This is deliberately NOT the
     live-link graph's node set -- an item nothing can chain to is still a perfectly good
     singleton, and dropping it would make the depth-1 baseline a different population
@@ -374,12 +390,18 @@ def audit(
             continue
         paths = enumerate_paths(analysis, depth, cap=path_cap)
         fans = enumerate_fanins(analysis, depth, cap=path_cap)
+        pool = constructible(analysis, depth, cap=path_cap)
         chains_at[depth] = len(paths)
-        fanins_at[depth] = len(fans)
-        if len(paths) >= path_cap or len(fans) >= path_cap:
+        # Report fan-ins that the dedup actually kept. At depth 2 a "fan-in" is a single
+        # upstream feeding one slot, which is also a path, so the raw count double-counts
+        # every one that a path already covers.
+        path_shapes = {(c.components, c.links) for c in _paths_as_chains(analysis, paths)}
+        fanins_at[depth] = sum(
+            1 for f in fans if (f.components, f.links) not in path_shapes
+        )
+        if len(paths) >= path_cap or len(fans) >= path_cap or len(pool) >= path_cap:
             truncated.append(depth)
         if archive is not None:
-            pool = constructible(analysis, depth, cap=path_cap)
             if pool:
                 readouts.append(
                     predict(pool, archive, depth=depth, seed=seed, sample=sample)

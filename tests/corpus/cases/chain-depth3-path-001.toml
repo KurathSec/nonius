@@ -1,6 +1,6 @@
 [case]
 id = "chain-depth3-path-001"
-rulings = ["DEPTH-ALL-0001", "DEPTH-ALL-0003", "EMIT-ALL-0002", "EMIT-ALL-0003"]
+rulings = ["DEPTH-ALL-0001", "DEPTH-ALL-0003", "EMIT-ALL-0002", "EMIT-ALL-0003", "EMIT-ALL-0005"]
 kind = "chain"
 computed_by = "hand"
 notes = """
@@ -13,8 +13,10 @@ Gold, by hand:
   c1_verdict = "low"      because 6 >= 10 is false
   c2_route   = "ignore"   because the table maps low -> ignore
 
-Depth is 3 because there are three components (DEPTH-ALL-0001); there are 2 links, which
-is depth - 1. Path depth is also 3 here, since the shape is a path.
+Depth is 3 because there are three components (DEPTH-ALL-0003). This shape is a simple
+path, so it also carries depth - 1 = 2 links and its path depth is 3 -- both facts about
+this shape, not general rules: a fan-in of the same depth carries 2 links but path depth 2,
+and fan-out can carry more links than depth - 1.
 """
 
 [expect]

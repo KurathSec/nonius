@@ -1,7 +1,8 @@
 """Pure-stdlib statistics.
 
-Ported verbatim from codecaliper ``validation/bw_faithfulness/stats.py``, which in turn
-was ported from Spaghetti Architect ``bench/grade.py`` (MIT, same author; see NOTICE).
+Adapted from codecaliper ``validation/bw_faithfulness/stats.py``, which in turn was ported
+from Spaghetti Architect ``bench/grade.py`` (MIT, same author; see NOTICE). Same
+definitions; the bodies are re-typed so ``mypy --strict`` passes without ignore comments.
 Kept as a copy rather than a dependency for the same reason it was copied the first time:
 these five functions are the only statistics the instrument needs, and adding a numeric
 stack to get them would put a floating-point implementation detail between the archive

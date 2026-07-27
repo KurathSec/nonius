@@ -44,11 +44,33 @@ class Preregistration:
     models: tuple[str, ...]
     k: int
     quarantine_ceiling: float
+    #: How many composites are actually planned per depth, when the file declares it. The
+    #: cap does not bind at every depth: a link graph can simply not contain that many
+    #: chains, and a budget computed from the cap alone would overstate the run.
+    planned_composites: Mapping[int, int] = field(default_factory=dict)
+    #: LINK-ALL-0006's reuse ceiling, when declared. ``None`` means the file declares none,
+    #: and `guard_reuse` then has nothing to enforce.
+    reuse_ceiling: int | None = None
     raw: Mapping[str, object] = field(default_factory=dict)
 
     @property
-    def estimated_completions(self) -> int:
+    def ceiling_completions(self) -> int:
+        """The most this run could buy: every depth filled to the cap."""
         return len(self.depths) * self.composites_per_depth * len(self.models) * self.k
+
+    @property
+    def planned_completions(self) -> int:
+        """What the run actually plans to buy, from the declared per-depth populations.
+
+        Falls back to the ceiling when the file declares no per-depth plan.
+        """
+        if not self.planned_composites:
+            return self.ceiling_completions
+        planned = sum(
+            min(self.planned_composites.get(d, self.composites_per_depth), self.composites_per_depth)
+            for d in self.depths
+        )
+        return planned * len(self.models) * self.k
 
 
 def load_preregistration(path: str | Path) -> Preregistration:
@@ -67,6 +89,12 @@ def load_preregistration(path: str | Path) -> Preregistration:
             f"only confirm itself ({_R_CEILING})"
         )
 
+    planned = {
+        int(str(key).removeprefix("depth_")): int(value)
+        for key, value in dict(pop.get("planned_composites", {})).items()
+    }
+    reuse = data.get("reuse", {})
+
     return Preregistration(
         id=str(run.get("id", "")),
         status=str(run.get("status", "")),
@@ -75,6 +103,8 @@ def load_preregistration(path: str | Path) -> Preregistration:
         models=tuple(str(m) for m in systems.get("models", ())),
         k=int(systems.get("k", 0)),
         quarantine_ceiling=ceiling,
+        planned_composites=planned,
+        reuse_ceiling=int(reuse["ceiling"]) if "ceiling" in reuse else None,
         raw=data,
     )
 
@@ -89,25 +119,40 @@ def plan(prereg: Preregistration, composites: Sequence[Mapping[str, object]]) ->
     lines = [
         f"pre-registration : {prereg.id}  (status: {prereg.status})",
         f"quarantine ceiling: {prereg.quarantine_ceiling:.2f}  (BOUND-ALL-0004)",
+        "reuse ceiling     : "
+        + ("not declared" if prereg.reuse_ceiling is None else str(prereg.reuse_ceiling))
+        + "  (LINK-ALL-0006)",
         f"systems          : {len(prereg.models)} x k={prereg.k}",
         f"depths           : {', '.join(str(d) for d in prereg.depths)}",
         "",
         "composites supplied, by depth:",
     ]
     total = 0
+    refusals: list[str] = []
     for depth in sorted(by_depth):
-        planned = min(by_depth[depth], prereg.composites_per_depth)
-        calls = planned * len(prereg.models) * prereg.k
+        supplied = by_depth[depth]
+        calls = supplied * len(prereg.models) * prereg.k
         total += calls
-        mark = "" if depth in prereg.depths else "   [NOT in the pre-registered depth set]"
-        lines.append(f"  depth {depth:>2}: {by_depth[depth]:>5} available, {planned:>5} planned"
-                     f" -> {calls:>7} completions{mark}")
-    lines += [
-        "",
-        f"total completions: {total}",
-        "",
-        "NOTHING HAS BEEN RUN. Pass an explicit authorisation to execute.",
-    ]
+        mark = ""
+        if depth not in prereg.depths:
+            mark = "   [REFUSED: not in the pre-registered depth set]"
+            refusals.append(f"depth {depth} is not pre-registered")
+        elif supplied > prereg.composites_per_depth:
+            mark = f"   [REFUSED: over the {prereg.composites_per_depth} cap]"
+            refusals.append(f"depth {depth} supplies {supplied} > {prereg.composites_per_depth}")
+        lines.append(
+            f"  depth {depth:>2}: {supplied:>5} supplied -> {calls:>7} completions{mark}"
+        )
+    lines += ["", f"total completions if all were runnable: {total}"]
+    if refusals:
+        # plan() and execute() must agree. Forecasting a silent trim that execute() would
+        # refuse outright is how a plan stops describing the run it precedes.
+        lines += [
+            "",
+            "execute() WOULD REFUSE this set: " + "; ".join(refusals) + ".",
+            "Trim the set deliberately rather than letting the run decide what to drop.",
+        ]
+    lines += ["", "NOTHING HAS BEEN RUN. Pass an explicit authorisation to execute."]
     return "\n".join(lines)
 
 

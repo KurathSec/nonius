@@ -68,175 +68,175 @@
       {
         "code": "link-dead",
         "message": "agg_stats_W12.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W12->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W12.peak -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W12->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W12.trough -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W12->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W128.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W128->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W128.peak -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W128->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W128.trough -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W128->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W16.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W16->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W16.peak -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W16->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W16.trough -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W16->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W160.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W160->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W160.peak -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W160->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W160.trough -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W160->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W16_v0.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W16_v0->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W16_v0.peak -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W16_v0->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W16_v0.trough -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W16_v0->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W16_v1.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W16_v1->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W16_v1.peak -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W16_v1->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W16_v1.trough -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W16_v1->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W16_v2.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W16_v2->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W16_v2.peak -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W16_v2->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W16_v2.trough -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W16_v2->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W16_v3.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W16_v3->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W16_v3.peak -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W16_v3->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W16_v3.trough -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W16_v3->allowlist_L128"
       },
       {
         "code": "link-dead",
         "message": "agg_stats_W16_v4.total -> allowlist_L128.probe: downstream answer is constant over 11 probed values (MEMBERSHIP_CHECK.target_var)",
-        "ruling": "LINK-ALL-0002",
+        "ruling": "LINK-ALL-0007",
         "severity": "info",
         "subject": "agg_stats_W16_v4->allowlist_L128"
       }
@@ -453,7 +453,7 @@
       "cannot compose in either direction: config_resolver, discovery_pipeline, status_router",
       "can only terminate a chain, never start one: allowlist, threshold_select"
     ],
-    "spec": "1.0.0",
+    "spec": "1.1.0",
     "verdict": "composable_to_depth_13"
   },
   "item_level": {
@@ -532,7 +532,7 @@
   ],
   "provenance": {
     "access": "read-only",
-    "nonius_spec": "1.0.0",
+    "nonius_spec": "1.1.0",
     "seed": 20260619,
     "subject": "Spaghetti Architect",
     "subject_commit": "826f4cbf8f4d4c7e2d8473374694360c43fbb820",
@@ -642,6 +642,17 @@
     "note": "PASS means the rendered composite compiled, ran, and produced exactly the gold that the merged program's oracle predicted. SKIP means the toolchain is absent on this machine, which is honest locally and would be a no-op in CI.",
     "outcomes": {
       "PASS": 30
+    },
+    "selection": {
+      "composites_checked": 6,
+      "composites_per_depth": 2,
+      "depths": [
+        2,
+        3,
+        5
+      ],
+      "languages_per_composite": 5,
+      "note": "a spot check, not a sweep: the emitted set is far larger"
     }
   }
 }

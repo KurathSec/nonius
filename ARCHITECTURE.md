@@ -65,8 +65,14 @@ that implements it. `require()` raises at import on a phantom id, so a citation 
 into a lie. Spec semver is independent of the package version; a decision that changes an
 existing value is a spec MAJOR.
 
-Rulings are never edited into new meanings. A ruling is superseded by a new id, with the
-old one keeping `status = "superseded"` and naming its successor.
+Rulings are never edited into new meanings once released. A ruling is superseded by a new
+id, with the old one keeping `status = "superseded"` and naming its successor. `require()`
+refuses a superseded id, so a decision that moves takes its citations with it or the import
+fails.
+
+Within an **unreleased** spec cycle a ruling authored in that same cycle may still be
+amended in place, and the amendment is recorded in the cycle's changelog stanza. What is
+protected is a meaning someone could already have published a number under.
 
 ## 5. Errors
 
@@ -84,11 +90,14 @@ slot ranges over the upstream result's codomain (LINK-ALL-0002).
 
 This is the load-bearing idea. Type compatibility is necessary and nowhere near
 sufficient. Measured on the reference corpus, 32.2% of ordered item pairs are
-type-compatible and **7.0%** carry a live link. A dead link is not a harmless one: the
-downstream answer does not depend on the upstream answer, so a system can skip the
-upstream component and still be scored correct — and that composite will then exceed its
-own independence product bound and be quarantined. A composer that checks types alone
-manufactures quarantine faster than it manufactures difficulty.
+type-compatible and **7.0%** carry a live link.
+
+What a dead link costs is *dependence*, not difficulty. Every component's results are in
+the composite's gold, so both must still be answered and accuracy still tracks the product
+— a dead-link composite is not easier and does not beat its bound. It simply is not a
+chain: it is a conjunction of items printed together, so depth counts how many items were
+stapled into one prompt rather than how far an answer was carried. A composer that checks
+types alone emits a set that is four-fifths conjunctions and calls them chains.
 
 ### 6.2 Construction
 
@@ -103,7 +112,7 @@ Assigning distinct upstreams to a sink's slots is a bipartite matching, so the g
 is repaired by augmenting paths: a first-fit that let an early slot take the only upstream
 a later slot could have used would abandon fan-ins that exist.
 
-**What construction does not enumerate.** Paths and single-sink fan-ins, and nothing else.
+**What construction enumerates.** Paths and single-sink fan-ins, and nothing else.
 A mixed shape — a fan-in whose sink then feeds a further component — is a legal composite
 that `make_chain` accepts and the audit does not find. So the reported component count is a
 floor with its search space declared (AUDIT-ALL-0005), not a maximum.
@@ -137,8 +146,12 @@ Under independence, composite accuracy is the product of component accuracies. T
 null a measurement is read against, never the gold.
 
 The rule has one direction with teeth: measured accuracy exceeding the product by more
-than the noise band means the chain did not bind, and the item is quarantined as invalid
-rather than counted as a success. It also has an obvious failure of nerve — if items that
+than the noise band means a shortcut exists — the composite is *easier* than composition
+allows, as it would be if the upstream answer were readable in the downstream's text — and
+the item is quarantined as invalid rather than counted as a success. Note what this does
+not catch: a dead link makes a conjunction rather than a chain, and a conjunction sits
+exactly on the bound, so liveness has to be enforced at construction (LINK-ALL-0007) and
+cannot be recovered from the measurement. It also has an obvious failure of nerve — if items that
 beat the bound are discarded and items that match it are called confirmation, the gate can
 only ever confirm itself. So the quarantine ceiling is a **required parameter with no
 default**, declared before measurement and printed next to the observed rate.
@@ -162,10 +175,14 @@ visible rather than buried.
 
 ## 11. The audit
 
-No model calls, no composites emitted, nothing spent. Link graph, live edges, maximum
-constructible component count, per-family reachability, and — with an archive — the
-predicted resolution on the **constructible** population. Verdict:
+No model calls, no composites emitted, nothing spent. Link graph, live edges, the deepest
+component count reached over the enumerated shapes, per-family reachability, and — with an
+archive — the predicted resolution on the **constructible** population. Verdict:
 `not_composable` / `composable_to_depth_k` / `composable`, always with reasons.
+
+That component count is a **floor, not a maximum** (AUDIT-ALL-0005). It is the deepest
+reached over paths and single-sink fan-ins; a mixed shape can exceed it. The report labels
+it `deepest reached` and states the search space beside it.
 
 Predictions are computed on composites the link graph can actually build (AUDIT-ALL-0002).
 A uniform prediction describes items the composer cannot emit; on the reference corpus the

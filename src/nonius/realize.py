@@ -115,8 +115,12 @@ def make_prompt_realizer(oracle: Oracle) -> object:
             for name, value in results.items():
                 gold.append((qualified(pos, name), value))
 
-            rendered = _fill(_template(item), shown)
-            missing = [s.name for s in item.slots if "{" + s.name + "}" in rendered]
+            template = _template(item)
+            rendered = _fill(template, shown)
+            # Checked against the TEMPLATE, not the rendered text: after a one-pass fill a
+            # substituted value may legitimately contain a placeholder, and refusing that
+            # would defeat the very rescan-proofing _fill exists to provide.
+            missing = [s.name for s in item.slots if "{" + s.name + "}" in template and s.name not in shown]
             if missing:
                 raise CompositionError(
                     f"{item.id}: slots {missing} have no value and no incoming link, so "

@@ -1,9 +1,11 @@
 """The Spaghetti Architect reference adapter (ARCHITECTURE.md section 12).
 
 **This module is the only place in nonius that may import Spaghetti Architect, and it
-never writes to it.** Every path it touches is opened read-only. The layering test
-(tests/test_layering.py) enforces the first half of that sentence mechanically; the second
-is a rule this module keeps by never opening a file for writing.
+never writes to it.** tests/test_layering.py enforces both halves mechanically: it walks
+the AST of every other module to check none imports the subject's tree, and walks this
+one to check it contains no call that could write. Imports are additionally run with
+bytecode writing disabled, because importing a module otherwise drops ``__pycache__``
+into the checkout.
 
 Spaghetti Architect is a separate project with its own DOI and its own paper. nonius uses
 its generator, IR, execution oracle and committed archive **as instruments**, and claims
@@ -72,8 +74,9 @@ def _read_only_import() -> Iterator[None]:
 
     Importing a module normally writes ``__pycache__/*.pyc`` next to its source. On a
     checkout nonius does not own, that is a write -- so bytecode writing is disabled for
-    the duration of the import. Without this the adapter's read-only claim is false, and
-    ``git status`` in the subject repository grows untracked directories.
+    the duration of the import. Without this the adapter's read-only claim is false: the
+    directories appear on disk whether or not the subject's .gitignore hides them from
+    ``git status``, and "read-only" is a claim about the filesystem, not about git.
     """
     previous = sys.dont_write_bytecode
     sys.dont_write_bytecode = True
@@ -100,6 +103,7 @@ def _sa(root: str) -> Any:
         from src.nodes.parser import parse  # noqa: TID253
         from src.nodes.planner import Planner  # noqa: TID253
         from src.nodes.validator import oracle as sa_oracle  # noqa: TID253
+        from src.nodes.validator import validate as _validate  # noqa: TID253
 
     return {
         "IRProgram": IRProgram,
@@ -108,6 +112,7 @@ def _sa(root: str) -> Any:
         "Planner": Planner,
         "REGISTRY": REGISTRY,
         "oracle": sa_oracle,
+        "validate": _validate,
         "db": str(Path(root) / "config" / "anti_patterns_db.json"),
     }
 

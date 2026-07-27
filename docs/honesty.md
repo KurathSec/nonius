@@ -68,6 +68,12 @@ then measuring those systems, is circular in the stratification — though not i
 Any claim about which stratum recovers the most resolution needs a system that contributed
 nothing to the stratification.
 
+**A dead link is invisible to the bound.** Liveness is enforced when a composite is built
+(LINK-ALL-0007) and cannot be recovered from the measurement: a dead-link composite is a
+conjunction of items, both of which must still be answered, so it sits exactly on the
+product bound. The quarantine gate catches composites that are *easier* than the bound
+allows, not ones that are the right difficulty for the wrong reason.
+
 **The bound is both prediction and gate.** A composite that beats the bound is quarantined;
 a distribution that matches it is confirmation. That is a rule that can only confirm itself
 unless the quarantine rate has a ceiling fixed in advance — which is why the ceiling is a

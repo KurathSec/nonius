@@ -63,6 +63,21 @@ def main(argv: list[str] | None = None) -> int:
     old_values = old["values"]
     new_values = fresh["values"]
 
+    # A snapshot that has been emptied (or nearly so) is the cheap version of the
+    # delete-and-regenerate laundering route: with no old values to compare against,
+    # every real value looks like an addition and sails through without a bump. Refuse
+    # to treat a collapsed baseline as a baseline at all. Note the condition must fire on
+    # an EMPTY dict too -- `if old_values and ...` would skip exactly the worst case.
+    if new_values and len(old_values) * 2 < len(new_values):
+        print(
+            f"refusing: the existing snapshot holds {len(old_values)} values against "
+            f"{len(new_values)} live ones. A baseline that small cannot detect drift; it "
+            f"looks like it was emptied. Restore it from version control, or delete the "
+            f"file deliberately to regenerate from nothing.",
+            file=sys.stderr,
+        )
+        return 1
+
     changed = sorted(
         k
         for k in old_values

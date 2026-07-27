@@ -2,7 +2,7 @@
 
 A ruling is one decision the composer makes, written down, given an immutable ID, and
 cited from the code that implements it. The point is not documentation: it is that a
-number published under ruling ``LINK-ALL-0002`` means the same thing forever, because
+number published under ruling ``LINK-ALL-0007`` means the same thing forever, because
 changing what an existing ID means silently rewrites the history of every number ever
 published under it. Rulings are superseded by new IDs, never edited into new meanings.
 
@@ -109,13 +109,22 @@ def get(ruling_id: str) -> Ruling:
 
 
 def require(ruling_id: str) -> str:
-    """Assert the ruling exists and return its id (call at module import time).
+    """Assert the ruling exists and is active, and return its id (call at import time).
 
-    This is what stops a citation in a docstring from rotting into a lie: a comment can
-    drift, an import-time assertion cannot.
+    This is what stops a citation from rotting into a lie: a comment can drift, an
+    import-time assertion cannot. It refuses a *superseded* id as well as a phantom one,
+    because binding code to a ruling the spec has already retracted is the subtler and
+    more likely mistake -- it is what happens when a decision moves and the citation does
+    not follow it.
     """
-    if ruling_id not in _spec().rulings:
+    ruling = _spec().rulings.get(ruling_id)
+    if ruling is None:
         raise SpecError(
             f"code cites phantom ruling {ruling_id!r}; add it to the spec or fix the citation"
+        )
+    if ruling.status == "superseded":
+        raise SpecError(
+            f"code cites superseded ruling {ruling_id!r}; it was replaced by "
+            f"{ruling.superseded_by!r}. Cite the successor."
         )
     return ruling_id

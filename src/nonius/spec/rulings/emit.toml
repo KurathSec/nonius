@@ -40,6 +40,8 @@ examples = ["chain-depth3-path-001"]
 [[ruling]]
 id = "EMIT-ALL-0003"
 topic = "emit"
+status = "superseded"
+superseded_by = "EMIT-ALL-0005"
 title = "Composite identity is a content hash over shape, links and spec version"
 statement = """
 A composite's id is a truncated sha256 over its component ids in topological order, its
@@ -60,3 +62,26 @@ model, a network service or a paid endpoint; running the emitted composites agai
 systems is the practitioner's own harness call, outside this tool.
 """
 examples = []
+
+[[ruling]]
+id = "EMIT-ALL-0005"
+topic = "emit"
+title = "Composite identity is a content hash over shape and links"
+since_spec = "1.0.0"
+statement = """
+A composite's id is a truncated sha256 over its component ids in topological order and its
+links. The rulings version that produced it is recorded beside the id in the emitted
+record, and is not part of it.
+
+Result names in the gold are qualified by component position, not by item id, so the same
+item used twice in one composite stays distinguishable and the gold's key set is a function
+of the chain's shape. The hash changes if and only if the composite's meaning changes.
+"""
+rationale = """
+Supersedes EMIT-ALL-0003, whose title and statement both put the rulings version inside the
+hash. That breaks the "only if" direction the same ruling claims: an editorial spec patch
+alters no decision by definition, yet would have moved every composite id. The version is a
+stamp on how the composite was decided, not part of what it is, so it is recorded beside
+the id instead. The qualified-result-name clause is carried forward unchanged.
+"""
+examples = ["chain-depth3-path-001"]

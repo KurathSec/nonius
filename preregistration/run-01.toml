@@ -4,8 +4,10 @@
 # quarantine rule can only ever confirm itself unless its ceiling is fixed in advance
 # (BOUND-ALL-0004), and a threshold chosen after seeing the data is not a threshold.
 #
-# STATUS: NOT EXECUTED. Nothing here has been run. `nonius run` refuses to spend without
-# both this file and an explicit authorisation flag.
+# STATUS: NOT EXECUTED. Nothing here has been run. The `nonius run` verb only prints a
+# plan and has no code path that can spend at all; spending means calling
+# nonius.run.execute() from your own code, with your own model client, authorised=True,
+# and a pre-registration whose status you have deliberately set to "authorised".
 
 [run]
 id = "run-01"
@@ -28,6 +30,13 @@ selection = "all constructible chains at each depth, capped at composites_per_de
 excluded_depths = [8, 13]
 excluded_reason = "audit predicts 0.0000 for all four systems and floored = 1.0000"
 
+# composites_per_depth is a CAP, not a quota, and at depth 3 it does not bind: the audit
+# enumerates only 134 constructible chains there (120 paths + 14 fan-ins), against 729 at
+# depth 2 and 732 at depth 5. Recording the shortfall here rather than discovering it when
+# the run comes up short is the difference between a design and a surprise.
+constructible_available = { depth_2 = 729, depth_3 = 134, depth_5 = 732 }
+planned_composites = { depth_2 = 500, depth_3 = 134, depth_5 = 500 }
+
 [systems]
 # The same four-model ladder the singleton archive was computed on. Using different
 # systems would break the bridge table, which is the one thing the run is for.
@@ -42,7 +51,9 @@ temperature = 0.0
 note = "k = 3 rather than the archive's 8, because the band comes from the archive's replicates, not from this run's"
 
 [budget]
-estimated_completions = 18000   # 3 depths x 500 composites x 4 models x k=3
+estimated_completions = 13608   # (500 + 134 + 500) composites x 4 models x k=3.
+                                # Not 3 x 500 x 4 x 3 = 18000: depth 3 has only 134
+                                # constructible chains, so the 500 cap cannot bind there.
 cost_class = "under_25_usd"
 credential = "external; liveness not guaranteed. If it is dead, nothing here runs and the free arms stand."
 
@@ -59,9 +70,13 @@ maximum. If measured accuracy for any system sits closer to the maximum than to 
 product at depth 3 or beyond, composition did not preserve the construct and the restored
 headroom is headroom on a different measurand.
 """
-fires_if = "measured is closer to max_prediction than to product_prediction, for the top system, at depth >= 3"
+# The system is named, not selected. "The top system" would be ambiguous after the fact --
+# top on the singleton instrument, or on the composites? -- and a threshold whose scope is
+# decided after seeing the data is not a threshold.
+system = "deepseek-ai/DeepSeek-V4-Flash"
+fires_if = "for deepseek-ai/DeepSeek-V4-Flash, measured is closer to max_prediction than to product_prediction at depth 3 or 5"
 predicted_product = { depth_2 = 0.3346, depth_3 = 0.0804, depth_5 = 0.0000 }
-note = "predicted values are for deepseek-ai/DeepSeek-V4-Flash, from the reference audit"
+note = "predicted values are from the reference audit, for the system named above"
 
 [[threshold]]
 id = "KT-2-quarantine-ceiling"
@@ -110,6 +125,19 @@ design is committed to reporting that outcome rather than reaching for a depth, 
 that flatters it.
 """
 
+[reuse]
+# LINK-ALL-0006's ceiling, declared before measurement like every other threshold here. A
+# top-level table rather than a [[threshold]], because load_preregistration() reads the
+# quarantine ceiling out of the threshold list and a second `ceiling` key there would
+# silently override it.
+ceiling = 120
+note = """
+The maximum number of composites any single component may appear in. 120 is roughly
+1134 planned composites / 26 usable upstream programs, rounded up: it permits the reuse
+this population forces and refuses a set materially more correlated than that. Declared in
+advance so the product bound cannot be quoted on a set nobody agreed to beforehand.
+"""
+
 [declared_limitations]
 model_level_unit = """
 Four systems and three adjacent pairs. Leave-one-out across systems is unavailable. No
@@ -122,8 +150,9 @@ about which stratum recovers the most resolution is circular in the stratificati
 not in the gold, and would need a fifth system that contributed nothing to it.
 """
 component_reuse = """
-500 composites per depth drawn from 729 depth-2 chains over 26 usable upstream programs
-forces heavy reuse, so the per-item rates behind the product bound are not exchangeable.
-Reuse multiplicity is reported per component (LINK-ALL-0006) and the bound is refused
-above the declared ceiling.
+The run draws 500 of 729 chains at depth 2, all 134 at depth 3, and 500 of 732 at depth 5,
+over 26 usable upstream programs (agg_stats 20 + fsm_transition 6). That forces heavy
+reuse, so the per-item rates behind the product bound are not exchangeable. Reuse
+multiplicity is reported per component and `nonius.bound.guard_reuse` refuses to price a
+set whose worst component exceeds the ceiling declared in [reuse] below (LINK-ALL-0006).
 """

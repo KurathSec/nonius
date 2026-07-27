@@ -1,6 +1,6 @@
 [case]
 id = "link-dead-lookup-miss-001"
-rulings = ["LINK-ALL-0002"]
+rulings = ["LINK-ALL-0002", "LINK-ALL-0007"]
 kind = "link"
 computed_by = "hand"
 notes = """
