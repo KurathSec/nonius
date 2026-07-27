@@ -119,12 +119,21 @@ def test_spec_verbs(capsys: pytest.CaptureFixture[str]) -> None:
 
     assert main(["spec", "list"]) == 0
     listing = capsys.readouterr().out
-    assert "LINK-ALL-0002" in listing
+    assert "LINK-ALL-0007" in listing
+    # A retired ruling stays visible and is marked, because it is the record of a decision
+    # somebody may hold a number from.
+    assert "LINK-ALL-0002  A link is admissible" in listing
+    assert "[superseded]" in listing
 
-    assert main(["spec", "show", "LINK-ALL-0002"]) == 0
+    assert main(["spec", "show", "LINK-ALL-0007"]) == 0
     shown = capsys.readouterr().out
     assert "Rationale:" in shown
     assert "Corpus cases:" in shown
+
+    # Showing a superseded ruling must name its successor rather than pretend it is live.
+    assert main(["spec", "show", "LINK-ALL-0002"]) == 0
+    retired = capsys.readouterr().out
+    assert "Superseded by: LINK-ALL-0007" in retired
 
 
 def test_spec_show_rejects_a_phantom_ruling(capsys: pytest.CaptureFixture[str]) -> None:

@@ -232,6 +232,10 @@ Measured on the planned population, not derived from arithmetic:
   depth 3:  134 composites over 22 distinct components, worst  60 (45%)
   depth 5:  500 composites over  6 distinct components, worst 428 (86%)
 
+The component counts are of the composites this design DRAWS, not of the pools they are
+drawn from: depth 2's full pool of 729 chains spans 59 components, and the first 500 span
+49. The union across all three depths is the 55 that KT-0 buys as singletons.
+
 100 is a judgement, and this is what it decides. Depths 2 and 3 are priced; **depth 5 is
 refused**, and that is the point of declaring the ceiling in advance rather than after
 seeing which depths flatter the instrument. 720 of the 732 constructible depth-5 chains --

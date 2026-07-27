@@ -97,8 +97,31 @@ def test_named_tests_exist() -> None:
         assert f"def {name}(" in source, f"{rid} cites missing test {target}"
 
 
+#: First-party Python that names retired or non-existent ids on purpose: the coverage
+#: gate's own pins, the test that asserts a superseded id is refused, and the CLI test that
+#: asserts `spec show` renders a retired ruling and rejects a phantom one.
+RULING_CITATION_EXEMPT: frozenset[str] = frozenset(
+    {
+        "tests/test_spec_coverage.py",
+        "tests/test_refusals.py",
+        "tests/test_cli.py",
+    }
+)
+
+#: Every first-party Python file, not just the package. A stale citation in a test, a tool
+#: or the validation harness reads exactly as wrong as one in src/, and until round 5 the
+#: gate stopped one directory short.
+FIRST_PARTY_PY: tuple[Path, ...] = tuple(
+    sorted(
+        p
+        for d in ("src", "tests", "tools", "validation")
+        for p in (ROOT.parent / d).rglob("*.py")
+    )
+)
+
+
 @pytest.mark.parametrize(
-    "path", sorted(SRC.rglob("*.py")), ids=lambda p: str(p.relative_to(SRC))
+    "path", FIRST_PARTY_PY, ids=lambda p: str(p.relative_to(ROOT.parent))
 )
 def test_every_cited_ruling_resolves(path: Path) -> None:
     """Including in comments and docstrings: a citation that cannot rot is the point.
@@ -106,11 +129,16 @@ def test_every_cited_ruling_resolves(path: Path) -> None:
     Existence is not enough. A superseded id in a docstring reads as the current rule just
     as a phantom one reads as a real one, and only ``require()`` calls were status-checked.
     """
+    rel = path.relative_to(ROOT.parent).as_posix()
+    if rel in RULING_CITATION_EXEMPT:
+        # These name retired and non-existent ids deliberately, to assert that the
+        # registry and the CLI handle both. Checking them here would fail on the fixtures.
+        return
     for rid in sorted(set(RULING_RE.findall(path.read_text(encoding="utf-8")))):
         ruling = get(rid)
-        assert ruling.id == rid, f"{path}: phantom ruling {rid}"
+        assert ruling.id == rid, f"{rel}: phantom ruling {rid}"
         assert ruling.status == "active", (
-            f"{path.relative_to(SRC)} cites {rid}, which is {ruling.status} "
+            f"{rel} cites {rid}, which is {ruling.status} "
             f"(successor: {ruling.superseded_by}). Cite the successor."
         )
 
