@@ -84,18 +84,20 @@ jobs:
           if unshare -rn true 2>/dev/null; then
             ISOLATE="unshare -rn"
           elif sudo -n unshare -n true 2>/dev/null; then
-            # -E keeps PYTHONPATH; PY is absolute because sudo resets PATH to secure_path.
-            ISOLATE="sudo -n -E unshare -n"
+            ISOLATE="sudo -n unshare -n"
           else
             echo "::error::No network isolation is available on this runner: unprivileged"\
                  "user namespaces are denied and there is no passwordless sudo."\
                  "EMIT-ALL-0004 cannot be tested here, so this job refuses to pass."
             exit 1
           fi
+          # PYTHONPATH is passed through `env` rather than inherited: sudo strips PYTHON*
+          # via env_delete even under -E, and the corpus oracle lives on it. PY is absolute
+          # because sudo also resets PATH to secure_path.
           echo "network isolation: $ISOLATE"
-          $ISOLATE "$PY" -m nonius.cli audit \
+          $ISOLATE env PYTHONPATH="$PYTHONPATH" "$PY" -m nonius.cli audit \
             --items tests/corpus/items.jsonl --oracle oracle:answer --json > /dev/null
-          $ISOLATE "$PY" -m nonius.cli compose \
+          $ISOLATE env PYTHONPATH="$PYTHONPATH" "$PY" -m nonius.cli compose \
             --items tests/corpus/items.jsonl --oracle oracle:answer --depths 2,3 > /dev/null
         env:
           PYTHONPATH: tests/corpus
