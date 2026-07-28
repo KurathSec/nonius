@@ -9,7 +9,10 @@ abstract: >-
   on the grounds that type-compatible substitutions are usually not live ones.
 type: software
 authors:
-  - family-names: Kurath
+  - family-names: Ji
+    given-names: Yuxiang
+    orcid: "https://orcid.org/0009-0009-9835-3800"
+    affiliation: "Sunway College"
     alias: KurathSec
 license: MIT
 repository-code: "https://github.com/KurathSec/nonius"
@@ -23,17 +26,33 @@ keywords:
 # release, and a hand-maintained copy here would only drift.
 references:
   - type: software
-    title: "codecaliper: a traceable, reproducible instrument"
+    title: >-
+      codecaliper: a cross-language code readability and complexity measurement instrument
     authors:
-      - family-names: Kurath
+      - family-names: Ji
+        given-names: Yuxiang
+        orcid: "https://orcid.org/0009-0009-9835-3800"
+        affiliation: "Sunway College"
+    doi: 10.5281/zenodo.21312527
+    url: "https://doi.org/10.5281/zenodo.21312527"
     notes: >-
       The versioned-rulings, drift-gate and isolation-seam discipline this project is built
-      on, and the origin of src/nonius/stats.py. See NOTICE.
+      on, and the origin of src/nonius/stats.py. Concept DOI, which resolves to the latest
+      version. See NOTICE.
   - type: software
-    title: "Spaghetti Architect"
+    title: >-
+      Spaghetti Architect: A Contamination-Resistant, By-Construction-Labelled,
+      Multi-Language Code Dataset Generator
     authors:
-      - family-names: Kurath
+      - family-names: Ji
+        given-names: Yuxiang
+        orcid: "https://orcid.org/0009-0009-9835-3800"
+        affiliation: "Sunway College"
+    doi: 10.5281/zenodo.21033174
+    url: "https://doi.org/10.5281/zenodo.21033174"
     notes: >-
       Subject of the reference audit in validation/spaghetti_audit/, read strictly
       read-only and used as an instrument. Its generator, IR, execution oracle, grader and
-      four-model archive are cited, never claimed. See NOTICE.
+      four-model archive are cited and never claimed. Concept DOI; the exact state measured
+      is recorded as provenance.subject_commit in the derived artifact, which no release
+      DOI would pin. See NOTICE.
