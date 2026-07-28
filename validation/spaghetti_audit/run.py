@@ -245,7 +245,13 @@ def main() -> int:
         "toolchain_validation": _validate_toolchains(home, analysis, idx),
     }
 
-    (DERIVED / "audit.json").write_text(canonical_json(payload, indent=2) + "\n", encoding="utf-8")
+    # Everything is rendered before anything is written. These four files are committed
+    # artifacts that get read together, and a run that died between the first and the last
+    # used to leave them from two different runs -- which is exactly how the m* crash
+    # shipped a report contradicting the audit.json beside it.
+    artifacts: dict[str, str] = {
+        "audit.json": canonical_json(payload, indent=2) + "\n",
+    }
 
     # A small, committed sample of real composites, so a reader can see what the operator
     # actually emits rather than only what it counts.
@@ -261,7 +267,7 @@ def main() -> int:
                 strata=tuple(arch.stratum(c) for c in chain.components),
             )
             sample.append(canonical_json(composite_record(composite)))
-    (DERIVED / "composites_sample.jsonl").write_text("\n".join(sample) + "\n", encoding="utf-8")
+    artifacts["composites_sample.jsonl"] = "\n".join(sample) + "\n"
 
     bridge_rows = []
     for depth in (2, 3, 5):
@@ -278,13 +284,17 @@ def main() -> int:
                 }
                 for r in build_bridge(pool, arch, depth=depth)
             ]
-    (DERIVED / "bridge.json").write_text(
-        canonical_json({"note": BRIDGE_NOTE, "rows": bridge_rows}, indent=2) + "\n",
-        encoding="utf-8",
+    artifacts["bridge.json"] = (
+        canonical_json({"note": BRIDGE_NOTE, "rows": bridge_rows}, indent=2) + "\n"
     )
 
-    (DERIVED / "audit_report.md").write_text(_markdown(payload, report), encoding="utf-8")
-    print(f"wrote {len(list(DERIVED.iterdir()))} artifacts to {DERIVED}")
+    # _markdown() renders the report, and is the step that used to raise. It runs before
+    # the first write, so a failure here leaves derived/ exactly as it was.
+    artifacts["audit_report.md"] = _markdown(payload, report)
+
+    for name, content in sorted(artifacts.items()):
+        (DERIVED / name).write_text(content, encoding="utf-8")
+    print(f"wrote {len(artifacts)} artifacts to {DERIVED}")
     print(report.render())
     return 0
 

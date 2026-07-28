@@ -42,15 +42,23 @@ def _shipped_files(root: Path) -> list[Path]:
             check=True,
             text=True,
         ).stdout
+        names = [n for n in out.split("\0") if n]
     except (OSError, subprocess.CalledProcessError):  # pragma: no cover - no git in CI image
-        return [
-            p
-            for p in root.rglob("*")
-            if not p.relative_to(root).as_posix().startswith(
-                (".venv/", "paper/", "scratch/", "dist/", "build/")
-            )
-        ]
-    return [root / name for name in out.split("\0") if name]
+        names = []
+    if names:
+        return [root / name for name in names]
+    # An empty result is not "nothing to check": `git ls-files` exits 0 and prints nothing
+    # when the tree has no tracked files (a fresh `git init`, or a stripped export), and
+    # returning [] there would pass this gate over zero files -- the silent skip the
+    # fallback exists to prevent. Walk instead, minus the trees .gitignore declares
+    # local-only.
+    return [
+        p
+        for p in root.rglob("*")
+        if not p.relative_to(root).as_posix().startswith(
+            (".venv/", "paper/", "scratch/", "dist/", "build/")
+        )
+    ]
 
 #: Any topic, not a hand-listed set: a new topic file would otherwise be invisible to
 #: every citation check while `_RULING_FILES` and `tools/render_rulings.py` both guard

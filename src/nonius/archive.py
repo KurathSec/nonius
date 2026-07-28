@@ -178,9 +178,29 @@ def load(path: str | Path) -> Archive:
         with p.open(encoding="utf-8", newline="") as fh:
             delimiter = "\t" if p.suffix == ".tsv" else ","
             return from_records(list(csv.DictReader(fh, delimiter=delimiter)))
-    return from_records(
-        json.loads(line) for line in _open(p) if line.strip() and not line.startswith("#")
-    )
+    return from_records(_jsonl(p))
+
+
+def _jsonl(p: Path) -> Iterator[Mapping[str, object]]:
+    """Parse a JSONL archive, naming the line that failed.
+
+    The decode has to happen inside a generator that from_records consumes, so the guard
+    belongs here: from_records' own try block starts inside its loop body, which means a
+    JSONDecodeError raised by the generator's ``next()`` escaped it entirely and reached
+    the CLI as a traceback.
+    """
+    for n, line in enumerate(_open(p), start=1):
+        if not line.strip() or line.startswith("#"):
+            continue
+        try:
+            record = json.loads(line)
+        except json.JSONDecodeError as exc:
+            raise ManifestError(f"{p} line {n}: {exc}") from exc
+        if not isinstance(record, dict):
+            raise ManifestError(
+                f"{p} line {n}: each line must be an object, got {type(record).__name__}"
+            )
+        yield record
 
 
 def dumps(archive: Archive) -> str:

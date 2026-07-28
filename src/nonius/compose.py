@@ -216,17 +216,18 @@ def analyze(
 
                     if not values:
                         key = f"{up.id}.{rv.name}"
+                        # Name which of the two causes it actually is. Saying "declares no
+                        # codomain" about a result that declared an empty one states a
+                        # cause that was never the case. Computed outside the dedup guard
+                        # so the per-verdict reason below cannot inherit a previous key's.
+                        cause = (
+                            "declares an empty codomain"
+                            if up.result(rv.name).codomain is not None
+                            else f"declares no codomain and its tag {rv.tag!r} has no "
+                            f"probe set"
+                        )
                         if key not in seen_unbounded:
                             seen_unbounded.add(key)
-                            # Name which of the two causes it actually is. Saying "declares
-                            # no codomain" about a result that declared an empty one states
-                            # a cause that was never the case.
-                            cause = (
-                                "declares an empty codomain"
-                                if up.result(rv.name).codomain is not None
-                                else f"declares no codomain and its tag {rv.tag!r} has no "
-                                f"probe set"
-                            )
                             note(
                                 Diagnostic(
                                     "warning",
@@ -238,7 +239,9 @@ def analyze(
                                 )
                             )
                         verdicts.append(
-                            LinkVerdict(cand, False, 0, 0, "codomain unbounded and unprobeable")
+                            # The same wording as the diagnostic, for the same reason: the
+                            # verdict must not assert a cause the branch did not establish.
+                            LinkVerdict(cand, False, 0, 0, f"result {cause}")
                         )
                         continue
 
@@ -293,9 +296,11 @@ def analyze(
             "probe_int": list(PROBE_INT),
             "probe_bool": list(PROBE_BOOL),
             "probe_str": list(PROBE_STR),
-            # Not `str_unbounded_refused`: a result of any tag lands here when its probe
-            # set comes out empty, and on the calibration corpus this fills with `int`
-            # results that declared an empty codomain. The old name asserted a cause.
+            # Not `str_unbounded_refused`: a result of ANY tag lands here when its probe
+            # set comes out empty -- an `int` or `bool` result that declares an empty
+            # codomain does too. The old name asserted a cause that the key does not
+            # establish. (On the calibration corpus it happens to hold one `str` result,
+            # lk-nocodomain.route, which is why the wrong name went unnoticed.)
             "unprobeable_results": sorted(seen_unbounded),
             "diagnostic_cap": diagnostic_cap,
             "diagnostic_counts": dict(sorted(counts.items())),
@@ -480,8 +485,11 @@ def chained_gold(
 ) -> dict[str, Scalar]:
     """Evaluate the components one at a time, substituting along links (EMIT-ALL-0006).
 
-    This is the reference computation. It never sees the realized composite, which is
-    exactly why agreeing with it is evidence rather than tautology.
+    This is the reference computation. It never sees the realized composite -- but that
+    makes agreement evidence only when the realizer reached its gold by some other route.
+    The default prompt realizer computes the gold by chaining, so for it the two sides are
+    one computation compared against itself and agreement shows nothing; nonius reports
+    that with an info diagnostic (EMIT-ALL-0006).
     """
     per_position: list[Mapping[str, Scalar]] = []
     gold: dict[str, Scalar] = {}

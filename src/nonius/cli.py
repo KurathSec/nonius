@@ -66,6 +66,12 @@ def _bound(raw: str) -> int:
     return value
 
 
+def _path_arg(raw: str) -> str:
+    if not raw.strip():
+        raise argparse.ArgumentTypeError("needs a path; an empty value is not one")
+    return raw
+
+
 def _load_inputs(
     args: argparse.Namespace,
 ) -> tuple[tuple[Item, ...], Oracle, Archive | None]:
@@ -127,7 +133,7 @@ def _cmd_compose(argv: Sequence[str]) -> int:
     p.add_argument("--limit", type=_bound, default=500, help="max composites per depth")
     p.add_argument("--probe-cap", type=_bound, default=64)
     p.add_argument("--path-cap", type=_bound, default=10_000)
-    p.add_argument("--out", help="write JSONL here instead of stdout")
+    p.add_argument("--out", type=_path_arg, help="write JSONL here instead of stdout")
     p.add_argument(
         "--export",
         choices=("nonius", "lm-eval", "inspect"),
@@ -178,6 +184,22 @@ def _cmd_compose(argv: Sequence[str]) -> int:
             singletons(items) if depth == 1 else constructible(analysis, depth, cap=args.path_cap)
         )
         pool = available_chains[: args.limit]
+        # A bound applied to a search is reported next to what it withheld (AUDIT-ALL-0004).
+        # Emitting 500 of 732 chains and saying nothing lets a truncated set read as the
+        # whole constructible pool -- and the pool is exactly what the audit's counts are
+        # about, so the silence would fall on the number a reader most needs.
+        if len(available_chains) > len(pool):
+            bound = (
+                f"--limit {args.limit}"
+                if len(available_chains) < args.path_cap
+                else f"--limit {args.limit} (and --path-cap {args.path_cap} may bind first)"
+            )
+            print(
+                f"info: depth {depth}: emitting {len(pool)} of {len(available_chains)} "
+                f"constructible chains; {len(available_chains) - len(pool)} withheld by "
+                f"{bound}",
+                file=sys.stderr,
+            )
         for chain in pool:
             strata = (
                 tuple(archive.stratum(c) for c in chain.components)
@@ -221,7 +243,10 @@ def _cmd_compose(argv: Sequence[str]) -> int:
             )
             problems += 1
     lines = payload.splitlines()
-    if args.out:
+    # `is not None`, not truthiness: `--out ""` asked for a file, and silently writing to
+    # stdout instead answers a different request. The argparse type refuses the empty
+    # string, so reaching here with one would be a bug rather than a user error.
+    if args.out is not None:
         Path(args.out).write_text(payload, encoding="utf-8")
         print(f"wrote {len(lines)} composites to {args.out}", file=sys.stderr)
     else:

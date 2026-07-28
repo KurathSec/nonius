@@ -27,6 +27,7 @@ from nonius.compose import (
     enumerate_paths,
     make_chain,
 )
+from nonius.errors import CompositionError
 from nonius.model import Chain, Diagnostic, Item, Link
 from nonius.oracle import Oracle
 from nonius.resolution import DepthReadout, predict, singleton_row, table
@@ -177,10 +178,14 @@ class AuditReport:
             )
             for d in depths:
                 top = self.concentration_at_depth.get(d)
-                share = ""
                 if top is not None:
                     family, count, pool = top
                     share = f"   {count}/{pool} {family[:28]}"
+                else:
+                    # Depth 1 is singletons, so "single-family share" is not a question
+                    # about it; an empty pool has nothing to be concentrated. Neither is
+                    # "zero concentration", and a blank cell would read as exactly that.
+                    share = "   n/a"
                 lines.append(
                     f"  {d:>6}{self.chains_at_depth.get(d, 0):>10}"
                     f"{self.fanins_at_depth.get(d, 0):>10}{share}"
@@ -188,9 +193,43 @@ class AuditReport:
             lines.append("")
         for reason in self.reasons:
             lines.append(f"  {reason}")
+        # The bounds belong in the DEFAULT output, not only in --json. A capped enumeration
+        # reads exactly like a complete one otherwise, and the counts above are the numbers
+        # a reader would carry away (AUDIT-ALL-0004).
+        lines += ["", *self._caps_lines()]
         if self.readouts:
             lines += ["", table(self.readouts)]
         return "\n".join(lines)
+
+    def _caps_lines(self) -> list[str]:
+        out = [
+            f"  bounds: probe cap {self.caps.get('probe_cap', '?')} per link, "
+            f"path cap {self.caps.get('path_cap', '?')} per depth, "
+            f"diagnostic cap {self.caps.get('diagnostic_cap', '?')} per code"
+        ]
+        raw_reached = self.caps.get("path_cap_reached_at_depths")
+        reached: Sequence[object] = raw_reached if isinstance(raw_reached, (list, tuple)) else ()
+        if reached:
+            out.append(
+                f"  WITHHELD: the path cap was reached at depth(s) "
+                f"{', '.join(str(d) for d in reached)}; those counts are floors, not totals"
+            )
+        withheld = self.caps.get("diagnostics_withheld") or 0
+        if withheld:
+            out.append(
+                f"  WITHHELD: {withheld} diagnostics beyond the per-code cap "
+                f"(full counts in --json under caps.diagnostic_counts)"
+            )
+        raw_unprobeable = self.caps.get("unprobeable_results")
+        unprobeable: Sequence[object] = (
+            raw_unprobeable if isinstance(raw_unprobeable, (list, tuple)) else ()
+        )
+        if unprobeable:
+            out.append(
+                f"  {len(unprobeable)} result(s) could not be probed, so every link from "
+                f"them is refused: {', '.join(str(u) for u in unprobeable)}"
+            )
+        return out
 
 
 def _reach(items: Sequence[Item], analysis: LinkAnalysis) -> tuple[FamilyReach, ...]:
@@ -423,7 +462,23 @@ def audit(
     sample: int | None = 20_000,
     seed: int = 0,
 ) -> AuditReport:
-    """Run the composability audit. No model calls, no composites emitted."""
+    """Run the composability audit. No model calls, no composites emitted.
+
+    ``path_cap`` and ``sample`` must be at least 1, for the reason ``analyze`` refuses a
+    ``probe_cap`` below it: a bound of zero withholds everything it applies to and the
+    emptiness then gets reported as a property of the corpus. The CLI refuses these at the
+    argument boundary; refusing them here too keeps the library API from being the softer
+    of the two ways in.
+    """
+    if path_cap < 1:
+        raise CompositionError(
+            f"path_cap must be at least 1, got {path_cap}; a cap of 0 enumerates no chains "
+            f"and would be reported as an uncomposable corpus (AUDIT-ALL-0004)"
+        )
+    if sample is not None and sample < 1:
+        raise CompositionError(
+            f"sample must be at least 1 or None, got {sample} (AUDIT-ALL-0004)"
+        )
     analysis = analyze(items, oracle, probe_cap=probe_cap)
 
     n = len(items)

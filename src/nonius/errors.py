@@ -35,9 +35,11 @@ class CompositionError(NoniusError):
 class GoldDisagreementError(CompositionError):
     """The merged program's gold disagrees with the chained component oracles (EMIT-ALL-0006).
 
-    This is the load-bearing check. Two independent computations of the same answer
-    disagreeing means the composite is not a deterministic function of its component
-    golds, which is the one property the whole instrument rests on.
+    This is the load-bearing check. Two computations of the same answer disagreeing means
+    the composite is not a deterministic function of its component golds, which is the one
+    property the whole instrument rests on. They are *independent* computations only for a
+    realizer that reaches the gold by its own route; for one that chains, the check is
+    vacuous and says so (EMIT-ALL-0006).
     """
 
 

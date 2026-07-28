@@ -32,7 +32,9 @@ Why this is a MAJOR when LINK-ALL-0002 -> LINK-ALL-0007 was a MINOR, given that 
 supersessions that move no value: the calibration snapshot records composite diagnostics as
 ``code:ruling`` (tests/tools_snapshot.py), so the cited id is itself a snapshot value.
 EMIT-ALL-0002's id appears there and LINK-ALL-0002's did not. The drift gate therefore
-sees two changed values and requires the MAJOR. The bump is forced by what the snapshot
+refuses with "3 changed and 0 removed value(s)" -- the diagnostic label of
+chain-depth3-path-001, chain-fanin-depth3-001 and chain-suppression-001 -- and requires
+the MAJOR. The bump is forced by what the snapshot
 records, not by a decision changing, and it is taken rather than worked around -- weakening
 the gate to fit a supersession would trade a real check for a version number.
 """

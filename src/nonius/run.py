@@ -73,8 +73,57 @@ class Preregistration:
         return planned * len(self.models) * self.k
 
 
+def _seq(raw: object, key: str, path: str | Path) -> Sequence[object]:
+    """A TOML array, refused if it is anything else.
+
+    A bare string is the dangerous case: it iterates character by character, so
+    ``models = "gpt-4"`` silently becomes five systems and every count derived from it is
+    wrong without a single diagnostic. This is a pre-registration -- a number it states
+    wrongly is a number the run was registered against.
+    """
+    if isinstance(raw, (str, bytes)) or not isinstance(raw, (list, tuple)):
+        raise NotAuthorised(
+            f"{path}: [{key}] must be an array, got {type(raw).__name__} {raw!r}; a bare "
+            f"string would be read one character per element"
+        )
+    return raw
+
+
+def _count(raw: object, key: str, path: str | Path, *, minimum: int = 0) -> int:
+    """A non-negative integer, refused if it is anything else.
+
+    ``int()`` on a TOML string raises a bare ValueError that escapes the CLI as a
+    traceback, and a negative count propagates into the completion budget as a negative
+    number of purchases -- printed, in a plan whose whole job is to say what a run costs.
+    """
+    if isinstance(raw, bool) or not isinstance(raw, int):
+        raise NotAuthorised(
+            f"{path}: {key} must be an integer, got {type(raw).__name__} {raw!r}"
+        )
+    if raw < minimum:
+        raise NotAuthorised(f"{path}: {key} must be at least {minimum}, got {raw}")
+    return raw
+
+
+def _depth_key(key: object, path: str | Path) -> int:
+    """``depth_<n>`` and nothing else."""
+    text = str(key)
+    rest = text.removeprefix("depth_")
+    if rest == text or not rest.isdigit() or int(rest) < 1:
+        raise NotAuthorised(
+            f"{path}: planned_composites key {text!r} is not `depth_<n>` with n >= 1"
+        )
+    return int(rest)
+
+
 def load_preregistration(path: str | Path) -> Preregistration:
-    data = tomllib.loads(Path(path).read_bytes().decode("utf-8"))
+    try:
+        data = tomllib.loads(Path(path).read_bytes().decode("utf-8"))
+    except tomllib.TOMLDecodeError as exc:
+        # TOMLDecodeError subclasses ValueError, so it escaped the CLI's NoniusError arm as
+        # a raw traceback -- a malformed pre-registration is a refusable input like any
+        # other, and the one file where an unreadable refusal matters most.
+        raise ManifestError(f"{path}: not valid TOML: {exc}") from exc
     run = data.get("run", {})
     pop = data.get("population", {})
     systems = data.get("systems", {})
@@ -106,21 +155,27 @@ def load_preregistration(path: str | Path) -> Preregistration:
                 else ""
             )
         )
-    ceiling = float(quarantine[0]["ceiling"])
-    # The ceiling is compared against a quarantined/assessed rate, which is a fraction. A
-    # ceiling outside [0, 1] is unreachable in one direction or already breached in the
-    # other, which is the same self-confirming gate BOUND-ALL-0004 makes the parameter
-    # required to prevent -- requiring a number is no use if any number is accepted.
-    if not 0.0 <= ceiling <= 1.0:
+    raw_ceiling = quarantine[0]["ceiling"]
+    if isinstance(raw_ceiling, bool) or not isinstance(raw_ceiling, (int, float)):
         raise NotAuthorised(
-            f"{path}: quarantine ceiling {ceiling} is not a rate in [0, 1]; it is compared "
-            f"against quarantined/assessed, so a value outside that range can never be "
-            f"exceeded (or is exceeded by every run) and the gate would confirm itself "
-            f"({_R_CEILING})."
+            f"{path}: quarantine ceiling must be a number, got "
+            f"{type(raw_ceiling).__name__} {raw_ceiling!r} ({_R_CEILING})."
+        )
+    ceiling = float(raw_ceiling)
+    # The ceiling is compared against a quarantined/assessed rate with `rate > ceiling`, so
+    # it must be a fraction and 1.0 is already unreachable: a rate cannot exceed 1. A
+    # ceiling nothing can trip is the same self-confirming gate BOUND-ALL-0004 makes the
+    # parameter required to prevent -- requiring a number is no use if any number passes.
+    if not 0.0 <= ceiling < 1.0:
+        raise NotAuthorised(
+            f"{path}: quarantine ceiling {ceiling} is not a rate in [0, 1); it is compared "
+            f"against quarantined/assessed with a strict `>`, so 1.0 and anything above it "
+            f"can never be exceeded and anything below 0 is exceeded by every run -- either "
+            f"way the gate would confirm itself ({_R_CEILING})."
         )
 
     planned = {
-        int(str(key).removeprefix("depth_")): int(value)
+        _depth_key(key, path): _count(value, f"planned_composites.{key}", path)
         for key, value in dict(pop.get("planned_composites", {})).items()
     }
     reuse = data.get("reuse", {})
@@ -128,13 +183,21 @@ def load_preregistration(path: str | Path) -> Preregistration:
     return Preregistration(
         id=str(run.get("id", "")),
         status=str(run.get("status", "")),
-        depths=tuple(int(d) for d in pop.get("depths", ())),
-        composites_per_depth=int(pop.get("composites_per_depth", 0)),
-        models=tuple(str(m) for m in systems.get("models", ())),
-        k=int(systems.get("k", 0)),
+        depths=tuple(
+            _count(d, "depths", path, minimum=1) for d in _seq(pop.get("depths", ()), "depths", path)
+        ),
+        composites_per_depth=_count(
+            pop.get("composites_per_depth", 0), "composites_per_depth", path
+        ),
+        models=tuple(str(m) for m in _seq(systems.get("models", ()), "models", path)),
+        k=_count(systems.get("k", 0), "k", path, minimum=1),
         quarantine_ceiling=ceiling,
         planned_composites=planned,
-        reuse_ceiling=int(reuse["ceiling"]) if "ceiling" in reuse else None,
+        reuse_ceiling=(
+            _count(reuse["ceiling"], "reuse.ceiling", path, minimum=1)
+            if "ceiling" in reuse
+            else None
+        ),
         raw=data,
     )
 
@@ -142,9 +205,22 @@ def load_preregistration(path: str | Path) -> Preregistration:
 def plan(prereg: Preregistration, composites: Sequence[Mapping[str, object]]) -> str:
     """What a run would do, and what it would cost. Spends nothing."""
     by_depth: dict[int, int] = {}
-    for record in composites:
-        depth = int(record["depth"])  # type: ignore[call-overload]
-        by_depth[depth] = by_depth.get(depth, 0) + 1
+    for n, record in enumerate(composites):
+        # execute() validates exactly these cases before spending; plan() must refuse the
+        # same inputs the same way, or the dry run crashes on a file the real run would
+        # have declined politely.
+        if not isinstance(record, Mapping) or "depth" not in record:
+            raise ManifestError(
+                f"composite record {n} is not an object carrying a 'depth'; got "
+                f"{type(record).__name__}"
+            )
+        raw = record["depth"]
+        if isinstance(raw, bool) or not isinstance(raw, int):
+            raise ManifestError(
+                f"composite {record.get('id', n)!r}: 'depth' must be an integer, got "
+                f"{type(raw).__name__} {raw!r}"
+            )
+        by_depth[raw] = by_depth.get(raw, 0) + 1
 
     lines = [
         f"pre-registration : {prereg.id}  (status: {prereg.status})",

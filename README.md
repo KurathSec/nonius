@@ -35,13 +35,13 @@ verdict: composable_to_depth_13
   status_router                 6          0             0         6
   threshold_select             14          0            14         0
 
-   depth     paths   fan-ins
-       1       100         0
-       2       690        39
-       3       120        14
-       5       720        12
-       8         0         4
-      13         0         1
+   depth     paths   fan-ins   largest single-family share
+       1       100         0   n/a
+       2       690        39   36/729 fsm_transition
+       3       120        14   120/134 fsm_transition
+       5       720        12   720/732 fsm_transition
+       8         0         4   n/a
+      13         0         1   n/a
 
   cannot compose in either direction: config_resolver, discovery_pipeline, status_router
   can only terminate a chain, never start one: allowlist, threshold_select
