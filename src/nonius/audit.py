@@ -156,8 +156,8 @@ class AuditReport:
             f"  live links       {self.live_links:>8}   {pct:>6}   admissible (LINK-ALL-0007)",
             f"  live pairs       {self.live_pairs:>8}   {ppct:>6} of {self.ordered_pairs} "
             f"ordered pairs carry a live link",
-            f"  deepest reached  {self.max_depth:>8}   over paths and fan-ins; a floor, "
-            f"not a maximum (AUDIT-ALL-0005)",
+            f"  deepest reached  {self.max_depth:>8}   over paths and fan-ins; a floor "
+            f"rather than a maximum (AUDIT-ALL-0005)",
             "",
         ]
         if self.reach:
@@ -220,7 +220,7 @@ class AuditReport:
         ]
         if sampled:
             out.append(
-                f"  WITHHELD: readouts predicted from a sample, not the whole pool: "
+                f"  WITHHELD: readouts predicted from a sample rather than the whole pool: "
                 f"{', '.join(sampled)}"
             )
         raw_reached = self.caps.get("path_cap_reached_at_depths")
@@ -228,7 +228,7 @@ class AuditReport:
         if reached:
             out.append(
                 f"  WITHHELD: the path cap was reached at depth(s) "
-                f"{', '.join(str(d) for d in reached)}; those counts are floors, not totals"
+                f"{', '.join(str(d) for d in reached)}; those counts are floors rather than totals"
             )
         withheld = self.caps.get("diagnostics_withheld") or 0
         if withheld:

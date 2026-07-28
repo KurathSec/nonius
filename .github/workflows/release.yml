@@ -51,7 +51,7 @@ jobs:
         run: |
           ! tar tzf dist/*.tar.gz | grep -E "(/paper/|/\.github/|/CLAUDE\.md$|/site/|/scratch/)"
 
-      - name: smoke-test the wheel, not the source tree
+      - name: smoke-test the wheel rather than the source tree
         run: |
           python -m venv /tmp/smoke
           /tmp/smoke/bin/pip install dist/*.whl

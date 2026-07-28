@@ -23,9 +23,9 @@ package you can point at your own items.
 that framework in 2025.
 
 **No claim that the composed instrument measures the same construct as the singleton.**
-That is the question composition poses, not one nonius settles. If composite accuracy
+That is the question composition poses. nonius does not settle it. If composite accuracy
 tracks the maximum of the component accuracies rather than their product, or if the system
-ordering inverts, the answer is no — and the honest report is a negative result about
+ordering inverts, the answer is no, and the honest report is a negative result about
 composition rather than a harder benchmark.
 
 **No claim to preserve comparability.** The bridge table is an arithmetic re-expression
@@ -34,11 +34,11 @@ prints the residual so the failure is visible.
 
 **No claim to be cheaper than current practice.** The evidence base behind this work
 cannot price anything. The defensible claim is narrower and it is an availability
-argument, not a price one: composition requires no examiner, and above human capability no
+argument rather than a price one: composition requires no examiner, and above human capability no
 examiner is available.
 
 **No generality beyond benchmarks with a callable execution oracle.** A benchmark whose
-gold is a stored constant cannot be composed at all — which excludes most multiple-choice
+gold is a stored constant cannot be composed at all, which excludes most multiple-choice
 suites and every human-labelled set.
 
 ## Assumptions that are load-bearing
@@ -46,14 +46,14 @@ suites and every human-labelled set.
 **Independence.** The product bound assumes component failures are independent. That
 assumption is what the bound tests and what the bridge table rests on. Biostatistics and
 human reliability analysis both concluded, decades ago, that the better move is to *model*
-the dependence rather than discard the composite — latent-class machinery in one field, a
+the dependence rather than discard the composite: latent-class machinery in one field, a
 five-level dependence correction in the other. nonius quarantines instead. That is a
 weaker answer and it is v1's answer.
 
 **Component exchangeability.** `c ** (1/depth)` treats a chain's components as
 interchangeable draws. They are not, and heavy reuse makes it worse, which is why reuse
 multiplicity is reported and `nonius.bound.guard_reuse` refuses to price a set whose worst
-component exceeds a declared ceiling — a parameter with no default, because how much reuse
+component exceeds a declared ceiling, a parameter with no default, because how much reuse
 is tolerable depends on how the bound will be read (LINK-ALL-0006).
 
 **The probe set.** Liveness for an unbounded int codomain is decided against eleven
@@ -64,7 +64,7 @@ is exactly why changing it is a spec MAJOR.
 
 **Difficulty strata are not independent of the systems.** Strata come from the same
 systems a run would measure. Composing along a difficulty axis those systems defined, and
-then measuring those systems, is circular in the stratification — though not in the gold.
+then measuring those systems, is circular in the stratification, though not in the gold.
 Any claim about which stratum recovers the most resolution needs a system that contributed
 nothing to the stratification.
 
@@ -72,11 +72,11 @@ nothing to the stratification.
 (LINK-ALL-0007) and cannot be recovered from the measurement: a dead-link composite is a
 conjunction of items, both of which must still be answered, so it sits exactly on the
 product bound. The quarantine gate catches composites that are *easier* than the bound
-allows, not ones that are the right difficulty for the wrong reason.
+allows, rather than ones that are the right difficulty for the wrong reason.
 
 **The bound is both prediction and gate.** A composite that beats the bound is quarantined;
 a distribution that matches it is confirmation. That is a rule that can only confirm itself
-unless the quarantine rate has a ceiling fixed in advance — which is why the ceiling is a
+unless the quarantine rate has a ceiling fixed in advance, which is why the ceiling is a
 required parameter with no default (BOUND-ALL-0004).
 
 **The gold-agreement check can be vacuous.** For a realizer that computes the gold by
@@ -93,21 +93,21 @@ upstream *result* piped into the same slot. The bound is reported as
 `caps.paths_are_one_chain_per_node_sequence`, and it means the depth counts are a floor
 twice over: over shapes, and over link assignments within a shape.
 
-**In the pre-registered run the depth-5 product bound is refused, not computed.** 720 of
+**In the pre-registered run the depth-5 product bound is refused rather than computed.** 720 of
 the 732 constructible depth-5 chains live inside one family's six near-duplicate programs.
 The run's declared reuse ceiling of 100 refuses to price a set that correlated, and the
 pre-registration records that refusal in advance rather than discovering it afterwards.
 
 The reference audit is the other case, and the difference matters: it declares no reuse
-ceiling at all — LINK-ALL-0006 makes the ceiling the caller's parameter, with no default —
-so it *does* print a depth-5 product bound, over all 732 chains, in
+ceiling at all, since LINK-ALL-0006 makes the ceiling the caller's parameter with no
+default, so it *does* print a depth-5 product bound, over all 732 chains, in
 `derived/bridge.json`. Read those four rows knowing what the pre-registration refuses to
 buy on: they are arithmetic over a pool that is 98% one family.
 
 **One of the pre-registered kill tests is tripped by its own null.** On the constructible
 population the predicted ordering departs from the singleton ordering at depth 3, because
 that population is dominated by a family on which the systems rank differently. That is a
-property of which composites the link graph can build, not of composition, and it is
+property of which composites the link graph can build rather than of composition, and it is
 registered as an expected outcome so it cannot later be read as a finding.
 
 **Until this project reviewed itself, no registered arm could tell a null result from a
@@ -128,7 +128,7 @@ would make a saturation statistic look like a composability statistic.
 ## The reference audit is a negative result
 
 On the benchmark nonius was demonstrated against, the four families that are actually
-saturated — 900 of 1500 items, sitting at 0.99–1.00 for the top three systems — **cannot
+saturated (900 of 1500 items, sitting at 0.99–1.00 for the top three systems) **cannot
 start a chain**, and three of them (540 items) cannot appear in a composite at all. The
 only two families that can start a chain are the two the systems are worst at. Every
 constructible composite therefore contains an already-hard component, and composition on
@@ -139,20 +139,20 @@ output is "don't bother, and here is why" has to be willing to say it about itse
 
 ## The noise band is biased toward zero, and not in the safe direction
 
-The quarantine band is not a chosen constant — it is bootstrapped from the archive's own
+The quarantine band is not a chosen constant. It is bootstrapped from the archive's own
 replicate draws (BOUND-ALL-0002). But a cell whose k draws are unanimous has zero sample
 variance, so the bootstrap returns a point interval and that cell contributes a structural
 `0.0` to the mean. On the reference archive **315 of 400 (system, item) cells are
 unanimous**, so most of the published band records that the resampler observed no
-variation, not that there is none to observe. A run of identical draws is weak evidence of
-zero variance however long it is, and an interval that can express that uncertainty —
-Wilson, say — is materially wider on the same data.
+variation rather than that there is none to observe. A run of identical draws is weak evidence of
+zero variance however long it is, and an interval that can express that uncertainty,
+Wilson for instance, is materially wider on the same data.
 
 The direction is the uncomfortable part. Quarantine fires on `observed − predicted > band`,
 so a band biased small quarantines **more**, and the quarantine rate is exactly what the
 pre-registered ceiling is read against. A gate that fires too readily is not the
 conservative failure it sounds like: it would let the run reject composites for being
-noisy when the band, not the composite, is the artefact.
+noisy when the band rather than the composite is the artefact.
 
 The estimator is unchanged, because changing it after pre-registering a threshold against
 its output would be the wrong repair. What changed is that `derived/audit.json` now
@@ -163,8 +163,8 @@ Two further things a reader should know. First, the band is estimated on **one (
 item) cell's rate**, while the quantity it gates is `observed − predicted` for a whole
 *composite*, where `predicted` is a product over components. Those are different variances
 on different units; the band is being used as a stand-in for a spread it does not measure,
-and no amount of care in estimating it fixes the mismatch. Second, the obvious repair —
-recompute over only the cells that vary — is itself biased, in the opposite direction and
+and no amount of care in estimating it fixes the mismatch. Second, the obvious repair,
+which is to recompute over only the cells that vary, is itself biased, in the opposite direction and
 by more than the bias it removes, because conditioning on having observed variation selects
 the noisiest cells. There is no unbiased one-line substitute here. The honest recomputation
 is over *all* cells with an interval that does not collapse on a unanimous sample.

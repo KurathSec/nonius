@@ -57,8 +57,8 @@ def render() -> str:
             continue
         lines += [f"## {heading}", ""]
         for r in members:
-            flag = "" if r.status == "active" else f" — **{r.status}**"
-            lines += [f"### `{r.id}` — {r.title}{flag}", ""]
+            flag = "" if r.status == "active" else f" (**{r.status}**)"
+            lines += [f"### `{r.id}`: {r.title}{flag}", ""]
             lines += [r.statement.strip(), ""]
             if r.rationale.strip():
                 lines += ["**Why.**", "", r.rationale.strip(), ""]

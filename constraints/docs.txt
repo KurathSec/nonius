@@ -3,6 +3,6 @@
 #
 # No extras markers here. pip refuses a constraints file containing an extra
 # ("ERROR: Constraints cannot have extras"), which silently makes the whole install
-# fail; the extra belongs on the requirement, not on the constraint.
+# fail; the extra belongs on the requirement rather than on the constraint.
 mkdocs==1.6.1
 mkdocs-material==9.5.49

@@ -18,7 +18,7 @@ verdict: composable_to_depth_13
   candidate links     16470   type-compatible (LINK-ALL-0001)
   live links           5880    35.7%   admissible (LINK-ALL-0007)
   live pairs            690     7.0% of 9900 ordered pairs carry a live link
-  deepest reached        13   over paths and fan-ins; a floor, not a maximum (AUDIT-ALL-0005)
+  deepest reached        13   over paths and fan-ins; a floor rather than a maximum (AUDIT-ALL-0005)
 
   family                    items  can start  can continue  isolated
   agg_stats                    20         20             0         0
@@ -76,5 +76,5 @@ Same archive, same unit; only the population differs (AUDIT-ALL-0002).
 
 PASS means the rendered composite compiled, ran, and produced exactly the gold that the merged program's oracle predicted. SKIP means the toolchain is absent on this machine, which is honest locally and would be a no-op in CI.
 
-Outcomes across five toolchains: `{'PASS': 30}` -- 6 composites x 5 languages, sampled 2 per depth from [2, 3, 5]. A spot check, not a sweep.
+Outcomes across five toolchains: `{'PASS': 30}` -- 6 composites x 5 languages, sampled 2 per depth from [2, 3, 5]. A spot check rather than a sweep.
 

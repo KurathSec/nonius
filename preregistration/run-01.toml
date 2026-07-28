@@ -28,7 +28,7 @@ subject_commit = "826f4cbf8f4d4c7e2d8473374694360c43fbb820"
 # with a floored fraction of 1.0000, so they would buy a row of zeros. Recording the
 # exclusion here rather than discovering it later is the difference between a design and
 # an excuse.
-# Depth 1 is the positive control, not a composed arm: it buys the run's own components as
+# Depth 1 is the positive control rather than a composed arm: it buys the run's own components as
 # singletons so a dead harness is distinguishable from a null result. See KT-0.
 depths = [1, 2, 3, 5]
 composites_per_depth = 500
@@ -55,7 +55,7 @@ which is all 100. Either would buy a different population from the one KT-0 read
 excluded_depths = [8, 13]
 excluded_reason = "audit predicts 0.0000 for all four systems and floored = 1.0000"
 
-# composites_per_depth is a CAP, not a quota, and at depth 3 it does not bind: the audit
+# composites_per_depth is a CAP rather than a quota, and at depth 3 it does not bind: the audit
 # enumerates only 134 constructible chains there (120 paths + 14 fan-ins), against 729 at
 # depth 2 and 732 at depth 5. Recording the shortfall here rather than discovering it when
 # the run comes up short is the difference between a design and a surprise.
@@ -76,7 +76,7 @@ models = [
 ]
 k = 3
 temperature = 0.0
-note = "k = 3 rather than the archive's 8, because the band comes from the archive's replicates, not from this run's"
+note = "k = 3 rather than the archive's 8, because the band comes from the archive's replicates rather than from this run's"
 
 [budget]
 estimated_completions = 14268   # (55 + 500 + 134 + 500) items x 4 models x k=3.
@@ -105,9 +105,9 @@ registered as firing on the free predicted numbers regardless of what is measure
 So the run buys the 55 components its composites are built from, as depth-1 singletons,
 through the same realizer, the same language and the same k. These are items the committed
 archive already scores, so their accuracy is known in advance and any large shortfall is
-the harness, not the systems.
+the harness rather than the systems.
 
-Firing this makes the run VOID, not null: it is re-run, and no other threshold is read.
+Firing this makes the run VOID rather than null: it is re-run, and no other threshold is read.
 """
 # `floor`, deliberately not `ceiling`: load_preregistration() selects the quarantine
 # ceiling by the ruling a threshold cites (BOUND-ALL-0004) and refuses two of them, so a
@@ -126,7 +126,7 @@ it; what it catches is a harness returning nothing usable, which is what it is f
 id = "KT-1-product-vs-max"
 ruling = "BOUND-ALL-0001"
 statement = """
-Composite accuracy should track the product of the component accuracies, not their
+Composite accuracy should track the product of the component accuracies rather than their
 maximum. If measured accuracy for the system named below sits closer to the maximum than to
 the product at depth 3, composition did not preserve the construct and the restored headroom
 is headroom on a different measurand.
@@ -135,7 +135,7 @@ Scoped to depth 3, not "3 or beyond". Depth 5 is refused a product bound by the 
 ceiling declared in [reuse], so there is nothing there to compare against; registering a
 depth-5 arm would be registering a comparison this design cannot make.
 """
-# The system is named, not selected. "The top system" would be ambiguous after the fact --
+# The system is named rather than selected. "The top system" would be ambiguous after the fact --
 # top on the singleton instrument, or on the composites? -- and a threshold whose scope is
 # decided after seeing the data is not a threshold.
 system = "deepseek-ai/DeepSeek-V4-Flash"
@@ -172,7 +172,7 @@ so the inversion is a property of which composites the link graph can build.
 So the singleton-anchored test cannot discriminate at depth 3 on its own, and two readings
 are registered instead of one:
   (a) against the singleton ordering -- expected to fire at depth 3, and reported as
-      evidence about the POPULATION, not about composition;
+      evidence about the POPULATION rather than about composition;
   (b) against the predicted ordering at the same depth -- this is the discriminating one.
       A measured ordering that departs from what the independence bound predicts, beyond
       the band, is evidence about composition.
@@ -206,7 +206,7 @@ yardstick = "max(replicate noise band, m* at that depth)"
 [[threshold]]
 id = "KT-4-floor-not-ceiling"
 statement = """
-Composition must buy resolution, not merely trade a ceiling for a floor. The
+Composition must buy resolution rather than merely trade a ceiling for a floor. The
 discriminating fraction at the best depth must exceed the singleton's by at least 0.05
 absolute.
 """
@@ -250,12 +250,12 @@ note = """
 The maximum number of composites any single component may appear in, above which
 `guard_reuse` refuses to report a product bound at that depth.
 
-Measured on the planned population, not derived from arithmetic:
+Measured on the planned population rather than derived from arithmetic:
   depth 2:  500 composites over 49 distinct components, worst  33 (7% of the set)
   depth 3:  134 composites over 22 distinct components, worst  60 (45%)
   depth 5:  500 composites over  6 distinct components, worst 428 (86%)
 
-The component counts are of the composites this design DRAWS, not of the pools they are
+The component counts are of the composites this design DRAWS rather than of the pools they are
 drawn from: depth 2's full pool of 729 chains spans 59 components, and the first 500 span
 49. The union across all three depths is the 55 that KT-0 buys as singletons.
 
@@ -273,7 +273,7 @@ instrument working.
 execution_validity = """
 Until KT-0 was added, no registered arm could distinguish a null result from a broken run:
 KT-1 and KT-2 pass on all-zero measurements by construction, and KT-4 fires regardless.
-That gap was found by this project's own adversarial review, not by the design.
+That gap was found by this project's own adversarial review rather than by the design.
 """
 model_level_unit = """
 Four systems and three adjacent pairs. Leave-one-out across systems is unavailable. No

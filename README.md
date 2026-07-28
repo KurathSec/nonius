@@ -1,6 +1,6 @@
 # nonius
 
-**Compose the benchmark you already have — and find out for free whether you can.**
+**Compose the benchmark you already have, and find out for free whether you can.**
 
 A saturated benchmark still returns a well-formed number. It is kept precisely because
 every historical comparison was computed against it, so switching instruments costs
@@ -24,7 +24,7 @@ verdict: composable_to_depth_13
   candidate links     16470   type-compatible (LINK-ALL-0001)
   live links           5880    35.7%   admissible (LINK-ALL-0007)
   live pairs            690     7.0% of 9900 ordered pairs carry a live link
-  deepest reached        13   over paths and fan-ins; a floor, not a maximum (AUDIT-ALL-0005)
+  deepest reached        13   over paths and fan-ins; a floor rather than a maximum (AUDIT-ALL-0005)
 
   family                    items  can start  can continue  isolated
   agg_stats                    20         20             0         0
@@ -52,7 +52,7 @@ verdict: composable_to_depth_13
 
 Read the reachability table before the verdict. Three families cannot be composed in any
 direction, and two more can only ever sit at the end of a chain. `deepest reached 13` is a
-floor over the two shapes the audit enumerates — paths and single-sink fan-ins — and a
+floor over the two shapes the audit enumerates (paths and single-sink fan-ins), and a
 mixed shape can exceed it (AUDIT-ALL-0005); the table is what that number is made of.
 
 That readout costs nothing and takes seconds. Getting it *before* you emit a corpus and
@@ -79,15 +79,15 @@ Zero runtime dependencies, Python 3.11+.
 Three things, and the second is the hard one:
 
 1. **An item manifest** (JSONL) declaring typed, named input slots and typed, named
-   results — things a benchmark with an execution oracle already possesses but never
-   exposes.
+   results. A benchmark with an execution oracle already possesses both and exposes
+   neither.
 2. **A callable oracle**, `oracle(item, bindings) -> results`. This is the instrument's
    hard precondition and its main limit on reach: a benchmark whose gold is a stored
    constant with no program behind it cannot be composed, because there is nothing to
    re-run under a changed binding. That excludes most multiple-choice suites and every
    human-labelled set.
 3. **Optionally, a per-item verdict archive** `(system, item, draw, verdict)`, used for
-   difficulty stratification and the product-bound prediction — never for the gold.
+   difficulty stratification and the product-bound prediction. Never for the gold.
 
 A **realizer** turns components plus links into one presentable composite. `nonius` ships
 a default one for any manifest whose items carry a slotted prompt template; an adapter can
@@ -100,10 +100,10 @@ would guess.
 
 Type compatibility is not the binding constraint. A link only *binds* if the downstream
 answer actually varies as the substituted slot ranges over the upstream result's codomain.
-If it does not, the composite is still harder than either item alone — both components
-must be answered — but it is a **conjunction, not a chain**. Nothing was carried from one
-item to the next, so depth counts how many items were printed together rather than how far
-an answer travelled, and the measurement is no longer about composition.
+If it does not, the composite is still harder than either item alone, since both components
+must be answered, but it is a **conjunction rather than a chain**. Nothing was carried from
+one item to the next, so depth counts how many items were printed together rather than how
+far an answer travelled, and the measurement is no longer about composition.
 
 That failure is invisible after the fact. A conjunction sits exactly on the independence
 product bound, so the validity gate never flags it; liveness has to be enforced when the
@@ -111,8 +111,8 @@ item is built.
 
 Measured on the reference corpus (100 committed programs, run through the benchmark's own
 execution oracle): **3190 of 9900 ordered item pairs (32.2%) are type-compatible, but only
-690 (7.0%) carry a live link.** See [validation](docs/validation.md) for the full audit and what it
-implies.
+690 (7.0%) carry a live link.** See [validation](docs/validation.md) for the full audit and
+what it implies.
 
 ## What nonius does not claim
 
@@ -128,12 +128,13 @@ Carried here deliberately, because the surrounding literature is large and old:
 - **It is not the first thing to manufacture difficulty without an examiner.** CHASE
   published that framework in 2025.
 - **It does not claim the composed instrument measures the same construct as the
-  singleton.** That is the question composition poses, not one nonius settles. If composite
-  accuracy tracks the maximum of the component accuracies rather than their product, or if
-  the system ordering inverts, the answer is no.
+  singleton.** That is the question composition poses. nonius does not settle it. If
+  composite accuracy tracks the maximum of the component accuracies rather than their
+  product, or if the system ordering inverts, the answer is no.
 - **It does not claim to preserve comparability.** The bridge table re-expresses old scores
-  under a stated independence assumption. That is an arithmetic re-expression, not a proof
-  of measurement equivalence, and it inherits every failure of the assumption it rests on.
+  under a stated independence assumption. That is an arithmetic re-expression rather than
+  a proof of measurement equivalence, and it inherits every failure of the assumption it
+  rests on.
 - **It does not claim to be cheaper than current practice.** The evidence base behind this
   work cannot price anything. The defensible claim is narrower: composition requires no
   examiner.
@@ -142,9 +143,9 @@ Carried here deliberately, because the surrounding literature is large and old:
 ## Documentation
 
 - [Quickstart](docs/quickstart.md)
-- [The rulings](docs/spec/rulings.md) — every composition decision, with an immutable id
-- [Honesty](docs/honesty.md) — what is measured, what is assumed, what is refused
-- [Validation](docs/validation.md) — the reference audit and its finding
+- [The rulings](docs/spec/rulings.md): every composition decision, with an immutable id
+- [Honesty](docs/honesty.md): what is measured, what is assumed, what is refused
+- [Validation](docs/validation.md): the reference audit and its finding
 - [Architecture](ARCHITECTURE.md)
 
 ## Licence

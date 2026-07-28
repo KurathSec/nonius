@@ -200,7 +200,7 @@ def _validate_toolchains(home: Path, analysis: object, idx: object) -> dict[str,
             "composites_per_depth": tc_per_depth,
             "composites_checked": len(checked),
             "languages_per_composite": len(sp.LANGUAGES),
-            "note": "a spot check, not a sweep: the emitted set is far larger",
+            "note": "a spot check rather than a sweep: the emitted set is far larger",
         },
         "outcomes": outcomes,
         "composites": checked,
@@ -304,13 +304,13 @@ def main() -> int:
 
 
 BRIDGE_NOTE = (
-    "An arithmetic re-expression under an independence assumption, not a proof of "
+    "An arithmetic re-expression under an independence assumption rather than a proof of "
     "measurement equivalence. Measured columns are absent because no composite has been "
-    "run against any system: the paid run is designed and pre-registered, not executed. "
+    "run against any system: the paid run is designed and pre-registered, and unexecuted. "
     "Note also that the two columns are computed on different populations: `singleton` is "
     "the mean over every archive item, while `predicted_composite` is the mean over the "
     "components of the supplied chains, which is a small and skewed subset of them. They "
-    "are comparable as currencies, not as samples."
+    "are comparable as currencies rather than as samples."
 )
 
 
@@ -386,7 +386,7 @@ def _markdown(payload: dict[str, object], report: object) -> str:
         f"Outcomes across five toolchains: `{tv['outcomes']}` -- "
         f"{sel['composites_checked']} composites x {sel['languages_per_composite']} "
         f"languages, sampled {sel['composites_per_depth']} per depth from "
-        f"{sel['depths']}. A spot check, not a sweep.",
+        f"{sel['depths']}. A spot check rather than a sweep.",
         "",
     ]
     return "\n".join(lines) + "\n"

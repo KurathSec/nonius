@@ -1,6 +1,6 @@
 * text=auto eol=lf
 
-# Corpus fixtures are bytes, not text: line-ending normalisation would silently change
+# Corpus fixtures are bytes rather than text: line-ending normalisation would silently change
 # what the drift gate is comparing.
 tests/corpus/** -text
 tests/snapshots/** -text

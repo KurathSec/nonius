@@ -19,12 +19,12 @@ NONIUS_SPAGHETTI_HOME=/path/to/Spaghetti-Architect \
 
 ## The three mechanical gates (never work around them)
 
-1. `tests/test_spec_drift.py` — composition drift. A changed decision is red until
+1. `tests/test_spec_drift.py`: composition drift. A changed decision is red until
    `tools/update_snapshot.py --confirm-spec-bump` is run *after* a real spec MAJOR bump in
    `src/nonius/spec/rulings/index.toml`. The tool refuses a bump that did not happen.
-2. `tests/test_spec_coverage.py` — every active ruling is exercised, every example cites
+2. `tests/test_spec_coverage.py`: every active ruling is exercised, every example cites
    back, every ruling id in `src/` resolves. `UNCOVERED` is shrink-only and is empty.
-3. `tests/test_layering.py` — the core never imports the subject benchmark, and the
+3. `tests/test_layering.py`: the core never imports the subject benchmark, and the
    adapter never opens a file for writing.
 
 **Rulings are never edited into new meanings.** Supersede with a new id.
@@ -32,14 +32,14 @@ NONIUS_SPAGHETTI_HOME=/path/to/Spaghetti-Architect \
 ## Spaghetti Architect is read-only, always
 
 `/home/kureist/Spaghetti-Architect` is a separate project. nonius reads it and never
-writes to it — not a file, not a cache, not a temp artifact inside its tree. Check with
+writes to it. No file, no cache, no temp artifact inside its tree. Check with
 `git -C <that repo> status --porcelain` before and after any work that touches the adapter.
 The claim boundary in both directions is in `NOTICE`; do not blur it.
 
 ## Honesty invariants (encoded in types and tests, keep them that way)
 
-- The audit **refuses** and explains. `not_composable` is a correct, useful answer, not a
-  failure to be worked around by loosening a ruling.
+- The audit **refuses** and explains. `not_composable` is a correct and useful answer
+  rather than a failure to be worked around by loosening a ruling.
 - Any bound applied to a search is reported next to what it withheld. Never truncate
   silently.
 - The gold-agreement check is vacuous for a realizer that computes gold by chaining; that
@@ -61,14 +61,14 @@ integers assert exactly. A case whose numbers cannot be checked on paper does no
 Every number in `README.md`, `ARCHITECTURE.md` and `docs/` traces to exactly one of three
 places, and none of them is a person's memory:
 
-- `validation/spaghetti_audit/derived/` — the reference audit's artifacts;
+- `validation/spaghetti_audit/derived/`: the reference audit's artifacts;
 - the calibration corpus and its snapshot, for anything about `tests/corpus/`;
 - a command you can re-run, quoted verbatim (`nonius env`, `nonius audit ...`).
 
 **Never hand-edit a number into the prose.** Fix the code or the spec, re-run the harness,
 and let the artifact carry it. A figure with no such provenance does not belong in a
-sentence — including the type-compatible-pair count, which comes from re-running the
-analysis, not from a stored file.
+sentence. That includes the type-compatible-pair count, which comes from re-running the
+analysis rather than from a stored file.
 
 ## `paper/` is LOCAL ONLY
 

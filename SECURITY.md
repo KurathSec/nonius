@@ -13,7 +13,8 @@ The one module that can cause spending is `src/nonius/run.py`, and it refuses un
 a pre-registration and an explicit authorisation; the `nonius run` verb has no code path
 that spends at all.
 
-In scope: anything that lets a crafted **manifest or archive** — data, not code — cause
+In scope: anything that lets a crafted **manifest or archive**, which is data rather than
+code, cause
 code execution, a file write outside a path you named, or an unbounded resource
 consumption that a cap should have covered.
 
@@ -23,5 +24,5 @@ Out of scope: a malicious oracle module. That is code you chose to load.
 
 Please report privately through GitHub's security advisory form on the repository rather
 than in a public issue. Include the output of `nonius env`, which states the package
-version, the composition spec version and the probe set — the three things that determine
-what nonius decided.
+version, the composition spec version and the probe set. Those are the three things that
+determine what nonius decided.

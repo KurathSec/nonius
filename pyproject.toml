@@ -48,7 +48,7 @@ docs = ["mkdocs>=1.6", "mkdocs-material>=9"]
 
 [project.scripts]
 # The tool-gap record that motivated this project -- `g1/toolgap.jsonl` in the separate
-# research repository, not a path in this one -- writes the invocation as
+# research repository rather than a path in this one -- writes the invocation as
 #   compose --items items.jsonl --oracle ./oracle.py --depths 1,2,3,5,8
 # `compose` is too generic to claim on PATH and PyPI, so the verb keeps the recorded
 # shape and the script keeps the project name: `nonius compose --items ...`.
@@ -110,7 +110,7 @@ strict = true
 files = ["src/nonius"]
 
 [[tool.mypy.overrides]]
-# Spaghetti Architect is a source checkout, not an installed distribution, and it ships no
+# Spaghetti Architect is a source checkout rather than an installed distribution, and ships no
 # stubs. Only the adapter sees these names, and it holds them as `Any` behind one lazy
 # import site; the core is type-checked normally and never imports them.
 module = ["src.*", "bench.*", "eval.*"]

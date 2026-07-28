@@ -24,8 +24,8 @@ A ruling is one decision, with an immutable id, cited from the code that impleme
    `{TOPIC}-ALL-{NNNN}` and are never reused.
 2. Cite it from the implementing code with `require("...")` at module import, so a typo
    fails at import rather than in review.
-3. Add a calibration case that exercises it, or — if the ruling is a refusal with no value
-   to compute — a named test, and add it to `TEST_COVERED` in
+3. Add a calibration case that exercises it. If the ruling is a refusal with no value to
+   compute, add a named test instead and list it in `TEST_COVERED` in
    `tests/test_spec_coverage.py`.
 4. Bump the spec MINOR in `src/nonius/spec/rulings/index.toml` and add a changelog stanza.
 
@@ -55,8 +55,8 @@ any existing corpus value moved, it is a MAJOR; if none did, it is a MINOR.
 `tests/corpus/cases/<id>.toml`, with the shared item set in `tests/corpus/items.jsonl`.
 
 - Expected values are **hand-computed, with the arithmetic shown in `notes`**. A case whose
-  numbers cannot be checked on paper is a snapshot, not calibration, and the test suite
-  rejects it.
+  numbers cannot be checked on paper is a snapshot rather than a calibration, and the
+  test suite rejects it.
 - Integers assert exactly. Floats carry a declared tolerance.
 - The case names the rulings it exercises, and those rulings must cite it back.
 

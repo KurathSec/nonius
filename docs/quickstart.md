@@ -3,7 +3,7 @@
 ## 1. Describe your items
 
 A JSONL manifest, one record per item, declaring typed named input slots and typed named
-results — things a benchmark with an execution oracle already has but never exposes.
+results. A benchmark with an execution oracle already has both and exposes neither.
 
 ```json
 {"id": "sum-a", "family": "aggregate",
@@ -61,11 +61,12 @@ $ nonius compose --items tests/corpus/items.jsonl --oracle tests/corpus/oracle.p
 
 Every emitted composite has passed two by-construction checks: no linked slot survives as a
 literal, and its gold agrees with the gold from evaluating the components one at a time in
-topological order. With the default realizer that second check is vacuous — the realizer
-reaches the gold by the same chaining the check uses as its reference — and nonius says so
-with an info diagnostic rather than letting a tautology read as evidence. The check has
-force only for a realizer that reaches the gold independently, as the Spaghetti Architect
-adapter does by merging the components into one program and running that program's oracle.
+topological order. With the default realizer that second check is vacuous, because the
+realizer reaches the gold by the same chaining the check uses as its reference, and nonius
+says so with an info diagnostic rather than letting a tautology read as evidence. The check
+has force only for a realizer that reaches the gold independently, as the Spaghetti
+Architect adapter does by merging the components into one program and running that
+program's oracle.
 
 ## 5. Run it in the harness you already use
 
@@ -74,7 +75,7 @@ $ nonius compose ... --export lm-eval  > composites.jsonl
 $ nonius compose ... --export inspect  > samples.jsonl
 ```
 
-Scoring is your harness's exact-match scorer — the same one your singleton items were
+Scoring is your harness's exact-match scorer, the same one your singleton items were
 graded with, which is the point.
 
 ## 6. Plan a paid run

@@ -10,7 +10,7 @@ Check what your installation carries with `nonius spec list`.
 
 ## Core
 
-### `CORE-ALL-0001` — Scalar type tags, with bool tested before int
+### `CORE-ALL-0001`: Scalar type tags, with bool tested before int
 
 A scalar's type tag is one of bool, int, float, str, null. `bool` is tested before `int`
 because bool is a subclass of int in Python; a boolean answer that reported itself as an
@@ -19,13 +19,13 @@ but mean nothing.
 
 Calibration cases: `manifest-roundtrip-001`
 
-### `CORE-ALL-0002` — Canonical serialization: sorted keys, 12 significant digits, no timestamps
+### `CORE-ALL-0002`: Canonical serialization: sorted keys, 12 significant digits, no timestamps
 
 Every artifact is serialized with sorted keys, floats quantized to 12 significant digits,
 and no timestamp or hash-order dependence anywhere. Byte-identity is claimed per platform
 and tested under two PYTHONHASHSEED values; cross-OS byte-identity is not claimed.
 
-### `CORE-ALL-0003` — An item declares slots, results and nothing the composer interprets
+### `CORE-ALL-0003`: An item declares slots, results and nothing the composer interprets
 
 An item is an id, a set of typed named input slots, a set of typed named results, an
 optional stratum label, and an opaque adapter payload the core never inspects. Slot and
@@ -35,7 +35,7 @@ reported by the audit rather than rejected.
 
 Calibration cases: `manifest-roundtrip-001`
 
-### `CORE-ALL-0004` — float and null are not composable in v1
+### `CORE-ALL-0004`: float and null are not composable in v1
 
 Only bool, int and str may carry a link. float is excluded because exact equality on
 floats is not a defensible link relation, and a declared tolerance would make the
@@ -47,7 +47,7 @@ Calibration cases: `link-float-refused-001`
 
 ## Depth
 
-### `DEPTH-ALL-0001` — Depth is the number of components; links number depth minus one — **superseded**
+### `DEPTH-ALL-0001`: Depth is the number of components; links number depth minus one (**superseded**)
 
 A composite's depth is its component count. A depth-1 composite is a single item and is
 identical to the singleton it came from, which is what makes the bridge table exact at
@@ -68,7 +68,7 @@ Calibration cases: `chain-depth3-path-001`
 
 Superseded by `DEPTH-ALL-0003`.
 
-### `DEPTH-ALL-0002` — Fan-in raises depth without lengthening the longest path
+### `DEPTH-ALL-0002`: Fan-in raises depth without lengthening the longest path
 
 Component count, not longest path, is the quantity the independence product bound is
 taken over: a composite is failed if any component is failed, regardless of the shape
@@ -79,7 +79,7 @@ depth so the two are never conflated.
 
 Calibration cases: `chain-fanin-depth3-001`
 
-### `DEPTH-ALL-0003` — Depth is the number of components, and does not determine the link count
+### `DEPTH-ALL-0003`: Depth is the number of components, and does not determine the link count
 
 A composite's depth is its component count. A depth-1 composite has one component and no
 links, so its gold is that component's own answer and the bridge table is exact at depth 1
@@ -112,7 +112,7 @@ Calibration cases: `chain-depth3-path-001`
 
 ## Links
 
-### `LINK-ALL-0001` — Type compatibility is necessary for a link
+### `LINK-ALL-0001`: Type compatibility is necessary for a link
 
 A link from an upstream result to a downstream slot requires the result's type tag to
 equal the slot's type tag, and that tag to be composable (CORE-ALL-0004). This is a
@@ -120,7 +120,7 @@ necessary condition and not a sufficient one.
 
 Calibration cases: `link-live-threshold-001`, `link-type-mismatch-001`
 
-### `LINK-ALL-0002` — A link is admissible only if it is live over the upstream codomain — **superseded**
+### `LINK-ALL-0002`: A link is admissible only if it is live over the upstream codomain (**superseded**)
 
 A link is admissible iff the downstream item's result set takes more than one distinct
 value as the substituted slot ranges over the upstream result variable's codomain. A link
@@ -143,7 +143,7 @@ Calibration cases: `link-dead-lookup-miss-001`, `link-live-threshold-001`
 
 Superseded by `LINK-ALL-0007`.
 
-### `LINK-ALL-0003` — An unbounded codomain is probed with a declared, versioned set
+### `LINK-ALL-0003`: An unbounded codomain is probed with a declared, versioned set
 
 When an upstream result declares no codomain, liveness is tested against the versioned
 probe set for its tag rather than against an arbitrary sample, so that a liveness verdict
@@ -164,20 +164,20 @@ slot look live by finding some exotic value that moves it, which would defeat th
 
 Calibration cases: `link-live-threshold-001`, `link-unbounded-probe-001`
 
-### `LINK-ALL-0004` — A slot takes at most one incoming link
+### `LINK-ALL-0004`: A slot takes at most one incoming link
 
 Each downstream slot is fed by at most one upstream result. A component may be upstream
 of many links (fan-out) and a component may have many of its slots fed (fan-in), but a
 single slot with two sources is not a substitution and is refused.
 
-### `LINK-ALL-0005` — Chains are acyclic and stored in topological order
+### `LINK-ALL-0005`: Chains are acyclic and stored in topological order
 
 The link graph of a chain must be acyclic, and a chain stores its components in
 topological order so that evaluating them in stored order is always legal. Ties break on
 the order the components were supplied, never on set iteration, so the ordering is
 deterministic.
 
-### `LINK-ALL-0006` — Component reuse is counted and reported, and bounded by a declared ceiling
+### `LINK-ALL-0006`: Component reuse is counted and reported, and bounded by a declared ceiling
 
 A component appearing in many composites makes the per-item accuracies used by the
 product bound non-exchangeable, so the bound over-counts. nonius records the reuse
@@ -186,7 +186,7 @@ when the maximum multiplicity exceeds the declared ceiling. The ceiling is a par
 with no default: a caller must state it, because the tolerable amount depends on how the
 bound will be read.
 
-### `LINK-ALL-0007` — A link is admissible only if it is live over the upstream codomain
+### `LINK-ALL-0007`: A link is admissible only if it is live over the upstream codomain
 
 A link is admissible iff the downstream item's result set takes more than one distinct
 value as the substituted slot ranges over the upstream result variable's codomain. A link
@@ -222,7 +222,7 @@ Calibration cases: `link-dead-lookup-miss-001`, `link-live-threshold-001`
 
 ## Emission
 
-### `EMIT-ALL-0001` — Literal suppression: a substituted slot must not survive in the presentation
+### `EMIT-ALL-0001`: Literal suppression: a substituted slot must not survive in the presentation
 
 A realized composite must not contain, anywhere in its presentation, a literal binding
 for a slot that a link feeds. The link is symbolic: the downstream refers to the upstream
@@ -240,7 +240,7 @@ Refusing at emit time turns a silent corpus-wide invalidity into one loud error.
 
 Calibration cases: `chain-suppression-001`
 
-### `EMIT-ALL-0002` — Gold agreement: two independent computations must agree — **superseded**
+### `EMIT-ALL-0002`: Gold agreement: two independent computations must agree (**superseded**)
 
 A composite's gold is accepted only if the realization's gold equals the gold obtained by
 evaluating the components one at a time in topological order, substituting each link's
@@ -259,7 +259,7 @@ Calibration cases: `chain-depth3-path-001`
 
 Superseded by `EMIT-ALL-0006`.
 
-### `EMIT-ALL-0003` — Composite identity is a content hash over shape, links and spec version — **superseded**
+### `EMIT-ALL-0003`: Composite identity is a content hash over shape, links and spec version (**superseded**)
 
 A composite's id is a truncated sha256 over its component ids in topological order, its
 links, and the rulings version that produced it. Result names in the gold are qualified
@@ -271,13 +271,13 @@ Calibration cases: `chain-depth3-path-001`
 
 Superseded by `EMIT-ALL-0005`.
 
-### `EMIT-ALL-0004` — Emission issues no model calls
+### `EMIT-ALL-0004`: Emission issues no model calls
 
 Composing, checking and auditing are offline and free. No stage of nonius contacts a
 model, a network service or a paid endpoint; running the emitted composites against
 systems is the practitioner's own harness call, outside this tool.
 
-### `EMIT-ALL-0005` — Composite identity is a content hash over shape and links
+### `EMIT-ALL-0005`: Composite identity is a content hash over shape and links
 
 A composite's id is a truncated sha256 over its component ids in topological order and its
 links. The rulings version that produced it is recorded beside the id in the emitted
@@ -297,7 +297,7 @@ the id instead. The qualified-result-name clause is carried forward unchanged.
 
 Calibration cases: `chain-depth3-path-001`
 
-### `EMIT-ALL-0006` — Gold agreement: the two computations must agree, and are independent only sometimes
+### `EMIT-ALL-0006`: Gold agreement: the two computations must agree, and are independent only sometimes
 
 A composite's gold is accepted only if the realization's gold equals the gold obtained by
 evaluating the components one at a time in topological order, substituting each link's
@@ -330,7 +330,7 @@ Calibration cases: `chain-depth3-path-001`
 
 ## The bound
 
-### `BOUND-ALL-0001` — The independence product bound is a prediction, not the oracle
+### `BOUND-ALL-0001`: The independence product bound is a prediction, not the oracle
 
 For a system with recorded per-component accuracies p_i on the exact components of a
 composite, the independence prediction for that composite is the product of the p_i. This
@@ -339,7 +339,7 @@ is correct: correctness is decided by the composed gold alone.
 
 Calibration cases: `bound-product-001`
 
-### `BOUND-ALL-0002` — The noise band comes from the archive's own replicates
+### `BOUND-ALL-0002`: The noise band comes from the archive's own replicates
 
 The band within which a measured composite accuracy counts as agreeing with its product
 prediction is derived from the replicate variation already present in the supplied
@@ -347,7 +347,7 @@ archive at its own k, by a seeded percentile bootstrap over the per-draw verdict
 not a chosen constant. An archive with k = 1 supports no band, and nonius refuses to
 quarantine rather than inventing one.
 
-### `BOUND-ALL-0003` — Quarantine is exclusion, not failure
+### `BOUND-ALL-0003`: Quarantine is exclusion, not failure
 
 A composite whose measured accuracy exceeds its independence product prediction by more
 than the noise band is quarantined as shortcut-contaminated: it is excluded from scoring
@@ -356,7 +356,7 @@ not about the system.
 
 Calibration cases: `bound-product-001`
 
-### `BOUND-ALL-0004` — The quarantine rate is reported against a pre-registered ceiling
+### `BOUND-ALL-0004`: The quarantine rate is reported against a pre-registered ceiling
 
 The fraction of composites quarantined at each depth is reported alongside the ceiling
 declared before measurement. Without a declared ceiling the gate can only ever confirm
@@ -372,7 +372,7 @@ ceiling the gate is a confirmation wearing a kill test's clothes.'
 
 ## The audit
 
-### `AUDIT-ALL-0001` — The composability verdict taxonomy — **superseded**
+### `AUDIT-ALL-0001`: The composability verdict taxonomy (**superseded**)
 
 An audit returns exactly one verdict:
   not_composable        -- no live link exists anywhere in the item set;
@@ -387,7 +387,7 @@ Calibration cases: `audit-verdict-001`
 
 Superseded by `AUDIT-ALL-0005`.
 
-### `AUDIT-ALL-0002` — Predictions are computed on the constructible population
+### `AUDIT-ALL-0002`: Predictions are computed on the constructible population
 
 Any predicted accuracy, dead fraction, floored fraction, discriminating fraction or
 between-system gap the audit reports is computed by sampling composites the link graph
@@ -419,14 +419,14 @@ constructible composite contains an already-hard component.
 
 Calibration cases: `audit-constructible-001`
 
-### `AUDIT-ALL-0003` — An audit issues no model calls and emits no composites
+### `AUDIT-ALL-0003`: An audit issues no model calls and emits no composites
 
 The audit is a pre-flight: it reads items, runs the practitioner's oracle to test
 liveness, and reads an archive when one is supplied. It contacts nothing, spends nothing,
 and produces no composite items. Its purpose is to answer 'can this benchmark be composed
 at all, and how far' before any composites or completions are paid for.
 
-### `AUDIT-ALL-0004` — Bounded coverage is stated, never silently applied
+### `AUDIT-ALL-0004`: Bounded coverage is stated, never silently applied
 
 Where an audit bounds its own work -- a sampling cap, a path-enumeration limit, a
 truncated probe set -- the bound and what it excluded are reported in the output. A
@@ -434,7 +434,7 @@ silently truncated search reads as 'covered everything' when it did not.
 
 Calibration cases: `audit-verdict-001`
 
-### `AUDIT-ALL-0005` — The composability verdict taxonomy, over the shapes the audit enumerates
+### `AUDIT-ALL-0005`: The composability verdict taxonomy, over the shapes the audit enumerates
 
 An audit returns exactly one verdict:
   not_composable        -- no live link exists anywhere in the item set;

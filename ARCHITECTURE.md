@@ -15,8 +15,8 @@ have into harder ones whose gold is a deterministic function of the component go
 the instrument gets harder without becoming a different instrument.
 
 That is the easy half. The hard half is that **most benchmarks cannot be composed**, and
-the reason is not the one anybody expects. So the audit — the free pre-flight that says no
-and explains why — is a first-class output rather than a diagnostic.
+the reason is not the one anybody expects. So the audit, the free pre-flight that says no
+and explains why, is a first-class output rather than a diagnostic.
 
 ## 2. Layering, enforced rather than agreed
 
@@ -28,7 +28,7 @@ and explains why — is a first-class output rather than a diagnostic.
 ```
 
 The core is benchmark-agnostic and **must run with no benchmark installed**. Exactly one
-module may *import* a specific benchmark — `adapters/spaghetti.py`. Naming one in prose is
+module may *import* a specific benchmark: `adapters/spaghetti.py`. Naming one in prose is
 fine and several core modules do; what is enforced is the import graph. Two paths are
 exempted from ruff's `banned-module-level-imports`: the adapter, and the layering test
 that checks the rest.
@@ -71,8 +71,8 @@ refuses a superseded id, so a decision that moves takes its citations with it or
 fails.
 
 A ruling that **no released version has ever carried** may still be amended in place, and
-the amendment is recorded in the changelog stanza of the cycle that makes it — not the one
-that authored it. What immutability protects is a meaning someone could already have
+the amendment is recorded in the changelog stanza of the cycle that makes it, rather than
+the one that authored it. What immutability protects is a meaning someone could already have
 published a number under; until a version ships, there is no such meaning. Once superseded,
 a ruling's text is frozen outright and `tests/test_spec_coverage.py` pins a digest of it,
 because a retired ruling is the record of a decision rather than a draft.
@@ -85,7 +85,7 @@ the CLI and carried in the audit report as data.
 
 ## 6. Composition, in three refusable stages
 
-### 6.1 Analysis — the stage that does the work
+### 6.1 Analysis: the stage that does the work
 
 Enumerate every type-compatible substitution (LINK-ALL-0001), then decide which are
 **live**: a link is admissible only if the downstream's answer varies as the substituted
@@ -95,30 +95,30 @@ This is the load-bearing idea. Type compatibility is necessary and nowhere near
 sufficient. Measured on the reference corpus, 32.2% of ordered item pairs are
 type-compatible and **7.0%** carry a live link.
 
-What a dead link costs is *dependence*, not difficulty. Every component's results are in
-the composite's gold, so both must still be answered and accuracy still tracks the product
-— a dead-link composite is not easier and does not beat its bound. It simply is not a
+What a dead link costs is *dependence* rather than difficulty. Every component's results
+are in the composite's gold, so both must still be answered and accuracy still tracks the
+product. A dead-link composite is not easier and does not beat its bound. It simply is not a
 chain: it is a conjunction of items printed together, so depth counts how many items were
 stapled into one prompt rather than how far an answer was carried. A composer that checks
 types alone emits a set that is four-fifths conjunctions and calls them chains.
 
 ### 6.2 Construction
 
-Chains are DAGs, not only paths. **Fan-in** — several upstream components feeding distinct
-slots of one downstream component — raises component count without lengthening the longest
-path (DEPTH-ALL-0002). On a corpus whose link graph is shallow it is the only way to reach
-higher depths without authoring items. Depth means component count and does not determine
-the link count (DEPTH-ALL-0003); path depth is reported separately and the two are never
-conflated.
+Chains are DAGs rather than only paths. **Fan-in**, several upstream components feeding
+distinct slots of one downstream component, raises component count without lengthening the
+longest path (DEPTH-ALL-0002). On a corpus whose link graph is shallow it is the only way to
+reach higher depths without authoring items. Depth means component count and does not
+determine the link count (DEPTH-ALL-0003); path depth is reported separately and the two are
+never conflated.
 
 Assigning distinct upstreams to a sink's slots is a bipartite matching, so the greedy seed
 is repaired by augmenting paths: a first-fit that let an early slot take the only upstream
 a later slot could have used would abandon fan-ins that exist.
 
 **What construction enumerates.** Paths and single-sink fan-ins, and nothing else.
-A mixed shape — a fan-in whose sink then feeds a further component — is a legal composite
+A mixed shape, a fan-in whose sink then feeds a further component, is a legal composite
 that `make_chain` accepts and the audit does not find. So the reported component count is a
-floor with its search space declared (AUDIT-ALL-0005), not a maximum.
+floor with its search space declared (AUDIT-ALL-0005) rather than a maximum.
 
 ### 6.3 Realization, and the two by-construction checks
 
@@ -132,7 +132,7 @@ floor with its search space declared (AUDIT-ALL-0005), not a maximum.
 
 The second check has force only when the realizer reaches the gold by an independent
 route. The default prompt realizer chains the component oracles, which is the same
-computation the check uses as its reference — so for that realizer the check is vacuous,
+computation the check uses as its reference, so for that realizer the check is vacuous,
 and nonius *says so* with an info diagnostic rather than letting a tautology read as
 evidence. The Spaghetti Architect adapter merges the components into one program and takes
 the gold from that program's own oracle, and there the check is real.
@@ -140,7 +140,7 @@ the gold from that program's own oracle, and there the check is real.
 ## 7. The archive
 
 `(system, item, draw, verdict)`. Optional. It buys difficulty strata, the product
-prediction, and the replicate noise band. **It never decides correctness** — that comes
+prediction, and the replicate noise band. **It never decides correctness**. That comes
 from the composed gold and nothing else.
 
 ## 8. The bound, and its way of being self-serving
@@ -148,31 +148,31 @@ from the composed gold and nothing else.
 Under independence, composite accuracy is the product of component accuracies. That is the
 null a measurement is read against, never the gold.
 
-The rule has one direction with teeth: measured accuracy exceeding the product by more
-than the noise band means a shortcut exists — the composite is *easier* than composition
-allows, as it would be if the upstream answer were readable in the downstream's text — and
-the item is quarantined as invalid rather than counted as a success. Note what this does
-not catch: a dead link makes a conjunction rather than a chain, and a conjunction sits
-exactly on the bound, so liveness has to be enforced at construction (LINK-ALL-0007) and
-cannot be recovered from the measurement. It also has an obvious failure of nerve — if items that
-beat the bound are discarded and items that match it are called confirmation, the gate can
-only ever confirm itself. So the quarantine ceiling is a **required parameter with no
-default**, declared before measurement and printed next to the observed rate.
+The rule has one direction with teeth: measured accuracy exceeding the product by more than
+the noise band means a shortcut exists. The composite is *easier* than composition allows,
+as it would be if the upstream answer were readable in the downstream's text, and the item
+is quarantined as invalid rather than counted as a success. Note what this does not catch: a
+dead link makes a conjunction rather than a chain, and a conjunction sits exactly on the
+bound, so liveness has to be enforced at construction (LINK-ALL-0007) and cannot be
+recovered from the measurement. It also has an obvious failure of nerve. If items that beat
+the bound are discarded and items that match it are called confirmation, the gate can only
+ever confirm itself. So the quarantine ceiling is a **required parameter with no default**,
+declared before measurement and printed next to the observed rate.
 
 ## 9. Resolution
 
 Per depth: each system's accuracy, the dead/floored/discriminating fractions, the top-two
-gap, and `m*` — the widest 95% bootstrap interval on any *single* system's mean.
+gap, and `m*`, the widest 95% bootstrap interval on any *single* system's mean.
 
 `m*` is a heuristic floor and not a test. It is a max over **marginal** intervals, so it is
 neither a confidence interval on a between-system *difference* (which would bootstrap the
 paired per-composite differences, and is narrower when the systems are correlated across
 composites, as they are) nor a simultaneous bound over all pairs (which would be wider).
-Read a gap below `m*` as "do not report this as a difference"; do not read a gap above it
-as significance. It is also **not comparable across rows** — its scale tracks the magnitude
-of the accuracies, so it shrinks as a row floors, and reading down the column suggests
-resolution improving exactly where the instrument stopped discriminating. It is `None`, and
-printed `n/a`, on a row too degenerate to have one at all.
+Read a gap below `m*` as "do not report this as a difference"; do not read a gap above it as
+significance. It is also **not comparable across rows**, because its scale tracks the
+magnitude of the accuracies, so it shrinks as a row floors, and reading down the column
+suggests resolution improving exactly where the instrument stopped discriminating. It is
+`None`, and printed `n/a`, on a row too degenerate to have one at all.
 
 Predicted and measured rows are labelled and never mixed. A predicted row cannot detect a
 shortcut, because a shortcut is by definition a departure from the model it uses.
@@ -181,36 +181,37 @@ shortcut, because a shortcut is by definition a departure from the model it uses
 
 A historical singleton score read on the composed scale (`p ** d`) and a composed score
 read on the old one (`c ** (1/d)`), with the residual between predicted and measured shown
-next to them. An arithmetic re-expression under a stated assumption, not a proof of
-measurement equivalence. The residual column exists so a failure of the assumption is
+next to them. An arithmetic re-expression under a stated assumption rather than a proof
+of measurement equivalence. The residual column exists so a failure of the assumption is
 visible rather than buried.
 
 ## 11. The audit
 
 No model calls, no composites emitted, nothing spent. Link graph, live edges, the deepest
-component count reached over the enumerated shapes, per-family reachability, and — with an
-archive — the predicted resolution on the **constructible** population. Verdict:
+component count reached over the enumerated shapes, per-family reachability, and, with an
+archive, the predicted resolution on the **constructible** population. Verdict:
 `not_composable` / `composable_to_depth_k` / `composable`, always with reasons.
 
-That component count is a **floor, not a maximum** (AUDIT-ALL-0005). It is the deepest
+That component count is a **floor rather than a maximum** (AUDIT-ALL-0005). It is the
+deepest
 reached over paths and single-sink fan-ins; a mixed shape can exceed it. The report labels
 it `deepest reached` and states the search space beside it.
 
 Predictions are computed on composites the link graph can actually build (AUDIT-ALL-0002).
 A uniform prediction describes items the composer cannot emit; on the reference corpus the
 two differ by 0.0008 on the discriminating fraction at depth 3 (0.7164 against 0.7172)
-while differing 4.6-fold on the between-system gap (0.0294 against 0.1362) — so a uniform
+while differing 4.6-fold on the between-system gap (0.0294 against 0.1362), so a uniform
 prediction can look right on one axis while being badly wrong on the one being bought.
 
-Every bound the audit applies to its own search — probe cap, path cap, sample size,
-diagnostic cap — is reported alongside what it withheld. A silently truncated search reads
+Every bound the audit applies to its own search (probe cap, path cap, sample size,
+diagnostic cap) is reported alongside what it withheld. A silently truncated search reads
 as "covered everything" when it did not.
 
 ## 12. Adapters
 
 `adapters/spaghetti.py` is the reference adapter and the isolation seam.
 `adapters/harness.py` exports composites as lm-evaluation-harness and Inspect AI datasets,
-so composites run inside the harness the practitioner already uses — a composite that only
+so composites run inside the harness the practitioner already uses. A composite that only
 ran inside nonius would be a new instrument by another route.
 
 The merged composite program is constructed as a frozen dataclass rather than through the
@@ -224,7 +225,7 @@ and then verifies the result by compiling and running it.
 `run.py` is the only module that can cost money, and it refuses by default: it needs a
 pre-registration that declares a quarantine ceiling, an explicit `authorised=True`, and a
 pre-registration whose status was deliberately set to `authorised`. The `nonius run` verb
-has no code path that can spend at all — it prints the plan.
+has no code path that can spend at all. It prints the plan.
 
 nonius ships no model client. The caller supplies `complete(prompt) -> str`.
 
@@ -236,19 +237,19 @@ per-platform; cross-OS byte-identity is not claimed.
 
 ## 15. The three gates
 
-1. **Composition drift** — a full value snapshot of every decision the composer makes on
+1. **Composition drift**: a full value snapshot of every decision the composer makes on
    the calibration corpus: link verdicts and diagnostics, the constructed chains at each
    depth, and each composite's gold, id, shape and rendering hash. Stamped with the spec
    version.
    `tools/update_snapshot.py` is the only way to move it and refuses without a real spec
    MAJOR bump; a deleted case counts as a change, so "delete, regenerate, re-add" is
    closed off.
-2. **Ruling coverage** — every active ruling is exercised by a calibration case or by a
+2. **Ruling coverage**: every active ruling is exercised by a calibration case or by a
    named test, every example cites back, and every ruling-id-shaped string in first-party
    Python (`src/`, `tests/`, `tools/`, `validation/`) resolves *and* names an active
-   ruling, including in comments. A second arm holds shipped prose — the tracked files, so
-   a gitignored local draft cannot redden a gate CI could never reproduce — to the weaker
+   ruling, including in comments. A second arm holds shipped prose, the tracked files, so
+   a gitignored local draft cannot redden a gate CI could never reproduce, to the weaker
    rule that it must not cite a *superseded* ruling as current; historical records that
    deliberately do are listed by name.
-3. **Layering** — the core never imports the subject benchmark, and the adapter never
+3. **Layering**: the core never imports the subject benchmark, and the adapter never
    writes.
