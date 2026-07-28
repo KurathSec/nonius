@@ -21,13 +21,67 @@ from conftest import ROOT
 SRC = ROOT.parent / "src" / "nonius"
 ADAPTER = SRC / "adapters" / "spaghetti.py"
 
+#: The EvalPlus seam. Two files, because that subject's oracle is third-party code that
+#: this project executes, and executing it in this interpreter is not containable: a
+#: substituted binding can loop forever or exhaust memory, and EvalPlus's own executor
+#: applies no time limit. The isolation is the point of the split, so the worker is held
+#: to the read-only rule and the adapter is allowed to launch exactly one thing.
+EVALPLUS = SRC / "adapters" / "evalplus.py"
+EVALPLUS_WORKER = SRC / "adapters" / "_evalplus_worker.py"
+
 #: Top-level package names that belong to Spaghetti Architect's source tree.
 FOREIGN = {"src", "bench", "eval"}
+
+#: Every call name that can write, remove or relocate something. Shared by the
+#: spaghetti read-only gate and the evalplus worker gate, so the two cannot drift.
+_WRITE_CALLS = {
+        "write",
+        "writelines",
+        "write_text",
+        "write_bytes",
+        "mkdir",
+        "makedirs",
+        "unlink",
+        "rmdir",
+        "rename",
+        "replace",
+        "touch",
+        "chmod",
+        "remove",
+        "rmtree",
+        "copy",
+        "copy2",
+        "copyfile",
+        "copyfileobj",
+        "copymode",
+        "copystat",
+        "copytree",
+        "move",
+        "truncate",
+        "symlink",
+        "link",
+        "hardlink_to",
+        "symlink_to",
+        "mkfifo",
+        "mknod",
+        "utime",
+        "chown",
+        "lchmod",
+        "rename_to",
+        "renames",
+        "removedirs",
+        "unpack_archive",
+        "make_archive",
+        "extract",
+        "extractall",
+}
 
 #: Modules whose ``open`` takes the path first and the mode second, unlike ``Path.open``.
 _OPEN_MODULES = {"gzip", "io", "bz2", "lzma", "codecs", "os", "tarfile", "zipfile", "shutil"}
 
-CORE = sorted(p for p in SRC.rglob("*.py") if p != ADAPTER)
+CORE = sorted(
+    p for p in SRC.rglob("*.py") if p not in {ADAPTER, EVALPLUS, EVALPLUS_WORKER}
+)
 
 
 @pytest.mark.parametrize("path", CORE, ids=lambda p: str(p.relative_to(SRC)))
@@ -171,47 +225,7 @@ def test_adapter_opens_nothing_for_writing() -> None:
     tree = ast.parse(source, filename=str(ADAPTER))
     shell_modules, shell_functions = _shell_aliases(tree)
 
-    banned_attrs = {
-        "write",
-        "writelines",
-        "write_text",
-        "write_bytes",
-        "mkdir",
-        "makedirs",
-        "unlink",
-        "rmdir",
-        "rename",
-        "replace",
-        "touch",
-        "chmod",
-        "remove",
-        "rmtree",
-        "copy",
-        "copy2",
-        "copyfile",
-        "copyfileobj",
-        "copymode",
-        "copystat",
-        "copytree",
-        "move",
-        "truncate",
-        "symlink",
-        "link",
-        "hardlink_to",
-        "symlink_to",
-        "mkfifo",
-        "mknod",
-        "utime",
-        "chown",
-        "lchmod",
-        "rename_to",
-        "renames",
-        "removedirs",
-        "unpack_archive",
-        "make_archive",
-        "extract",
-        "extractall",
-    }
+    banned_attrs = _WRITE_CALLS
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
@@ -261,6 +275,56 @@ def test_adapter_opens_nothing_for_writing() -> None:
                 f"adapters/spaghetti.py:{node.lineno} shells out; a subprocess can write "
                 f"anything and this gate cannot see inside one"
             )
+
+
+def test_the_evalplus_adapter_launches_only_its_own_worker() -> None:
+    """A narrower rule than the blanket ban, and a stronger one.
+
+    This adapter must shell out: it executes a third-party reference implementation, and
+    a subprocess with RLIMIT_AS and an alarm is the only thing that contains a substituted
+    binding that loops forever or allocates without bound. So instead of forbidding
+    subprocesses here, this pins WHICH one -- the project's own worker module, launched
+    with the running interpreter -- and forbids every other spawn. A blanket exemption
+    would have let the seam widen silently.
+    """
+    tree = ast.parse(EVALPLUS.read_text(encoding="utf-8"), filename=str(EVALPLUS))
+    shell_modules, shell_functions = _shell_aliases(tree)
+    spawns = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call) and _shells_out(node, shell_modules, shell_functions)
+    ]
+    assert len(spawns) == 1, f"expected exactly one spawn site, found {len(spawns)}"
+
+    argv = spawns[0].args[0] if spawns[0].args else None
+    assert isinstance(argv, ast.List), "the spawn must pass a literal argv list"
+    rendered = [
+        ast.unparse(x) if not isinstance(x, ast.Constant) else x.value for x in argv.elts
+    ]
+    assert rendered == ["sys.executable", "-m", "nonius.adapters._evalplus_worker"], (
+        f"the adapter may launch only its own worker with the running interpreter; "
+        f"got {rendered}"
+    )
+
+
+def test_the_evalplus_worker_executes_but_never_writes() -> None:
+    """The worker runs subject code, so nothing it does is visible to the AST gates.
+
+    What IS checkable is the worker itself: it may exec, because that is its job, and it
+    may not open a file for writing, spawn anything further, or import the subject.
+    """
+    tree = ast.parse(EVALPLUS_WORKER.read_text(encoding="utf-8"), filename=str(EVALPLUS_WORKER))
+    shell_modules, shell_functions = _shell_aliases(tree)
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        name = node.func.attr if isinstance(node.func, ast.Attribute) else getattr(node.func, "id", "")
+        assert name not in _WRITE_CALLS, (
+            f"_evalplus_worker.py:{node.lineno} calls {name}(); the worker is read-only"
+        )
+        assert not _shells_out(node, shell_modules, shell_functions), (
+            f"_evalplus_worker.py:{node.lineno} spawns a further process"
+        )
 
 
 def test_adapter_is_the_only_exempted_module() -> None:
