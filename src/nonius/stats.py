@@ -4,9 +4,13 @@ Adapted from codecaliper ``validation/bw_faithfulness/stats.py``, which in turn 
 from Spaghetti Architect ``bench/grade.py`` (MIT, same author; see NOTICE). Same
 definitions; the bodies are re-typed so ``mypy --strict`` passes without ignore comments.
 Kept as a copy rather than a dependency for the same reason it was copied the first time:
-these five functions are the only statistics the instrument needs, and adding a numeric
-stack to get them would put a floating-point implementation detail between the archive
-and a published number.
+what the instrument needs from a numeric stack is small, and adding one would put a
+floating-point implementation detail between the archive and a published number.
+
+``mean``, ``stdev`` and ``ci95_bootstrap`` are load-bearing. ``spearman`` is not called
+anywhere in nonius and is kept only so this file stays a faithful copy of its source --
+diverging would make the NOTICE attribution harder to check than the dead function is
+worth. Do not read its presence as a claim that nonius computes a rank correlation.
 
 Deterministic: the bootstrap is seeded, and every caller passes the seed explicitly.
 """

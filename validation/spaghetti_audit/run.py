@@ -27,7 +27,7 @@ sys.path.insert(0, str(ROOT.parent.parent / "src"))
 
 from nonius.adapters import spaghetti as sp  # noqa: E402
 from nonius.audit import audit, constructible  # noqa: E402
-from nonius.bound import noise_band  # noqa: E402
+from nonius.bound import noise_band, unanimous_fraction  # noqa: E402
 from nonius.bridge import build as build_bridge  # noqa: E402
 from nonius.canonical import canonical_json  # noqa: E402
 from nonius.compose import analyze, composite_record, realize  # noqa: E402
@@ -235,6 +235,10 @@ def main() -> int:
             # hand-copied: it was the last number in the repository that no generator
             # produced, and it was wrong by a digit.
             "noise_band": noise_band(arch, seed=SEED),
+            # Published beside the band, never without it: the band's estimator returns a
+            # structural zero for a unanimous cell, so on a saturated archive most of it
+            # records that the resampler saw no variation rather than that there is none.
+            "noise_band_unanimous_cell_fraction": unanimous_fraction(arch),
             "strata": {
                 name: sum(1 for i in arch.items if arch.stratum(i) == name)
                 for name in ("dead", "floored", "discriminating", "uniform-partial")

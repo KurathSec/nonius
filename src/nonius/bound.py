@@ -127,6 +127,20 @@ def noise_band(archive: Archive, *, seed: int = 0, iters: int = 2000) -> float |
     for that cell's rate; the band is the mean half-width over cells. It is not a chosen
     constant, and an archive with k = 1 supports no band at all -- in which case this
     returns ``None`` and nonius refuses to quarantine rather than inventing one.
+
+    **This estimator is biased toward zero, and the bias is not conservative.** A cell
+    whose draws are unanimous has zero sample variance, so ``ci95_bootstrap`` returns a
+    point interval and the cell contributes a structural 0.0 to the mean. On a saturated
+    archive most cells are unanimous -- 315 of 400 on the reference asset -- so the band is
+    dominated by zeros that record "the resampler saw no variation", not "this cell has no
+    uncertainty". k identical draws is weak evidence of zero variance and the bootstrap
+    cannot express uncertainty it never observed; an interval that can, such as Wilson,
+    gives a materially wider band on the same data.
+
+    The direction matters because quarantine fires on ``observed - predicted > band``: a
+    band biased small quarantines *more*, and the quarantine rate is what the pre-registered
+    ceiling is read against. Use :func:`unanimous_fraction` to report how much of the band
+    is structural zeros, and say so next to the number.
     """
     if archive.k() < 2:
         return None
@@ -142,6 +156,27 @@ def noise_band(archive: Archive, *, seed: int = 0, iters: int = 2000) -> float |
                 lo, hi = ci95_bootstrap(draws, iters=iters, seed=seed)
                 halves.append((hi - lo) / 2.0)
     return mean(halves) if halves else None
+
+
+def unanimous_fraction(archive: Archive) -> float | None:
+    """Share of (system, item) cells whose draws are unanimous.
+
+    How much of :func:`noise_band` is structural zeros rather than measured spread. A band
+    reported without it looks like an estimate of replicate noise; at 0.79 it is mostly a
+    statement that a saturated archive stopped varying (BOUND-ALL-0002, AUDIT-ALL-0004).
+    """
+    cells = 0
+    unanimous = 0
+    for system in archive.systems:
+        for item in archive.items:
+            draws = [
+                v.correct for v in archive.verdicts if v.system == system and v.item == item
+            ]
+            if len(draws) > 1:
+                cells += 1
+                if len(set(draws)) == 1:
+                    unanimous += 1
+    return unanimous / cells if cells else None
 
 
 @dataclass(frozen=True, slots=True)

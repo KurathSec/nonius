@@ -136,3 +136,26 @@ that asset cannot address the saturation it was pointed at.
 
 That is reported as the finding rather than buried, because a tool whose most valuable
 output is "don't bother, and here is why" has to be willing to say it about itself.
+
+## The noise band is biased toward zero, and not in the safe direction
+
+The quarantine band is not a chosen constant — it is bootstrapped from the archive's own
+replicate draws (BOUND-ALL-0002). But a cell whose k draws are unanimous has zero sample
+variance, so the bootstrap returns a point interval and that cell contributes a structural
+`0.0` to the mean. On the reference archive **315 of 400 (system, item) cells are
+unanimous**, so most of the published band records that the resampler observed no
+variation, not that there is none to observe. A run of identical draws is weak evidence of
+zero variance however long it is, and an interval that can express that uncertainty —
+Wilson, say — is materially wider on the same data.
+
+The direction is the uncomfortable part. Quarantine fires on `observed − predicted > band`,
+so a band biased small quarantines **more**, and the quarantine rate is exactly what the
+pre-registered ceiling is read against. A gate that fires too readily is not the
+conservative failure it sounds like: it would let the run reject composites for being
+noisy when the band, not the composite, is the artefact.
+
+The estimator is unchanged, because changing it after pre-registering a threshold against
+its output would be the wrong repair. What changed is that `derived/audit.json` now
+publishes `archive.noise_band_unanimous_cell_fraction` beside the band, and this paragraph
+exists. A reader who wants the band's real width should recompute it over the cells that
+actually vary.
