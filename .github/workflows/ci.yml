@@ -72,9 +72,30 @@ jobs:
       - run: pip install -e ".[dev]" -c constraints/ci.txt
       - name: audit and compose with no network
         run: |
-          unshare -rn python -m nonius.cli audit \
+          # Ubuntu 24.04 runners set kernel.apparmor_restrict_unprivileged_userns=1, which
+          # denies the /proc/self/uid_map write that `unshare -r` needs. A privileged
+          # network namespace needs no mapping, so try that second.
+          #
+          # If neither is available this job FAILS rather than running the commands
+          # unisolated. Its whole purpose is to test EMIT-ALL-0004 with the network
+          # actually gone rather than trusting the in-process socket patch, so a green
+          # run that quietly skipped the isolation would assert something it never checked.
+          PY="$(command -v python)"
+          if unshare -rn true 2>/dev/null; then
+            ISOLATE="unshare -rn"
+          elif sudo -n unshare -n true 2>/dev/null; then
+            # -E keeps PYTHONPATH; PY is absolute because sudo resets PATH to secure_path.
+            ISOLATE="sudo -n -E unshare -n"
+          else
+            echo "::error::No network isolation is available on this runner: unprivileged"\
+                 "user namespaces are denied and there is no passwordless sudo."\
+                 "EMIT-ALL-0004 cannot be tested here, so this job refuses to pass."
+            exit 1
+          fi
+          echo "network isolation: $ISOLATE"
+          $ISOLATE "$PY" -m nonius.cli audit \
             --items tests/corpus/items.jsonl --oracle oracle:answer --json > /dev/null
-          unshare -rn python -m nonius.cli compose \
+          $ISOLATE "$PY" -m nonius.cli compose \
             --items tests/corpus/items.jsonl --oracle oracle:answer --depths 2,3 > /dev/null
         env:
           PYTHONPATH: tests/corpus
