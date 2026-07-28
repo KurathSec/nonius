@@ -58,7 +58,7 @@ jobs:
           /tmp/smoke/bin/nonius env
           /tmp/smoke/bin/nonius spec list | head -3
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: dist, path: dist/ }
 
   publish-pypi:
