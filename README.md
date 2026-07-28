@@ -60,17 +60,9 @@ buy inference against it is the point.
 
 ## Install
 
-**nonius is unreleased.** There is no PyPI distribution and no published tag, so install
-from a checkout:
-
 ```console
-git clone <your checkout of this repository> nonius
-cd nonius
-pip install -e .
+pip install nonius
 ```
-
-`pip install nonius` is what the first release will look like; it does not work today, and
-saying otherwise would be the first false claim in a tool built to refuse them.
 
 Zero runtime dependencies, Python 3.11+.
 
