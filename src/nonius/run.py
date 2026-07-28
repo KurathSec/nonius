@@ -105,11 +105,28 @@ def _count(raw: object, key: str, path: str | Path, *, minimum: int = 0) -> int:
     return raw
 
 
+def _table(raw: object, key: str, path: str | Path) -> Mapping[str, object]:
+    """A TOML table, refused if it is anything else.
+
+    ``.get()`` on a string returns nothing and ``dict()`` on one raises a bare ValueError,
+    which is not a NoniusError and so escaped the CLI as a traceback. A section that is not
+    a table means the file does not say what its author thinks it says.
+    """
+    if not isinstance(raw, Mapping):
+        raise NotAuthorised(
+            f"{path}: [{key}] must be a table, got {type(raw).__name__} {raw!r}"
+        )
+    return raw
+
+
 def _depth_key(key: object, path: str | Path) -> int:
     """``depth_<n>`` and nothing else."""
     text = str(key)
     rest = text.removeprefix("depth_")
-    if rest == text or not rest.isdigit() or int(rest) < 1:
+    # isdecimal, not isdigit: isdigit accepts superscripts and other non-decimal digits
+    # that int() then refuses with a bare ValueError -- the traceback this helper exists
+    # to prevent, reached through the guard meant to prevent it.
+    if rest == text or not rest.isdecimal() or int(rest) < 1:
         raise NotAuthorised(
             f"{path}: planned_composites key {text!r} is not `depth_<n>` with n >= 1"
         )
@@ -124,9 +141,23 @@ def load_preregistration(path: str | Path) -> Preregistration:
         # a raw traceback -- a malformed pre-registration is a refusable input like any
         # other, and the one file where an unreadable refusal matters most.
         raise ManifestError(f"{path}: not valid TOML: {exc}") from exc
-    run = data.get("run", {})
-    pop = data.get("population", {})
-    systems = data.get("systems", {})
+    run = _table(data.get("run", {}), "run", path)
+    pop = _table(data.get("population", {}), "population", path)
+    systems = _table(data.get("systems", {}), "systems", path)
+
+    # `[threshold]` instead of `[[threshold]]` is the commonest TOML mistake there is, and
+    # it turns the threshold list into a table -- iterating which yields key strings, so
+    # every `"ceiling" in t` becomes a substring test and the quarantine ceiling silently
+    # disappears. Name the array-of-tables form, because that is the actual repair.
+    thresholds = data.get("threshold", [])
+    if isinstance(thresholds, Mapping):
+        raise NotAuthorised(
+            f"{path}: [threshold] is a table; thresholds must be an array of tables, "
+            f"written [[threshold]] -- with a single [threshold] the quarantine ceiling "
+            f"cannot be found at all"
+        )
+    for n, t in enumerate(_seq(thresholds, "threshold", path)):
+        _table(t, f"threshold[{n}]", path)
 
     # Selected by the ruling the threshold cites, not by position. An earlier version took
     # the LAST threshold carrying a key named `ceiling`, so adding an unrelated threshold
@@ -176,15 +207,22 @@ def load_preregistration(path: str | Path) -> Preregistration:
 
     planned = {
         _depth_key(key, path): _count(value, f"planned_composites.{key}", path)
-        for key, value in dict(pop.get("planned_composites", {})).items()
+        for key, value in _table(
+            pop.get("planned_composites", {}), "population.planned_composites", path
+        ).items()
     }
-    reuse = data.get("reuse", {})
+    reuse = _table(data.get("reuse", {}), "reuse", path)
 
     return Preregistration(
         id=str(run.get("id", "")),
         status=str(run.get("status", "")),
+        # Deduplicated, order preserved: a repeated depth is not a request to buy it twice,
+        # and summing over it would multiply the stated budget without saying so.
         depths=tuple(
-            _count(d, "depths", path, minimum=1) for d in _seq(pop.get("depths", ()), "depths", path)
+            dict.fromkeys(
+                _count(d, "depths", path, minimum=1)
+                for d in _seq(pop.get("depths", ()), "depths", path)
+            )
         ),
         composites_per_depth=_count(
             pop.get("composites_per_depth", 0), "composites_per_depth", path
@@ -301,16 +339,43 @@ def execute(
     # money on the records it got through, which defeats the point of refusing.
     by_depth: dict[int, int] = {}
     for n, record in enumerate(composites):
+        if not isinstance(record, Mapping):
+            raise ManifestError(
+                f"composite record {n} is not an object; got {type(record).__name__}"
+            )
+        # The id is what a completion is attributed to. Without it the run buys rows that
+        # cannot be joined back to the composite they answered, which is unrecoverable
+        # after the money is spent.
+        if not isinstance(record.get("id"), str) or not record["id"]:
+            raise ManifestError(
+                f"composite record {n}: 'id' must be a non-empty string, got "
+                f"{record.get('id')!r}; a completion with no id cannot be attributed"
+            )
         rendering = record.get("rendering", {})
         if not isinstance(rendering, dict):
             raise ManifestError(
                 f"composite {record.get('id', n)!r}: 'rendering' must be an object, "
                 f"got {type(rendering).__name__}"
             )
-        try:
-            depth = int(record["depth"])  # type: ignore[call-overload]
-        except (KeyError, TypeError, ValueError) as exc:
-            raise ManifestError(f"composite {record.get('id', n)!r}: bad 'depth': {exc}") from exc
+        # The language is known before the first purchase, so a missing or non-string
+        # rendering is caught here rather than silently skipping the record mid-loop --
+        # which would buy a smaller set than plan() budgeted, without saying so.
+        text = rendering.get(language)
+        if not isinstance(text, str):
+            raise ManifestError(
+                f"composite {record.get('id', n)!r}: rendering[{language!r}] must be a "
+                f"string, got {type(text).__name__}; the run would otherwise skip it after "
+                f"plan() had already budgeted for it"
+            )
+        raw_depth = record.get("depth")
+        # No int() coercion: it accepts "3", 3.7 and True, so execute() would read a
+        # different depth from the one the record carries -- and disagree with plan().
+        if isinstance(raw_depth, bool) or not isinstance(raw_depth, int):
+            raise ManifestError(
+                f"composite {record.get('id', n)!r}: 'depth' must be an integer, got "
+                f"{type(raw_depth).__name__} {raw_depth!r}"
+            )
+        depth = raw_depth
         if depth not in prereg.depths:
             raise NotAuthorised(
                 f"composite {record.get('id', n)!r} is depth {depth}, which is not in the "
@@ -332,16 +397,15 @@ def execute(
     for record in composites:
         rendering = record.get("rendering", {})
         assert isinstance(rendering, dict)  # re-established by the pre-pass above
-        prompt = rendering.get(language)
-        if prompt is None:
-            continue
+        prompt = rendering[language]
+        assert isinstance(prompt, str)  # likewise: the pre-pass refuses anything else
         for draw in range(prereg.k):
             out.append(
                 {
                     "composite": record["id"],
                     "depth": record["depth"],
                     "draw": draw,
-                    "raw_output": complete(str(prompt)),
+                    "raw_output": complete(prompt),
                 }
             )
     return out

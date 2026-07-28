@@ -74,6 +74,11 @@
       "8": 0
     },
     "concentration_at_depth": {
+      "13": {
+        "chains": 0,
+        "family": "",
+        "pool": 1
+      },
       "2": {
         "chains": 36,
         "family": "fsm_transition",
@@ -88,6 +93,11 @@
         "chains": 720,
         "family": "fsm_transition",
         "pool": 732
+      },
+      "8": {
+        "chains": 0,
+        "family": "",
+        "pool": 4
       }
     },
     "diagnostics": [
@@ -445,7 +455,7 @@
         "depth": 8,
         "discriminating": 0.0,
         "floored": 1.0,
-        "m_star": 0.0,
+        "m_star": null,
         "n": 4,
         "source": "predicted",
         "top_two_gap": 0.0

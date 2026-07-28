@@ -112,7 +112,15 @@ def item_from_dict(raw: Any, where: str = "item") -> Item:
         raise ManifestError(f"{where}: record must be an object")
     if "id" not in raw:
         raise ManifestError(f"{where}: record needs an 'id'")
-    item_id = str(raw["id"])
+    # str()-ing whatever arrives would make 1 and "1" the same item and None the item
+    # "None". The id is the join key between manifest, archive, chain and composite
+    # record, so a silent coercion here is a collision everywhere downstream.
+    if not isinstance(raw["id"], str) or not raw["id"]:
+        raise ManifestError(
+            f"{where}: 'id' must be a non-empty string, got {type(raw['id']).__name__} "
+            f"{raw['id']!r}"
+        )
+    item_id = raw["id"]
     for field in ("slots", "results"):
         value = raw.get(field, [])
         if not isinstance(value, list):
@@ -185,7 +193,11 @@ def loads(text: str) -> tuple[Item, ...]:
     """Parse a JSONL manifest. Blank lines and ``#`` comment lines are skipped."""
     items: list[Item] = []
     seen: set[str] = set()
-    for lineno, line in enumerate(text.splitlines(), start=1):
+    # split("\n"), not splitlines(): splitlines also breaks on U+2028, U+2029 and U+0085,
+    # which dumps() writes raw because it serializes with ensure_ascii=False. A single
+    # record containing one of them would be read back as two torn fragments, and the
+    # round-trip loads(dumps(x)) == x this module promises would silently fail.
+    for lineno, line in enumerate(text.split("\n"), start=1):
         stripped = line.strip()
         if not stripped or stripped.startswith("#"):
             continue

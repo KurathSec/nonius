@@ -185,19 +185,30 @@ def _cmd_compose(argv: Sequence[str]) -> int:
         )
         pool = available_chains[: args.limit]
         # A bound applied to a search is reported next to what it withheld (AUDIT-ALL-0004).
-        # Emitting 500 of 732 chains and saying nothing lets a truncated set read as the
-        # whole constructible pool -- and the pool is exactly what the audit's counts are
-        # about, so the silence would fall on the number a reader most needs.
-        if len(available_chains) > len(pool):
-            bound = (
-                f"--limit {args.limit}"
-                if len(available_chains) < args.path_cap
-                else f"--limit {args.limit} (and --path-cap {args.path_cap} may bind first)"
-            )
+        # Two bounds apply and they must be named separately: --path-cap truncates
+        # `available_chains` inside constructible() BEFORE --limit sees it, so that count
+        # is not the constructible total whenever the cap saturated. Reporting "N of M"
+        # against a capped M would hide the outer bound behind the inner one.
+        capped = depth > 1 and len(available_chains) >= args.path_cap
+        if capped:
             print(
-                f"info: depth {depth}: emitting {len(pool)} of {len(available_chains)} "
-                f"constructible chains; {len(available_chains) - len(pool)} withheld by "
-                f"{bound}",
+                f"info: depth {depth}: enumeration stopped at --path-cap "
+                f"{args.path_cap}; the constructible total is unknown and at least this, "
+                f"so the counts below are floors",
+                file=sys.stderr,
+            )
+        if len(available_chains) > len(pool):
+            of = f"at least {len(available_chains)}" if capped else str(len(available_chains))
+            print(
+                f"info: depth {depth}: emitting {len(pool)} of {of} constructible chains; "
+                f"{len(available_chains) - len(pool)} withheld by --limit {args.limit}",
+                file=sys.stderr,
+            )
+        # Silence on a depth that produced nothing reads as "there was nothing to say".
+        elif not pool:
+            print(
+                f"info: depth {depth}: no chains are constructible at this depth; nothing "
+                f"was emitted for it",
                 file=sys.stderr,
             )
         for chain in pool:
@@ -269,8 +280,11 @@ def _cmd_run(argv: Sequence[str]) -> int:
 
     prereg = load_preregistration(args.prereg)
     records = []
+    # split("\n"), not splitlines(): canonical_json writes with ensure_ascii=False, so a
+    # composite whose prompt contains U+2028/U+2029/U+0085 is written on one line and
+    # splitlines would tear it into fragments that then fail to parse.
     for n, line in enumerate(
-        Path(args.composites).read_text(encoding="utf-8").splitlines(), start=1
+        Path(args.composites).read_text(encoding="utf-8").split("\n"), start=1
     ):
         if not line.strip():
             continue

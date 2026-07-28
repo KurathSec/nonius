@@ -63,9 +63,14 @@ class DepthReadout:
     floored: float
     discriminating: float
     top_two_gap: float
-    #: ``None`` when the row has too few composites for an interval to mean anything. A
-    #: single composite yields a zero-width bootstrap interval, and printing 0.0000 would
-    #: claim the instrument resolves any difference at all.
+    #: ``None`` when no system's mean has a non-degenerate bootstrap interval: either fewer
+    #: than two composites, or every composite scoring identically for every system. Both
+    #: yield a zero-width interval, and printing 0.0000 would claim the instrument resolves
+    #: any difference at all -- on a row where it resolved nothing.
+    #:
+    #: Not comparable across rows. Its scale tracks the magnitude of the accuracies, so it
+    #: shrinks as a row floors: reading down the column suggests resolution improving as
+    #: the instrument stops discriminating.
     m_star: float | None
     #: Bounds applied while producing this row, reported never hidden (AUDIT-ALL-0004).
     caps: Mapping[str, object] = field(default_factory=dict)
@@ -109,18 +114,27 @@ def _row(
     ranked = sorted(accuracy.values(), reverse=True)
     gap = ranked[0] - ranked[1] if len(ranked) > 1 else 0.0
 
-    # m*: the smallest between-system difference this instrument can resolve, taken as the
-    # widest 95% bootstrap interval on any system's mean. A gap narrower than that is
-    # inside the instrument's own noise and must not be reported as a difference.
-    # Below two composites a percentile bootstrap has nothing to resample, so it reports a
-    # zero-width interval -- which would read as a resolution floor of zero.
+    # m*: the widest 95% bootstrap interval on any system's mean. A gap narrower than that
+    # is inside the instrument's own noise and must not be reported as a difference.
+    #
+    # The bootstrap collapses to a zero-width interval on two different degenerate inputs:
+    # fewer than two composites (nothing to resample) and zero sample variance (every
+    # composite scoring identically for every system). Both must yield None, because
+    # publishing 0.0000 would claim the instrument resolves arbitrarily small differences
+    # -- on a row where it resolved nothing at all. The reference asset's depth-8 row is
+    # exactly that: four composites, every system at 0.0, discriminating 0.0000.
+    #
+    # The test is on the MAX, not per system: m* is defined as a max over systems, so one
+    # degenerate system is harmless. Nulling per system would wrongly null depths 3 and 5,
+    # which each have a system at exactly 0.0 -- including the depth-3 m* the
+    # pre-registration pins as its yardstick.
     if n < 2:
         m_star: float | None = None
     else:
         widths = [
             ci95_for([row.get(s, 0.0) for row in per_composite], seed=seed) for s in systems
         ]
-        m_star = max(widths) if widths else None
+        m_star = max(widths) if widths and max(widths) > 0.0 else None
 
     return DepthReadout(
         depth=depth,
@@ -266,9 +280,9 @@ def table(rows: Sequence[DepthReadout]) -> str:
             + "".join(f"{r.accuracy.get(s, float('nan')):>17.4f}" for s in systems)
             + f"{r.dead:>8.4f}{r.floored:>9.4f}{r.discriminating:>9.4f}"
             + f"{r.top_two_gap:>8.4f}"
-            # m* is None below two composites, where a bootstrap has nothing to resample.
-            # Printing 0.0000 there would read as "resolves any difference" -- the exact
-            # claim the None exists to withhold -- so the cell says so instead.
+            # m* is None on a degenerate row -- too few composites to resample, or no
+            # variance to find. Printing 0.0000 there would read as "resolves any
+            # difference", the exact claim the None exists to withhold, so the cell says so.
             + (f"{r.m_star:>8.4f}" if r.m_star is not None else f"{'n/a':>8}")
         )
     return "\n".join(lines)

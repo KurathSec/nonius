@@ -173,9 +173,27 @@ def load(path: str | Path) -> Archive:
     The plain four-column form is the fallback every harness can produce. Native readers
     for richer layouts belong in adapters, not here.
     """
+    archive = _load(path)
+    if not archive.verdicts:
+        # An empty archive is indistinguishable downstream from "no archive supplied", and
+        # every statistic derived from it is vacuously clean. A header-only CSV, an empty
+        # file, or a CSV whose header row is missing (DictReader eats the first data row
+        # as the header) all land here, and silence would report them as a result.
+        raise ManifestError(
+            f"{path}: no verdicts read. An archive with no rows cannot support strata, a "
+            f"product prediction or a noise band. Check the file is non-empty and that a "
+            f"CSV/TSV carries a `system,item,draw,correct` header row."
+        )
+    return archive
+
+
+def _load(path: str | Path) -> Archive:
     p = Path(path)
     if p.suffix in {".csv", ".tsv"}:
-        with p.open(encoding="utf-8", newline="") as fh:
+        # utf-8-sig, a no-op without a BOM: with one, the first header cell becomes
+        # "﻿system" and every row fails with an opaque missing-key error that names
+        # the wrong problem.
+        with p.open(encoding="utf-8-sig", newline="") as fh:
             delimiter = "\t" if p.suffix == ".tsv" else ","
             return from_records(list(csv.DictReader(fh, delimiter=delimiter)))
     return from_records(_jsonl(p))

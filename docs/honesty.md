@@ -157,5 +157,14 @@ noisy when the band, not the composite, is the artefact.
 The estimator is unchanged, because changing it after pre-registering a threshold against
 its output would be the wrong repair. What changed is that `derived/audit.json` now
 publishes `archive.noise_band_unanimous_cell_fraction` beside the band, and this paragraph
-exists. A reader who wants the band's real width should recompute it over the cells that
-actually vary.
+exists.
+
+Two further things a reader should know. First, the band is estimated on **one (system,
+item) cell's rate**, while the quantity it gates is `observed − predicted` for a whole
+*composite*, where `predicted` is a product over components. Those are different variances
+on different units; the band is being used as a stand-in for a spread it does not measure,
+and no amount of care in estimating it fixes the mismatch. Second, the obvious repair —
+recompute over only the cells that vary — is itself biased, in the opposite direction and
+by more than the bias it removes, because conditioning on having observed variation selects
+the noisiest cells. There is no unbiased one-line substitute here. The honest recomputation
+is over *all* cells with an interval that does not collapse on a unanimous sample.

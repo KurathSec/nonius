@@ -178,13 +178,17 @@ class AuditReport:
             )
             for d in depths:
                 top = self.concentration_at_depth.get(d)
-                if top is not None:
+                if top is not None and top[0]:
                     family, count, pool = top
                     share = f"   {count}/{pool} {family[:28]}"
+                elif top is not None:
+                    # Measured, and the answer is none: the pool is non-empty and no chain
+                    # is drawn from a single family. That is a real result about breadth
+                    # and must not share a cell with "the question does not apply".
+                    share = f"   0/{top[2]} (no single-family chain)"
                 else:
                     # Depth 1 is singletons, so "single-family share" is not a question
-                    # about it; an empty pool has nothing to be concentrated. Neither is
-                    # "zero concentration", and a blank cell would read as exactly that.
+                    # about it, and an empty pool has nothing to be concentrated.
                     share = "   n/a"
                 lines.append(
                     f"  {d:>6}{self.chains_at_depth.get(d, 0):>10}"
@@ -205,8 +209,20 @@ class AuditReport:
         out = [
             f"  bounds: probe cap {self.caps.get('probe_cap', '?')} per link, "
             f"path cap {self.caps.get('path_cap', '?')} per depth, "
+            f"sample {self.caps.get('sample', '?')} per readout, "
             f"diagnostic cap {self.caps.get('diagnostic_cap', '?')} per code"
         ]
+        # A readout predicted from a sample of the pool is not a readout over the pool.
+        sampled = [
+            f"depth {r.depth} ({r.n} of {r.caps.get('chains_available', '?')})"
+            for r in self.readouts
+            if r.caps.get("sampled")
+        ]
+        if sampled:
+            out.append(
+                f"  WITHHELD: readouts predicted from a sample, not the whole pool: "
+                f"{', '.join(sampled)}"
+            )
         raw_reached = self.caps.get("path_cap_reached_at_depths")
         reached: Sequence[object] = raw_reached if isinstance(raw_reached, (list, tuple)) else ()
         if reached:
@@ -418,8 +434,13 @@ def _concentration(
             only = next(iter(families))
             if only:
                 counts[only] = counts.get(only, 0) + 1
-    if not counts:
+    if not pool:
         return None
+    if not counts:
+        # Distinguishable from the not-applicable case by the empty family name: a
+        # non-empty pool in which nothing is single-family is a measurement of zero
+        # concentration, not an absent measurement.
+        return "", 0, len(pool)
     # Ties broken by name so the artifact is stable across runs (CORE-ALL-0002).
     family = max(sorted(counts), key=lambda f: counts[f])
     return family, counts[family], len(pool)

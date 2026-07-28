@@ -40,11 +40,14 @@ verdict: composable_to_depth_13
        2       690        39   36/729 fsm_transition
        3       120        14   120/134 fsm_transition
        5       720        12   720/732 fsm_transition
-       8         0         4   n/a
-      13         0         1   n/a
+       8         0         4   0/4 (no single-family chain)
+      13         0         1   0/1 (no single-family chain)
 
   cannot compose in either direction: config_resolver, discovery_pipeline, status_router
   can only terminate a chain, never start one: allowlist, threshold_select
+
+  bounds: probe cap 64 per link, path cap 10000 per depth, sample 20000 per readout, diagnostic cap 25 per code
+  WITHHELD: 10565 diagnostics beyond the per-code cap (full counts in --json under caps.diagnostic_counts)
 ```
 
 Read the reachability table before the verdict. Three families cannot be composed in any

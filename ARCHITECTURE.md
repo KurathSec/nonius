@@ -162,8 +162,17 @@ default**, declared before measurement and printed next to the observed rate.
 ## 9. Resolution
 
 Per depth: each system's accuracy, the dead/floored/discriminating fractions, the top-two
-gap, and `m*` — the widest 95% bootstrap interval on any system's mean, below which a
-difference is inside the instrument's own noise and must not be reported as a difference.
+gap, and `m*` — the widest 95% bootstrap interval on any *single* system's mean.
+
+`m*` is a heuristic floor and not a test. It is a max over **marginal** intervals, so it is
+neither a confidence interval on a between-system *difference* (which would bootstrap the
+paired per-composite differences, and is narrower when the systems are correlated across
+composites, as they are) nor a simultaneous bound over all pairs (which would be wider).
+Read a gap below `m*` as "do not report this as a difference"; do not read a gap above it
+as significance. It is also **not comparable across rows** — its scale tracks the magnitude
+of the accuracies, so it shrinks as a row floors, and reading down the column suggests
+resolution improving exactly where the instrument stopped discriminating. It is `None`, and
+printed `n/a`, on a row too degenerate to have one at all.
 
 Predicted and measured rows are labelled and never mixed. A predicted row cannot detect a
 shortcut, because a shortcut is by definition a departure from the model it uses.

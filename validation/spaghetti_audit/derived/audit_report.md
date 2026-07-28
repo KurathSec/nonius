@@ -34,13 +34,13 @@ verdict: composable_to_depth_13
        2       690        39   36/729 fsm_transition
        3       120        14   120/134 fsm_transition
        5       720        12   720/732 fsm_transition
-       8         0         4   n/a
-      13         0         1   n/a
+       8         0         4   0/4 (no single-family chain)
+      13         0         1   0/1 (no single-family chain)
 
   cannot compose in either direction: config_resolver, discovery_pipeline, status_router
   can only terminate a chain, never start one: allowlist, threshold_select
 
-  bounds: probe cap 64 per link, path cap 10000 per depth, diagnostic cap 25 per code
+  bounds: probe cap 64 per link, path cap 10000 per depth, sample 20000 per readout, diagnostic cap 25 per code
   WITHHELD: 10565 diagnostics beyond the per-code cap (full counts in --json under caps.diagnostic_counts)
 
 depth       n source     deepseek-ai-Deep meta-llama-Llama meta-llama-Meta- mistralai-Mistra    dead  floored  discrim     gap      m*
@@ -49,7 +49,7 @@ depth       n source     deepseek-ai-Deep meta-llama-Llama meta-llama-Meta- mist
     2     729 predicted            0.3346           0.0967           0.0001           0.0951  0.0000   0.4554   0.5446  0.2379  0.0608
     3     134 predicted            0.0804           0.1722           0.0000           0.1428  0.0000   0.2836   0.7164  0.0294  0.1192
     5     732 predicted            0.0000           0.0025           0.0000           0.0145  0.0000   0.6721   0.3279  0.0120  0.0046
-    8       4 predicted            0.0000           0.0000           0.0000           0.0000  0.0000   1.0000   0.0000  0.0000  0.0000
+    8       4 predicted            0.0000           0.0000           0.0000           0.0000  0.0000   1.0000   0.0000  0.0000     n/a
    13       1 predicted            0.0000           0.0000           0.0000           0.0000  0.0000   1.0000   0.0000  0.0000     n/a
 ```
 
