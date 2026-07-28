@@ -158,7 +158,7 @@ def test_literal_leak_is_refused(items: Any, oracle: Any) -> None:
 
 
 def test_gold_disagreement_is_refused(items: Any, oracle: Any) -> None:
-    """EMIT-ALL-0002: a realizer whose gold does not match the chained oracles is refused."""
+    """EMIT-ALL-0006: a realizer whose gold does not match the chained oracles is refused."""
     chain = make_chain(("sum-a", "thr-live"), [Link(0, "total", 1, "subject", "int")])
     honest = make_prompt_realizer(oracle)
 
@@ -173,7 +173,7 @@ def test_gold_disagreement_is_refused(items: Any, oracle: Any) -> None:
             meta=good.meta,
         )
 
-    with pytest.raises(GoldDisagreementError, match="EMIT-ALL-0002"):
+    with pytest.raises(GoldDisagreementError, match="EMIT-ALL-0006"):
         realize(chain, index(items), oracle, wrong)
 
 
@@ -232,3 +232,61 @@ def test_quarantine_rate_is_reported_against_a_ceiling() -> None:
 
     with pytest.raises(TypeError):
         summarize(bounds, depth=2)  # type: ignore[call-arg]
+
+
+def test_a_bound_of_zero_is_refused_not_reported_as_the_data(items: Any) -> None:
+    """A cap of 0 empties every probe set, and the refusal then names the wrong cause.
+
+    Round 7 found this by running ``--probe-cap 0``: the verdict flipped to
+    ``not_composable`` and every link was refused with "declares no codomain and its tag
+    'int' has no probe set" -- contradicted by ``caps.probe_int`` in the same payload,
+    which listed all eleven int probes. That is a bound rewriting the reason instead of
+    being reported beside what it withheld (AUDIT-ALL-0004).
+    """
+    from nonius.cli import _bound
+    from nonius.errors import CompositionError
+
+    with pytest.raises(CompositionError, match="probe_cap must be at least 1"):
+        analyze(items, corpus_oracle(), probe_cap=0)
+
+    # ...and argparse refuses it before it can get that far, for every search bound.
+    import argparse
+
+    for bad in ("0", "-5"):
+        with pytest.raises(argparse.ArgumentTypeError, match="at least 1"):
+            _bound(bad)
+    assert _bound("64") == 64
+
+
+def test_an_undefined_resolution_floor_never_prints_as_zero() -> None:
+    """m* is None below two composites, and 0.0000 would read as "resolves anything".
+
+    Round 6 made ``m_star`` optional for exactly that reason but left ``table()``
+    formatting it with ``:>8.4f``, so every text rendering of an audit containing such a
+    row raised TypeError -- including the reference harness, which then could not write
+    its own report.
+    """
+    from nonius.resolution import DepthReadout, table
+
+    rows = [
+        DepthReadout(13, 1, "predicted", {"S": 0.0}, 0.0, 1.0, 0.0, 0.0, None, {}),
+        DepthReadout(2, 100, "predicted", {"S": 0.5}, 0.1, 0.2, 0.7, 0.05, 0.0608, {}),
+    ]
+    rendered = table(rows)
+    lines = rendered.splitlines()
+    assert "n/a" in lines[-1], "an undefined m* must say so"
+    assert "0.0000" not in lines[-1].split("n/a")[0][-8:]
+    assert len({len(line) for line in lines}) == 1, "the n/a cell must hold the column width"
+
+    # n == 0 takes the other early return, and is equally undefined.
+    assert "n/a" in table([DepthReadout(1, 0, "predicted", {}, 0.0, 0.0, 0.0, 0.0, None, {})])
+
+
+def test_an_unassessed_depth_names_the_input_it_lacked() -> None:
+    """summarize() requires a band too, so blaming the measurement can be false."""
+    arch = Archive(tuple(Verdict("S", i, d, 1) for i in ("i0", "i1") for d in range(4)))
+    chain = make_chain(("i0", "i1"), [])
+    without_band = assess("c", chain, arch, measured={"S": 1.0}, band=None)
+    line = summarize(without_band, depth=2, ceiling=0.20).line()
+    assert "NOT ASSESSED" in line and "no noise band" in line
+    assert "carried both a measurement and a prediction" not in line

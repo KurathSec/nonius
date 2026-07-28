@@ -59,8 +59,13 @@ $ nonius compose --items tests/corpus/items.jsonl --oracle tests/corpus/oracle.p
       --depths 2,3 --limit 500 --out composites.jsonl
 ```
 
-Every emitted composite has passed two by-construction checks: its gold agrees with the
-independently chained component oracles, and no linked slot survives as a literal.
+Every emitted composite has passed two by-construction checks: no linked slot survives as a
+literal, and its gold agrees with the gold from evaluating the components one at a time in
+topological order. With the default realizer that second check is vacuous — the realizer
+reaches the gold by the same chaining the check uses as its reference — and nonius says so
+with an info diagnostic rather than letting a tautology read as evidence. The check has
+force only for a realizer that reaches the gold independently, as the Spaghetti Architect
+adapter does by merging the components into one program and running that program's oracle.
 
 ## 5. Run it in the harness you already use
 

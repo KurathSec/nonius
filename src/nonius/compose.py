@@ -14,7 +14,7 @@ Three stages, in order, and each is refusable:
 
 3. **Realization** -- hand the chain to the benchmark's realizer, then check by
    construction what came back: the gold must agree with the independently chained
-   component oracles (EMIT-ALL-0002), and no linked slot may survive as a literal
+   component oracles (EMIT-ALL-0006), and no linked slot may survive as a literal
    binding (EMIT-ALL-0001).
 
 No stage contacts a model or a network (EMIT-ALL-0004).
@@ -49,7 +49,7 @@ _R_PROBE = require("LINK-ALL-0003")
 _R_SLOT_ONCE = require("LINK-ALL-0004")
 _R_ACYCLIC = require("LINK-ALL-0005")
 _R_SUPPRESS = require("EMIT-ALL-0001")
-_R_AGREE = require("EMIT-ALL-0002")
+_R_AGREE = require("EMIT-ALL-0006")
 _R_HASH = require("EMIT-ALL-0005")
 
 #: The versioned probe set for an unbounded int codomain (LINK-ALL-0003). Changing it is
@@ -72,7 +72,7 @@ def codomain_values(item: Item, result: str, *, cap: int = 64) -> tuple[Scalar, 
         return PROBE_INT[:cap]
     if rv.tag == "bool":
         return PROBE_BOOL[:cap]
-    return PROBE_STR
+    return PROBE_STR[:cap]
 
 
 @dataclass(frozen=True, slots=True)
@@ -167,7 +167,16 @@ def analyze(
     links would otherwise produce ten thousand identical-shaped messages and bury the
     three that matter. Both bounds, and the full per-code counts, are reported in ``caps``
     (AUDIT-ALL-0004) -- the verdicts themselves are never truncated.
+
+    ``probe_cap`` must be at least 1. A cap of 0 empties every probe set, which would make
+    every link dead and report the cause as an unprobeable codomain -- a bound rewriting
+    the reason instead of being reported beside it.
     """
+    if probe_cap < 1:
+        raise CompositionError(
+            f"probe_cap must be at least 1, got {probe_cap}; a cap of 0 withholds every "
+            f"probe and would be reported as an unprobeable codomain (AUDIT-ALL-0004)"
+        )
     verdicts: list[LinkVerdict] = []
     diags: list[Diagnostic] = []
     counts: dict[str, int] = {}
@@ -209,12 +218,20 @@ def analyze(
                         key = f"{up.id}.{rv.name}"
                         if key not in seen_unbounded:
                             seen_unbounded.add(key)
+                            # Name which of the two causes it actually is. Saying "declares
+                            # no codomain" about a result that declared an empty one states
+                            # a cause that was never the case.
+                            cause = (
+                                "declares an empty codomain"
+                                if up.result(rv.name).codomain is not None
+                                else f"declares no codomain and its tag {rv.tag!r} has no "
+                                f"probe set"
+                            )
                             note(
                                 Diagnostic(
                                     "warning",
                                     "codomain-unbounded",
-                                    f"result {rv.name!r} declares no codomain and its tag "
-                                    f"{rv.tag!r} has no probe set, so liveness cannot be "
+                                    f"result {rv.name!r} {cause}, so liveness cannot be "
                                     f"decided and every link from it is refused",
                                     subject=up.id,
                                     ruling="LINK-ALL-0003",
@@ -274,7 +291,12 @@ def analyze(
         caps={
             "probe_cap": probe_cap,
             "probe_int": list(PROBE_INT),
-            "str_unbounded_refused": sorted(seen_unbounded),
+            "probe_bool": list(PROBE_BOOL),
+            "probe_str": list(PROBE_STR),
+            # Not `str_unbounded_refused`: a result of any tag lands here when its probe
+            # set comes out empty, and on the calibration corpus this fills with `int`
+            # results that declared an empty codomain. The old name asserted a cause.
+            "unprobeable_results": sorted(seen_unbounded),
             "diagnostic_cap": diagnostic_cap,
             "diagnostic_counts": dict(sorted(counts.items())),
             "diagnostics_withheld": sum(
@@ -456,7 +478,7 @@ def enumerate_fanins(
 def chained_gold(
     chain: Chain, items: Mapping[str, Item], oracle: Oracle
 ) -> dict[str, Scalar]:
-    """Evaluate the components one at a time, substituting along links (EMIT-ALL-0002).
+    """Evaluate the components one at a time, substituting along links (EMIT-ALL-0006).
 
     This is the reference computation. It never sees the realized composite, which is
     exactly why agreeing with it is evidence rather than tautology.
@@ -500,7 +522,7 @@ def check_realization(
                 "check is vacuous here; it has force only for a realizer that reaches the "
                 "gold by an independent route",
                 subject=str(realization.meta.get("realizer", "?")),
-                ruling="EMIT-ALL-0002",
+                ruling="EMIT-ALL-0006",
             )
         )
     for link in chain.links:

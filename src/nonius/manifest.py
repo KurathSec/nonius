@@ -202,7 +202,14 @@ def loads(text: str) -> tuple[Item, ...]:
 
 
 def load(path: str | Path) -> tuple[Item, ...]:
-    return loads(Path(path).read_text(encoding="utf-8"))
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise ManifestError(
+            f"{path}: not valid UTF-8 ({exc.reason} at byte {exc.start}); a manifest is "
+            f"UTF-8 JSONL"
+        ) from exc
+    return loads(text)
 
 
 def dumps(items: Iterable[Item]) -> str:

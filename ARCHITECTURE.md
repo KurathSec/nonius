@@ -127,7 +127,7 @@ floor with its search space declared (AUDIT-ALL-0005), not a maximum.
   The obvious reading of "substitute the answer into the input literals of the next item"
   produces exactly this bug, and it is fatal rather than cosmetic: the answer is printed,
   the system reads it, and the whole emitted set beats its own bound.
-- **Gold agreement** (EMIT-ALL-0002). The realization's gold must equal the gold from
+- **Gold agreement** (EMIT-ALL-0006). The realization's gold must equal the gold from
   evaluating components one at a time in topological order.
 
 The second check has force only when the realizer reaches the gold by an independent
@@ -235,7 +235,11 @@ per-platform; cross-OS byte-identity is not claimed.
    MAJOR bump; a deleted case counts as a change, so "delete, regenerate, re-add" is
    closed off.
 2. **Ruling coverage** — every active ruling is exercised by a calibration case or by a
-   named test, every example cites back, and every ruling-id-shaped string in `src/`
-   resolves, including in comments.
+   named test, every example cites back, and every ruling-id-shaped string in first-party
+   Python (`src/`, `tests/`, `tools/`, `validation/`) resolves *and* names an active
+   ruling, including in comments. A second arm holds shipped prose — the tracked files, so
+   a gitignored local draft cannot redden a gate CI could never reproduce — to the weaker
+   rule that it must not cite a *superseded* ruling as current; historical records that
+   deliberately do are listed by name.
 3. **Layering** — the core never imports the subject benchmark, and the adapter never
    writes.

@@ -47,7 +47,8 @@ dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.10"]
 docs = ["mkdocs>=1.6", "mkdocs-material>=9"]
 
 [project.scripts]
-# The tool-gap record (research/g1/toolgap.jsonl) writes the invocation as
+# The tool-gap record that motivated this project -- `g1/toolgap.jsonl` in the separate
+# research repository, not a path in this one -- writes the invocation as
 #   compose --items items.jsonl --oracle ./oracle.py --depths 1,2,3,5,8
 # `compose` is too generic to claim on PATH and PyPI, so the verb keeps the recorded
 # shape and the script keeps the project name: `nonius compose --items ...`.
@@ -63,6 +64,10 @@ path = "src/nonius/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/nonius"]
+# NOTICE states the two-directional claim boundary against the subject benchmark. It rode
+# in the sdist and not the wheel, so the one artifact most people install carried the tool
+# without the sentence saying what it does and does not claim.
+force-include = { "NOTICE" = "nonius/NOTICE" }
 
 [tool.hatch.build.targets.sdist]
 # Policy, asserted by .github/workflows/release.yml: these never ship.
@@ -88,9 +93,11 @@ ignore = ["E501"]
 
 [tool.ruff.lint.flake8-tidy-imports]
 # ARCHITECTURE.md section 2: the core is benchmark-agnostic. Spaghetti Architect's
-# top-level package installs as `src`, and `bench` is its research layer. Neither may be
-# imported at module level anywhere; the one sanctioned site is the adapter, which
-# imports them inside functions and is exempted below.
+# top-level package installs as `src`, `bench` is its research layer and `eval` its
+# evaluation layer. None of the three may be imported at module level anywhere; the one
+# sanctioned site is the adapter, which imports what it needs (`src.*` and `bench.grade`)
+# inside functions and is exempted below. `eval` is banned pre-emptively -- nothing here
+# imports it -- so that reaching for it later trips the gate instead of widening it.
 banned-module-level-imports = ["src", "bench", "eval"]
 
 [tool.ruff.lint.per-file-ignores]

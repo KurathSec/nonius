@@ -9,8 +9,9 @@
       `tools/update_snapshot.py --confirm-spec-bump`.
 - [ ] Every new composition decision is a **TOML ruling with a new immutable id**, cited
       from the code with `require()`, and exercised by a calibration case or a named test.
-- [ ] No number was hand-edited into prose. Numbers come from
-      `validation/spaghetti_audit/derived/`.
+- [ ] No number was hand-edited into prose. Every number traces to
+      `validation/spaghetti_audit/derived/`, to the calibration corpus and its snapshot, or
+      to a re-runnable command quoted verbatim.
 - [ ] `docs/spec/rulings.md` regenerated with `tools/render_rulings.py`.
 - [ ] Nothing outside this repository was modified. If the adapter was touched:
       `git -C <subject repo> status --porcelain` is unchanged.

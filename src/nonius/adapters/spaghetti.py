@@ -18,7 +18,7 @@ What this adapter provides, and why each one is interesting:
 ``oracle``     the benchmark's own execution oracle, re-run under a changed input binding.
 ``realizer``   a **native** realizer: it merges the components into one program and takes
                the gold from that merged program's own oracle. That is an independent
-               route to the answer, so the EMIT-ALL-0002 agreement check has real force
+               route to the answer, so the EMIT-ALL-0006 agreement check has real force
                here -- unlike the default prompt realizer, where it is vacuous.
 ``archive``    the committed four-model, k=8, temperature-0 ladder, re-graded offline.
 
@@ -391,7 +391,7 @@ def make_realizer(
 
     The gold comes from the merged program's own execution oracle, which is an
     independent route to the answer -- so the agreement check against the chained
-    component oracles (EMIT-ALL-0002) is a real test here rather than a tautology.
+    component oracles (EMIT-ALL-0006) is a real test here rather than a tautology.
     """
     root = home(home_path)
     sa = _sa(str(root))

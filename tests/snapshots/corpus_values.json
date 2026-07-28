@@ -1,5 +1,5 @@
 {
-  "spec_version": "1.1.0",
+  "spec_version": "2.0.0",
   "values": {
     "analysis::counts": {
       "candidates": 31,
@@ -23,7 +23,7 @@
     ],
     "chain-depth3-path-001::depth": 3,
     "chain-depth3-path-001::diagnostics": [
-      "gold-route-chained:EMIT-ALL-0002"
+      "gold-route-chained:EMIT-ALL-0006"
     ],
     "chain-depth3-path-001::gold": {
       "c0_total": 6,
@@ -41,7 +41,7 @@
     ],
     "chain-fanin-depth3-001::depth": 3,
     "chain-fanin-depth3-001::diagnostics": [
-      "gold-route-chained:EMIT-ALL-0002"
+      "gold-route-chained:EMIT-ALL-0006"
     ],
     "chain-fanin-depth3-001::gold": {
       "c0_total": 6,
@@ -60,7 +60,7 @@
     ],
     "chain-suppression-001::depth": 3,
     "chain-suppression-001::diagnostics": [
-      "gold-route-chained:EMIT-ALL-0002"
+      "gold-route-chained:EMIT-ALL-0006"
     ],
     "chain-suppression-001::gold": {
       "c0_total": 6,

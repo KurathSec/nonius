@@ -12,7 +12,13 @@
 [run]
 id = "run-01"
 status = "designed_not_executed"
-spec = "1.1.0"
+# The spec this design is fixed under, and the one the run must execute under. Moved from
+# 1.1.0 when the gold-agreement ruling was superseded by EMIT-ALL-0006. Nothing in this
+# file changed with it: the supersession corrects a ruling's stated reason and moves no
+# composite, gold, link verdict or bound, so every count, threshold and budget below is the
+# number it was. Recorded here rather than silently carried, because a pre-registration
+# that names a spec it will not run under is a pre-registration of a different run.
+spec = "2.0.0"
 subject = "Spaghetti Architect comprehend items, public dev split"
 subject_commit = "826f4cbf8f4d4c7e2d8473374694360c43fbb820"
 
@@ -103,9 +109,10 @@ the harness, not the systems.
 
 Firing this makes the run VOID, not null: it is re-run, and no other threshold is read.
 """
-# `floor`, deliberately not `ceiling`: load_preregistration() takes the LAST [[threshold]]
-# carrying a key named `ceiling` as the quarantine ceiling, so a second one here would
-# silently replace KT-2's 0.20.
+# `floor`, deliberately not `ceiling`: load_preregistration() selects the quarantine
+# ceiling by the ruling a threshold cites (BOUND-ALL-0004) and refuses two of them, so a
+# `ceiling` key here -- KT-0 cites no ruling -- would be ignored rather than read. Naming
+# it `floor` keeps the intent readable and does not lean on that.
 floor_accuracy = 0.60
 floor_parse_rate = 0.90
 fires_if = "mean depth-1 accuracy for deepseek-ai/DeepSeek-V4-Flash over the 55 control components is below 0.60, or fewer than 90% of all completions parse"
@@ -205,10 +212,17 @@ absolute.
 """
 singleton_discriminating_item_level = 0.3273
 singleton_discriminating_program_level = 0.7200
-baseline_k = 8
+# One scalar cannot cover both baselines, because they are computed at different units and
+# therefore at different replicate counts. Item level is one rendering cell
+# (sp.archive(home, profile=..., language=...).k() == 8); program level pools the fifteen
+# cells as replicates (audit.json archive.k == 120, discriminating 72/100 = 0.7200).
+baseline_k_item_level = 8
+baseline_k_program_level = 120
 run_k = 3
 baseline_caveat = """
-Both baselines are computed at the archive's k = 8; the run buys k = 3. The discriminating
+The two baselines are computed at different replicate counts -- item level at k = 8 per
+rendering cell, program level at k = 120 over the fifteen pooled cells -- and the run buys
+k = 3, so neither comparison is like-for-like. The discriminating
 fraction counts items on which any two systems differ, and fewer draws means coarser rates
 and so a different count -- the comparison is therefore not like-for-like, and the direction
 of the bias is not obvious enough to correct for. Registered as a known confound rather than
@@ -228,9 +242,9 @@ that flatters it.
 
 [reuse]
 # LINK-ALL-0006's ceiling, declared before measurement like every other threshold here. A
-# top-level table rather than a [[threshold]], because load_preregistration() reads the
-# quarantine ceiling out of the threshold list and a second `ceiling` key there would
-# silently override it.
+# top-level table rather than a [[threshold]], because the reuse ceiling is not read out of
+# the threshold list at all: load_preregistration() takes as the quarantine ceiling only the
+# threshold citing BOUND-ALL-0004, and reads this one from [reuse].
 ceiling = 100
 note = """
 The maximum number of composites any single component may appear in, above which

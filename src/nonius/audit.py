@@ -74,6 +74,11 @@ class AuditReport:
     reach: tuple[FamilyReach, ...]
     chains_at_depth: Mapping[int, int]
     fanins_at_depth: Mapping[int, int]
+    #: Per depth, the largest single-family share of the constructible pool, as
+    #: ``(family, chains_from_it_alone, pool_size)``. A depth whose pool is one family's
+    #: near-duplicates collapses for a reason that belongs to the subject, not to
+    #: composition, and a bare count reads as breadth it does not have (AUDIT-ALL-0004).
+    concentration_at_depth: Mapping[int, tuple[str, int, int]] = field(default_factory=dict)
 
     reasons: tuple[str, ...] = ()
     readouts: tuple[DepthReadout, ...] = ()
@@ -102,6 +107,10 @@ class AuditReport:
             ],
             "chains_at_depth": {str(k): v for k, v in sorted(self.chains_at_depth.items())},
             "fanins_at_depth": {str(k): v for k, v in sorted(self.fanins_at_depth.items())},
+            "concentration_at_depth": {
+                str(k): {"family": f, "chains": c, "pool": p}
+                for k, (f, c, p) in sorted(self.concentration_at_depth.items())
+            },
             "reasons": list(self.reasons),
             "readouts": [
                 {
@@ -163,11 +172,18 @@ class AuditReport:
             lines.append("")
         if self.chains_at_depth or self.fanins_at_depth:
             depths = sorted(set(self.chains_at_depth) | set(self.fanins_at_depth))
-            lines.append(f"  {'depth':>6}{'paths':>10}{'fan-ins':>10}")
+            lines.append(
+                f"  {'depth':>6}{'paths':>10}{'fan-ins':>10}   largest single-family share"
+            )
             for d in depths:
+                top = self.concentration_at_depth.get(d)
+                share = ""
+                if top is not None:
+                    family, count, pool = top
+                    share = f"   {count}/{pool} {family[:28]}"
                 lines.append(
                     f"  {d:>6}{self.chains_at_depth.get(d, 0):>10}"
-                    f"{self.fanins_at_depth.get(d, 0):>10}"
+                    f"{self.fanins_at_depth.get(d, 0):>10}{share}"
                 )
             lines.append("")
         for reason in self.reasons:
@@ -344,6 +360,32 @@ def constructible(
     return tuple(x for group in _split(analysis, depth, cap=cap) for x in group)[:cap]
 
 
+def _concentration(
+    pool: Sequence[Chain], family_of: Mapping[str, str]
+) -> tuple[str, int, int] | None:
+    """The largest single-family share of a constructible pool.
+
+    A depth can hold hundreds of chains and still be one family's near-duplicates permuted:
+    on the reference asset 720 of the 732 depth-5 chains are drawn from a single family of
+    six programs. Reporting the count alone lets that read as breadth, and lets a
+    depth-wise collapse read as a property of composition rather than of the subject.
+    Returns ``None`` for an empty pool, and for items that declare no family, since then
+    there is nothing to disclose.
+    """
+    counts: dict[str, int] = {}
+    for chain in pool:
+        families = {family_of.get(c, "") for c in chain.components}
+        if len(families) == 1:
+            only = next(iter(families))
+            if only:
+                counts[only] = counts.get(only, 0) + 1
+    if not counts:
+        return None
+    # Ties broken by name so the artifact is stable across runs (CORE-ALL-0002).
+    family = max(sorted(counts), key=lambda f: counts[f])
+    return family, counts[family], len(pool)
+
+
 def _split(
     analysis: LinkAnalysis, depth: int, *, cap: int
 ) -> tuple[tuple[Chain, ...], tuple[Chain, ...]]:
@@ -391,6 +433,8 @@ def audit(
 
     chains_at: dict[int, int] = {}
     fanins_at: dict[int, int] = {}
+    concentration_at: dict[int, tuple[str, int, int]] = {}
+    family_of = {i.id: i.family for i in items}
     readouts: list[DepthReadout] = []
     # Depths where enumeration stopped at the cap rather than running out of chains. A
     # truncated search reads as "covered everything" unless it says so (AUDIT-ALL-0004).
@@ -411,6 +455,11 @@ def audit(
         pool = (paths + fans)[:path_cap]
         chains_at[depth] = len(paths)
         fanins_at[depth] = len(fans)
+        # Derived from the same pool the readouts are predicted on, so the disclosure can
+        # never disagree with the numbers it qualifies.
+        top = _concentration(pool, family_of)
+        if top is not None:
+            concentration_at[depth] = top
         if len(pool) >= path_cap:
             truncated.append(depth)
         if archive is not None:
@@ -438,6 +487,7 @@ def audit(
         reach=_reach(items, analysis),
         chains_at_depth=chains_at,
         fanins_at_depth=fanins_at,
+        concentration_at_depth=concentration_at,
         reasons=_reasons(items, analysis),
         readouts=tuple(readouts),
         diagnostics=analysis.diagnostics,

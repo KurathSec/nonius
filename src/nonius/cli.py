@@ -47,6 +47,25 @@ def _depths(raw: str) -> tuple[int, ...]:
     return out
 
 
+def _bound(raw: str) -> int:
+    """A search bound: at least 1.
+
+    Zero or negative silently withholds everything the bound applies to, and the refusal
+    then gets attributed to the data rather than to the bound (AUDIT-ALL-0004). Refusing
+    the value is the only way the report stays true about why it withheld.
+    """
+    try:
+        value = int(raw)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"not an integer: {raw!r}") from None
+    if value < 1:
+        raise argparse.ArgumentTypeError(
+            f"must be at least 1, got {value}; a bound of {value} withholds everything it "
+            f"applies to and the refusal would be reported as a property of the data"
+        )
+    return value
+
+
 def _load_inputs(
     args: argparse.Namespace,
 ) -> tuple[tuple[Item, ...], Oracle, Archive | None]:
@@ -66,9 +85,9 @@ def _cmd_audit(argv: Sequence[str]) -> int:
     p.add_argument("--oracle", required=True, help="module:attr or path.py:attr")
     p.add_argument("--archive", help="per-item verdict archive (JSONL/.gz/CSV), optional")
     p.add_argument("--depths", type=_depths, default=(1, 2, 3, 5, 8))
-    p.add_argument("--probe-cap", type=int, default=64)
-    p.add_argument("--path-cap", type=int, default=10_000)
-    p.add_argument("--sample", type=int, default=20_000)
+    p.add_argument("--probe-cap", type=_bound, default=64)
+    p.add_argument("--path-cap", type=_bound, default=10_000)
+    p.add_argument("--sample", type=_bound, default=20_000)
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--json", action="store_true", help="emit the report as JSON")
     args = p.parse_args(list(argv))
@@ -105,9 +124,9 @@ def _cmd_compose(argv: Sequence[str]) -> int:
     )
     p.add_argument("--archive", help="per-item verdict archive, for strata")
     p.add_argument("--depths", type=_depths, default=(2, 3))
-    p.add_argument("--limit", type=int, default=500, help="max composites per depth")
-    p.add_argument("--probe-cap", type=int, default=64)
-    p.add_argument("--path-cap", type=int, default=10_000)
+    p.add_argument("--limit", type=_bound, default=500, help="max composites per depth")
+    p.add_argument("--probe-cap", type=_bound, default=64)
+    p.add_argument("--path-cap", type=_bound, default=10_000)
     p.add_argument("--out", help="write JSONL here instead of stdout")
     p.add_argument(
         "--export",
@@ -284,12 +303,17 @@ def _cmd_env(argv: Sequence[str]) -> int:
     import platform
 
     from nonius._version import __version__
-    from nonius.compose import PROBE_INT
+    from nonius.compose import PROBE_BOOL, PROBE_INT, PROBE_STR
     from nonius.spec.registry import all_rulings, spec_version
 
     print(f"nonius        {__version__}")
     print(f"spec          {spec_version()}  ({len(all_rulings())} rulings)")
+    # All three, not just int: SECURITY.md calls this "the probe set", and a reader
+    # reconstructing a decision needs the set that was actually used for the tag in hand.
+    # PROBE_STR is empty by design (LINK-ALL-0003); printing it says so out loud.
     print(f"probe_int     {','.join(str(x) for x in PROBE_INT)}")
+    print(f"probe_bool    {','.join(str(x) for x in PROBE_BOOL)}")
+    print(f"probe_str     {','.join(PROBE_STR) or '(empty: str has no unbounded probe set)'}")
     print(f"python        {platform.python_version()} ({platform.python_implementation()})")
     print(f"platform      {platform.system()} {platform.machine()}")
     return 0
@@ -366,6 +390,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         return _VERBS[verb](args[1:])
     except NoniusError as exc:
         print(f"nonius {verb}: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
+    except UnicodeDecodeError as exc:
+        # Every input nonius reads is declared UTF-8. A non-UTF-8 file is a refusable
+        # input like any other malformed one, not a crash: UnicodeDecodeError subclasses
+        # ValueError, so it slipped past the NoniusError/OSError arms as a raw traceback.
+        print(
+            f"nonius {verb}: input is not valid UTF-8 ({exc.reason} at byte {exc.start}); "
+            f"nonius reads manifests, archives and pre-registrations as UTF-8",
+            file=sys.stderr,
+        )
         return 1
     except OSError as exc:
         print(f"nonius {verb}: {exc}", file=sys.stderr)

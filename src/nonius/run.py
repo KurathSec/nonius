@@ -107,6 +107,17 @@ def load_preregistration(path: str | Path) -> Preregistration:
             )
         )
     ceiling = float(quarantine[0]["ceiling"])
+    # The ceiling is compared against a quarantined/assessed rate, which is a fraction. A
+    # ceiling outside [0, 1] is unreachable in one direction or already breached in the
+    # other, which is the same self-confirming gate BOUND-ALL-0004 makes the parameter
+    # required to prevent -- requiring a number is no use if any number is accepted.
+    if not 0.0 <= ceiling <= 1.0:
+        raise NotAuthorised(
+            f"{path}: quarantine ceiling {ceiling} is not a rate in [0, 1]; it is compared "
+            f"against quarantined/assessed, so a value outside that range can never be "
+            f"exceeded (or is exceeded by every run) and the gate would confirm itself "
+            f"({_R_CEILING})."
+        )
 
     planned = {
         int(str(key).removeprefix("depth_")): int(value)

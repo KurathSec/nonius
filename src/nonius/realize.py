@@ -7,7 +7,7 @@ result's value. That is what makes the chain bind: nothing in the text states th
 upstream answer, so a system has to compute it.
 
 **What this realizer cannot give you.** It computes the composite's gold by chaining the
-component oracles -- which is the same computation the EMIT-ALL-0002 agreement check uses
+component oracles -- which is the same computation the EMIT-ALL-0006 agreement check uses
 as its reference. So for this realizer that check is vacuous, and it says so: the
 realization is tagged ``gold_route="chained"`` and nonius emits an info diagnostic rather
 than letting a tautology read as evidence. The check has force only for a realizer that

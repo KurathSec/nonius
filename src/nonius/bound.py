@@ -249,11 +249,18 @@ class QuarantineReport:
         band = "n/a" if self.band is None else f"{self.band:.4f}"
         if not self.assessed:
             # Never print "within ceiling" for a depth nothing was measured at: an
-            # unassessed depth looks exactly like a clean one otherwise.
+            # unassessed depth looks exactly like a clean one otherwise. Name the
+            # missing input rather than guessing -- summarize() requires all three, so
+            # a depth that had measurements and predictions but no band lands here too,
+            # and blaming the measurement would be false about its own data.
+            cause = (
+                "no noise band was available, so no composite could be assessed"
+                if self.band is None
+                else "no composite carried both a measurement and a prediction"
+            )
             return (
-                f"depth {self.depth}: NOT ASSESSED -- no composite carried both a "
-                f"measurement and a prediction, so the {self.ceiling:.4f} ceiling says "
-                f"nothing here. Band {band}."
+                f"depth {self.depth}: NOT ASSESSED -- {cause}, so the "
+                f"{self.ceiling:.4f} ceiling says nothing here. Band {band}."
             )
         verdict = "OVER CEILING" if self.exceeds_ceiling else "within ceiling"
         return (

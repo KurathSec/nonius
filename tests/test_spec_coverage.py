@@ -22,6 +22,36 @@ from nonius.spec.registry import all_rulings, get, spec_version
 
 SRC = ROOT.parent / "src"
 
+
+def _shipped_files(root: Path) -> list[Path]:
+    """The files this repository actually ships, i.e. the tracked ones.
+
+    A bare ``rglob`` also walks the trees ``.gitignore`` declares local-only -- ``paper/``,
+    ``scratch/``, ``dist/``, ``build/``, ``*.egg-info/``. A local draft citing a retired
+    ruling would then turn this gate red for a reason CI can never reproduce, and the only
+    way to clear it would be to edit a file CLAUDE.md forbids touching. Ask git instead of
+    re-implementing the ignore rules; fall back to a walk when git is unavailable, since a
+    missing checkout must not silently skip the check.
+    """
+    import subprocess
+
+    try:
+        out = subprocess.run(
+            ["git", "-C", str(root), "ls-files", "-z"],
+            capture_output=True,
+            check=True,
+            text=True,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):  # pragma: no cover - no git in CI image
+        return [
+            p
+            for p in root.rglob("*")
+            if not p.relative_to(root).as_posix().startswith(
+                (".venv/", "paper/", "scratch/", "dist/", "build/")
+            )
+        ]
+    return [root / name for name in out.split("\0") if name]
+
 #: Any topic, not a hand-listed set: a new topic file would otherwise be invisible to
 #: every citation check while `_RULING_FILES` and `tools/render_rulings.py` both guard
 #: against exactly that drift.
@@ -57,6 +87,7 @@ UNCOVERED: frozenset[str] = frozenset()
 FROZEN_SUPERSEDED: dict[str, str] = {
     "AUDIT-ALL-0001": "6fe713f098a175bb",
     "DEPTH-ALL-0001": "bd2336dd6644d094",
+    "EMIT-ALL-0002": "bef006a6755d624f",
     "EMIT-ALL-0003": "2976615c1b1bfb4f",
     "LINK-ALL-0002": "7495bb6526f8fa2b",
 }
@@ -201,13 +232,13 @@ def test_prose_cites_live_rulings() -> None:
     """
     root = ROOT.parent
     stale: list[str] = []
-    for path in sorted(root.rglob("*")):
+    for path in sorted(_shipped_files(root)):
         if not path.is_file():
             continue
         if path.suffix not in PROSE_SUFFIXES and path.name not in PROSE_NAMES:
             continue
         rel = path.relative_to(root).as_posix()
-        if rel.startswith((".venv/", "site/", "tests/corpus/cases/")) or rel in HISTORICAL_CITATIONS:
+        if rel.startswith(("site/", "tests/corpus/cases/")) or rel in HISTORICAL_CITATIONS:
             continue
         for n, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
             for rid in RULING_RE.findall(line):

@@ -41,6 +41,10 @@
       "path_cap": 10000,
       "path_cap_reached_at_depths": [],
       "paths_are_one_chain_per_node_sequence": true,
+      "probe_bool": [
+        false,
+        true
+      ],
       "probe_cap": 64,
       "probe_int": [
         0,
@@ -55,9 +59,10 @@
         60000,
         -1
       ],
+      "probe_str": [],
       "sample": 20000,
       "seed": 20260619,
-      "str_unbounded_refused": []
+      "unprobeable_results": []
     },
     "chains_at_depth": {
       "1": 100,
@@ -66,6 +71,23 @@
       "3": 120,
       "5": 720,
       "8": 0
+    },
+    "concentration_at_depth": {
+      "2": {
+        "chains": 36,
+        "family": "fsm_transition",
+        "pool": 729
+      },
+      "3": {
+        "chains": 120,
+        "family": "fsm_transition",
+        "pool": 134
+      },
+      "5": {
+        "chains": 720,
+        "family": "fsm_transition",
+        "pool": 732
+      }
     },
     "diagnostics": [
       {
@@ -456,7 +478,7 @@
       "cannot compose in either direction: config_resolver, discovery_pipeline, status_router",
       "can only terminate a chain, never start one: allowlist, threshold_select"
     ],
-    "spec": "1.1.0",
+    "spec": "2.0.0",
     "verdict": "composable_to_depth_13"
   },
   "item_level": {
@@ -535,7 +557,7 @@
   ],
   "provenance": {
     "access": "read-only",
-    "nonius_spec": "1.1.0",
+    "nonius_spec": "2.0.0",
     "seed": 20260619,
     "subject": "Spaghetti Architect",
     "subject_commit": "826f4cbf8f4d4c7e2d8473374694360c43fbb820",

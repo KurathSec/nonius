@@ -10,7 +10,32 @@
 # snapshot without one.
 
 [spec]
-version = "1.1.0"
+version = "2.0.0"
+
+[[changelog]]
+version = "2.0.0"
+summary = """
+EMIT-ALL-0002 is superseded by EMIT-ALL-0006. No composite, gold, link verdict or
+quarantine outcome moves; what changes is that the ruling now states the case its check
+has force in.
+
+EMIT-ALL-0002's statement was correct and its rationale was not. It called the
+chained-component evaluation and the realized composite's own evaluation "two independent
+routes to the same number". They are independent only when the realizer reaches the gold
+independently. The default prompt realizer computes the gold by chaining, so for it the
+check compares one computation against itself -- which nonius already reported in an info
+diagnostic, and which ARCHITECTURE.md already documented. The spec was the last place
+still asserting the unqualified claim, and a normative record contradicting the tool's own
+diagnostic is the kind of thing this project treats as a defect rather than a nuance.
+
+Why this is a MAJOR when LINK-ALL-0002 -> LINK-ALL-0007 was a MINOR, given that both are
+supersessions that move no value: the calibration snapshot records composite diagnostics as
+``code:ruling`` (tests/tools_snapshot.py), so the cited id is itself a snapshot value.
+EMIT-ALL-0002's id appears there and LINK-ALL-0002's did not. The drift gate therefore
+sees two changed values and requires the MAJOR. The bump is forced by what the snapshot
+records, not by a decision changing, and it is taken rather than worked around -- weakening
+the gate to fit a supersession would trade a real check for a version number.
+"""
 
 [[changelog]]
 version = "1.1.0"

@@ -151,7 +151,7 @@ def _uniform_contrast(items: object, analysis: object, arch: object) -> list[dic
 def _validate_toolchains(home: Path, analysis: object, idx: object) -> dict[str, object]:
     """Compile and run emitted composites in all five target languages.
 
-    This is where EMIT-ALL-0002 earns its keep: the merged program's own oracle gave the
+    This is where EMIT-ALL-0006 earns its keep: the merged program's own oracle gave the
     gold, and here an actual compiler and runtime are asked whether that gold is what the
     program produces.
     """
@@ -199,7 +199,7 @@ def _validate_toolchains(home: Path, analysis: object, idx: object) -> dict[str,
             "depths": list(tc_depths),
             "composites_per_depth": tc_per_depth,
             "composites_checked": len(checked),
-            "languages_per_composite": 5,
+            "languages_per_composite": len(sp.LANGUAGES),
             "note": "a spot check, not a sweep: the emitted set is far larger",
         },
         "outcomes": outcomes,
@@ -331,7 +331,8 @@ def _markdown(payload: dict[str, object], report: object) -> str:
         "",
         "The composer works on programs, so the audit's archive pools the fifteen "
         "rendering cells (three messiness profiles x five languages) and reports "
-        f"{len(audit_d.get('reach', []))} families over 100 programs. The benchmark itself "
+        f"{len(audit_d.get('reach', []))} families over {audit_d['items']} programs. "
+        "The benchmark itself "
         f"scores {item['n']} items, one per program x profile x language. Both numbers are "
         "true; they are not the same quantity, and neither is a rounding of the other.",
         "",

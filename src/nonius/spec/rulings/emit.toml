@@ -20,6 +20,8 @@ examples = ["chain-suppression-001"]
 
 [[ruling]]
 id = "EMIT-ALL-0002"
+status = "superseded"
+superseded_by = "EMIT-ALL-0006"
 topic = "emit"
 title = "Gold agreement: two independent computations must agree"
 statement = """
@@ -34,6 +36,40 @@ function of the component golds. That claim is checkable rather than assertable:
 chained-component evaluation and the realized composite's own evaluation are two
 independent routes to the same number, and they must agree. This is the check that would
 catch a realizer that quietly changed the semantics while merging.
+"""
+examples = ["chain-depth3-path-001"]
+
+[[ruling]]
+id = "EMIT-ALL-0006"
+since_spec = "2.0.0"
+topic = "emit"
+title = "Gold agreement: the two computations must agree, and are independent only sometimes"
+statement = """
+A composite's gold is accepted only if the realization's gold equals the gold obtained by
+evaluating the components one at a time in topological order, substituting each link's
+upstream value into the downstream binding before evaluating it. Disagreement raises
+GoldDisagreementError and the composite is not emitted.
+
+The check is performed for every realizer. When the realization reports
+``gold_route="chained"`` it is nonetheless vacuous -- the realizer reached the gold by the
+same computation the check uses as its reference -- and an info diagnostic citing this
+ruling must say so beside the result.
+"""
+rationale = """
+Supersedes EMIT-ALL-0002, whose statement was right and whose stated reason was not. That
+rationale called the chained-component evaluation and the realized composite's own
+evaluation "two independent routes to the same number". They are independent only when the
+realizer reaches the gold independently, as the Spaghetti Architect adapter does by merging
+the components into one program and running that program's oracle. The default prompt
+realizer computes the gold by chaining, so for it the two sides are one computation
+compared against itself, and a passing check is evidence of nothing.
+
+The decision does not change: the check still runs everywhere and still refuses on
+disagreement, because a vacuous check costs nothing and the realizer that needs it cannot
+be identified in advance. What changes is that the ruling now says which case it has force
+in, instead of asserting an independence the instrument itself reports as absent. Leaving
+it unsaid would have put the spec in contradiction with the diagnostic nonius emits, and
+with the honesty invariant that the vacuity is stated rather than hidden.
 """
 examples = ["chain-depth3-path-001"]
 

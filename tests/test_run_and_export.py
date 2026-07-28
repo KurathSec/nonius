@@ -167,8 +167,9 @@ def test_a_dead_run_is_distinguishable_from_a_null_one() -> None:
     kt0 = [t for t in raw["threshold"] if t["id"] == "KT-0-execution-validity"]
     assert kt0, "no execution-validity arm is registered"
     assert "ceiling" not in kt0[0], (
-        "KT-0 must not use a key named 'ceiling': load_preregistration takes the last "
-        "one it finds as the quarantine ceiling"
+        "KT-0 must not use a key named 'ceiling': the quarantine ceiling is selected by "
+        "the ruling a threshold cites (BOUND-ALL-0004), so a stray `ceiling` here would "
+        "be silently ignored rather than read -- which is confusing in the other direction"
     )
     assert kt0[0]["floor_accuracy"] < 0.8385, "the floor must sit below the archive's own mean"
 

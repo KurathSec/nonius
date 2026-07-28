@@ -11,7 +11,7 @@ comparable to numbers published under the new one.
 
 ## [Unreleased]
 
-- package 0.1.0.dev0 · spec 1.1.0
+- package 0.1.0.dev0 · spec 2.0.0
 
 First working shape. The composer, the composability audit, the independence-product
 bound with its quarantine rule, the bridge table, the resolution readout, a

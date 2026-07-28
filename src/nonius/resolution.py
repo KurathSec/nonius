@@ -265,6 +265,10 @@ def table(rows: Sequence[DepthReadout]) -> str:
             f"{r.depth:>5} {r.n:>7} {r.source:<10}"
             + "".join(f"{r.accuracy.get(s, float('nan')):>17.4f}" for s in systems)
             + f"{r.dead:>8.4f}{r.floored:>9.4f}{r.discriminating:>9.4f}"
-            f"{r.top_two_gap:>8.4f}{r.m_star:>8.4f}"
+            + f"{r.top_two_gap:>8.4f}"
+            # m* is None below two composites, where a bootstrap has nothing to resample.
+            # Printing 0.0000 there would read as "resolves any difference" -- the exact
+            # claim the None exists to withhold -- so the cell says so instead.
+            + (f"{r.m_star:>8.4f}" if r.m_star is not None else f"{'n/a':>8}")
         )
     return "\n".join(lines)

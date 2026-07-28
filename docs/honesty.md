@@ -13,7 +13,7 @@ a resolution readout.** That is the whole contribution.
 **Composition is not novel.** It is hardness amplification and direct-product testing in
 complexity theory (Yao 1982 onward), serial diagnostic testing under conditional
 independence in biostatistics (Vacek 1985), task decomposition with a dependence level in
-human reliability analysis (THERP / NUREG-CR-1278, 1983), and cascading errors in NLP
+human reliability analysis (THERP, NUREG/CR-1278, 1983), and cascading errors in NLP
 (Finkel, Manning and Ng 2006). In this decade: REval, DynaCode, NESTFUL, EvoEval, CHASE,
 GSM-Infinite, GSM-Symbolic, MathGAP, DyVal. Four separate fields have owned pieces of this
 under four different words for between two and forty-four years. What did not exist was a
@@ -93,10 +93,16 @@ upstream *result* piped into the same slot. The bound is reported as
 `caps.paths_are_one_chain_per_node_sequence`, and it means the depth counts are a floor
 twice over: over shapes, and over link assignments within a shape.
 
-**At depth 5 on the reference asset the product bound is refused, not computed.** 720 of
+**In the pre-registered run the depth-5 product bound is refused, not computed.** 720 of
 the 732 constructible depth-5 chains live inside one family's six near-duplicate programs.
-The declared reuse ceiling refuses to price a set that correlated, and the pre-registration
-records that refusal in advance rather than discovering it afterwards.
+The run's declared reuse ceiling of 100 refuses to price a set that correlated, and the
+pre-registration records that refusal in advance rather than discovering it afterwards.
+
+The reference audit is the other case, and the difference matters: it declares no reuse
+ceiling at all — LINK-ALL-0006 makes the ceiling the caller's parameter, with no default —
+so it *does* print a depth-5 product bound, over all 732 chains, in
+`derived/bridge.json`. Read those four rows knowing what the pre-registration refuses to
+buy on: they are arithmetic over a pool that is 98% one family.
 
 **One of the pre-registered kill tests is tripped by its own null.** On the constructible
 population the predicted ordering departs from the singleton ordering at depth 3, because

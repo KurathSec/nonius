@@ -57,9 +57,17 @@ buy inference against it is the point.
 
 ## Install
 
+**nonius is unreleased.** There is no PyPI distribution and no published tag, so install
+from a checkout:
+
 ```console
-pip install nonius
+git clone <your checkout of this repository> nonius
+cd nonius
+pip install -e .
 ```
+
+`pip install nonius` is what the first release will look like; it does not work today, and
+saying otherwise would be the first false claim in a tool built to refuse them.
 
 Zero runtime dependencies, Python 3.11+.
 
@@ -98,9 +106,9 @@ That failure is invisible after the fact. A conjunction sits exactly on the inde
 product bound, so the validity gate never flags it; liveness has to be enforced when the
 item is built.
 
-Measured on the reference corpus (100 committed programs, four systems, k=8, temperature
-0): **3190 of 9900 ordered item pairs (32.2%) are type-compatible, but only 690 (7.0%)
-carry a live link.** See [validation](docs/validation.md) for the full audit and what it
+Measured on the reference corpus (100 committed programs, run through the benchmark's own
+execution oracle): **3190 of 9900 ordered item pairs (32.2%) are type-compatible, but only
+690 (7.0%) carry a live link.** See [validation](docs/validation.md) for the full audit and what it
 implies.
 
 ## What nonius does not claim
