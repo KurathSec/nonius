@@ -20,3 +20,6 @@ site/
 # working in the tree rather than for anyone installing the package.
 .data/
 /run/
+
+# Personal Claude Code settings: machine-specific paths, never shared.
+.claude/settings.local.json
