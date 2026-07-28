@@ -4,10 +4,10 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-Because nonius is a measurement instrument, every release entry states **two versions**,
-not one: package and composition spec. A composition spec MAJOR means some **recorded
-value** changed, which is the drift gate's definition and the only one that can be checked
-mechanically. Usually that is a decision the composer makes, and then numbers published
+Because nonius is a measurement instrument, every release entry states **two versions**
+rather than one: package and composition spec. A composition spec MAJOR means some
+**recorded value** changed, which is the drift gate's definition and the only one that can
+be checked mechanically. Usually that is a decision the composer makes, and then numbers published
 under the old spec are not comparable to numbers under the new one. It can also be a
 recorded citation label, which moves when a ruling is superseded without any measured
 quantity changing. The stanza for each MAJOR says which kind it was; 2.0.0 is the second
@@ -15,7 +15,11 @@ kind.
 
 ## [Unreleased]
 
-- package 0.1.0.dev0 · spec 2.0.0
+Nothing yet.
+
+## [0.1.0] - 2026-07-28
+
+- package 0.1.0 · spec 2.0.0
 
 First working shape. The composer, the composability audit, the independence-product
 bound with its quarantine rule, the bridge table, the resolution readout, a
