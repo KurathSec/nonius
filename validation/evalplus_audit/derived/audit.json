@@ -1,0 +1,111 @@
+{
+  "caps": {
+    "diagnostic_cap": 25,
+    "diagnostic_counts": {
+      "codomain-unbounded": 29,
+      "link-dead": 285,
+      "slot-tag-not-composable": 2
+    },
+    "diagnostics_withheld": 264,
+    "probe_bool": [
+      false,
+      true
+    ],
+    "probe_cap": 64,
+    "probe_int": [
+      0,
+      1,
+      2,
+      5,
+      10,
+      50,
+      100,
+      1000,
+      10000,
+      60000,
+      -1
+    ],
+    "probe_str": [],
+    "unprobeable_results": [
+      "HumanEval/10.value",
+      "HumanEval/103.value",
+      "HumanEval/11.value",
+      "HumanEval/110.value",
+      "HumanEval/118.value",
+      "HumanEval/119.value",
+      "HumanEval/127.value",
+      "HumanEval/140.value",
+      "HumanEval/141.value",
+      "HumanEval/143.value",
+      "HumanEval/15.value",
+      "HumanEval/153.value",
+      "HumanEval/156.value",
+      "HumanEval/158.value",
+      "HumanEval/161.value",
+      "HumanEval/162.value",
+      "HumanEval/19.value",
+      "HumanEval/27.value",
+      "HumanEval/28.value",
+      "HumanEval/38.value",
+      "HumanEval/44.value",
+      "HumanEval/50.value",
+      "HumanEval/51.value",
+      "HumanEval/65.value",
+      "HumanEval/79.value",
+      "HumanEval/84.value",
+      "HumanEval/86.value",
+      "HumanEval/89.value",
+      "HumanEval/93.value"
+    ]
+  },
+  "links": {
+    "candidate_links": 3764,
+    "dead_links": 285,
+    "dead_share_of_decided": 0.111154446178,
+    "decided_links": 2564,
+    "live_links": 2279,
+    "live_pairs": 1756,
+    "live_share_of_decided": 0.888845553822,
+    "ordered_pairs": 11772,
+    "refusal_reasons": {
+      "downstream answer constant over codomain": 285,
+      "result declares no codomain and its tag 'str' has no probe set": 1200
+    },
+    "unprobeable_links": 1200
+  },
+  "manifest": {
+    "excluded": {
+      "nondeterministic": [
+        "HumanEval/39"
+      ],
+      "note": "further items are absent because their signature is not plain positional, or their result is not a scalar nonius can pipe",
+      "property_oracle": [
+        "HumanEval/32"
+      ]
+    },
+    "families_declared": [
+      ""
+    ],
+    "family_note": "HumanEval ships no topic label. Any stratum here would be adapter-invented, so none is declared.",
+    "items": 109,
+    "result_tags": {
+      "bool": 28,
+      "float": 4,
+      "int": 48,
+      "str": 29
+    },
+    "slot_tags": {
+      "float": 2,
+      "int": 54,
+      "str": 42
+    }
+  },
+  "provenance": {
+    "access": "read-only; dataset not vendored",
+    "nonius_spec": "2.0.0",
+    "subject": "EvalPlus HumanEval+",
+    "subject_data": "HumanEvalPlus.jsonl.gz",
+    "subject_role": "instrument and input; claimed as neither",
+    "subject_upstream": "https://github.com/evalplus/evalplus"
+  }
+}
