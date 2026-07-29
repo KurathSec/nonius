@@ -168,3 +168,33 @@ which is to recompute over only the cells that vary, is itself biased, in the op
 by more than the bias it removes, because conditioning on having observed variation selects
 the noisiest cells. There is no unbiased one-line substitute here. The honest recomputation
 is over *all* cells with an interval that does not collapse on a unanimous sample.
+
+## The paid run measured less than its first analysis claimed
+
+run-01 bought 14268 completions against thresholds fixed in advance. Its first analysis
+reported that composition preserved the construct and destroyed the instrument anyway.
+Neither half survived an adversarial check, and the retraction is worth stating here
+rather than only in a commit.
+
+The grading was sound: an independent regrade of all 14268 completions with the subject's
+own matcher agreed on every one. The interpretation was not. "Accuracy tracked the
+product" rested on a statistic that passes by construction wherever the measurement is
+zero, and 1848 of 2000 depth-2 cells measured exactly zero; of the seven genuinely
+informative cells, the claim does not hold as stated. "Few shortcuts" quoted a 1.9%
+quarantine rate against a 20% ceiling the data could not reach, since a cell measuring zero
+can never exceed a bound; the reachable maximum was 7.6% and the rate among cells able to
+exceed one was 25%.
+
+Three things the run cannot establish, each for a reason visible in its own artifact.
+Depth is perfectly confounded with item family, because the pre-registered cap of 500
+dropped every `fsm_transition` chain at depth 2 and every non-`fsm` chain at depth 5, so
+the composed depths measure disjoint populations. Depth 2 is the only row in the readout
+where the top-two gap exceeds `m*`, so on the statistic this library tells you to prefer,
+composition there bought resolution rather than losing it. And KT-4's magnitude is computed
+across a unit mismatch that the pre-registration's own `baseline_caveat` anticipated: the
+measured rows are one rendering cell at k = 3 against a baseline pooling fifteen cells at
+k = 120.
+
+What the run does support is narrow and is written up in
+`validation/run_01/FINDING.md`: one chain link produces a composite all four systems fail
+identically, on a single lookup rather than on depth.
