@@ -58,6 +58,46 @@
       "HumanEval/93.value"
     ]
   },
+  "concentration_at_depth": {
+    "2": {
+      "chains": 0,
+      "family": "",
+      "pool": 1760
+    },
+    "3": {
+      "chains": 0,
+      "family": "",
+      "pool": 10000
+    },
+    "5": {
+      "chains": 0,
+      "family": "",
+      "pool": 10000
+    }
+  },
+  "difficulty": {
+    "available": true,
+    "items": 164,
+    "k": 200,
+    "noise_band": 0.0231832139202,
+    "panel_caveat": "Strata depend on which systems are in the panel. This one holds gpt-j at pass@1 0.0415, so `dead` (every system perfect) is unreachable and the dead count is 0 against 18/100 on the first subject. That gap is the panel rather than the benchmark.",
+    "strata": {
+      "discriminating": 146,
+      "floored": 12,
+      "unknown": 6
+    },
+    "systems": [
+      "chatgpt",
+      "code-llama-34b",
+      "code-llama-7b",
+      "codegen-2b",
+      "gpt-j",
+      "incoder-6b"
+    ],
+    "systems_omitted": 17,
+    "systems_omitted_note": "23 systems were released; 6 were graded. A subset is a bound and is reported beside what it withheld (AUDIT-ALL-0004).",
+    "unanimous_cell_fraction": 0.405322415558
+  },
   "emission": {
     "emittable_composites": 1835,
     "emittable_share_of_live": 0.805177709522,
@@ -79,8 +119,8 @@
     "live_share_of_decided": 0.888845553822,
     "ordered_pairs": 11772,
     "refusal_reasons": {
-      "CompositionError": 372,
-      "OracleError": 72
+      "downstream answer constant over codomain": 285,
+      "result declares no codomain and its tag 'str' has no probe set": 1200
     },
     "unprobeable_links": 1200
   },
@@ -118,5 +158,84 @@
     "subject_data": "HumanEvalPlus.jsonl.gz",
     "subject_role": "instrument and input; claimed as neither",
     "subject_upstream": "https://github.com/evalplus/evalplus"
-  }
+  },
+  "readouts": [
+    {
+      "accuracy": {
+        "chatgpt": 0.571708860759,
+        "code-llama-34b": 0.320348101266,
+        "code-llama-7b": 0.239493670886,
+        "codegen-2b": 0.136740506329,
+        "gpt-j": 0.0422784810127,
+        "incoder-6b": 0.0692405063291
+      },
+      "dead": 0.0,
+      "depth": 1,
+      "discriminating": 0.924050632911,
+      "floored": 0.0759493670886,
+      "gap_exceeds_m_star": true,
+      "m_star": 0.127341772152,
+      "n": 158,
+      "source": "predicted",
+      "top_two_gap": 0.251360759494
+    },
+    {
+      "accuracy": {
+        "chatgpt": 0.325641889147,
+        "code-llama-34b": 0.0973851276843,
+        "code-llama-7b": 0.0605573998839,
+        "codegen-2b": 0.0196703714452,
+        "gpt-j": 0.00400011607661,
+        "incoder-6b": 0.00607721996518
+      },
+      "dead": 0.0,
+      "depth": 2,
+      "discriminating": 0.994776552525,
+      "floored": 0.00522344747533,
+      "gap_exceeds_m_star": true,
+      "m_star": 0.0319953134068,
+      "n": 1723,
+      "source": "predicted",
+      "top_two_gap": 0.228256761463
+    },
+    {
+      "accuracy": {
+        "chatgpt": 0.15894817958,
+        "code-llama-34b": 0.0172074262662,
+        "code-llama-7b": 0.006889740625,
+        "codegen-2b": 0.000580265544181,
+        "gpt-j": 4.1057112069e-06,
+        "incoder-6b": 8.78243534483e-05
+      },
+      "dead": 0.0,
+      "depth": 3,
+      "discriminating": 0.974784482759,
+      "floored": 0.0252155172414,
+      "gap_exceeds_m_star": true,
+      "m_star": 0.00980252780172,
+      "n": 9280,
+      "source": "predicted",
+      "top_two_gap": 0.141740753314
+    },
+    {
+      "accuracy": {
+        "chatgpt": 0.0574822818382,
+        "code-llama-34b": 0.0,
+        "code-llama-7b": 8.58601657969e-05,
+        "codegen-2b": 0.0,
+        "gpt-j": 0.0,
+        "incoder-6b": 0.0
+      },
+      "dead": 0.0,
+      "depth": 5,
+      "discriminating": 0.9178,
+      "floored": 0.0822,
+      "gap_exceeds_m_star": true,
+      "m_star": 0.00378499308185,
+      "n": 10000,
+      "source": "predicted",
+      "top_two_gap": 0.0573964216724
+    }
+  ],
+  "verdict": "composable"
 }
