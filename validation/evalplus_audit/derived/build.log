@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "/home/kureist/nonius/validation/evalplus_audit/build_archive.py", line 199, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "/home/kureist/nonius/validation/evalplus_audit/build_archive.py", line 162, in main
+    req = json.dumps({"entry_point": str(rows[task]["entry_point"]), "inputs": ins,
+                      "gold": gold, "seconds": args.seconds, "draws": draws,
+                      "result_path": rp})
+  File "/usr/lib64/python3.14/json/__init__.py", line 235, in dumps
+    return _default_encoder.encode(obj)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "/usr/lib64/python3.14/json/encoder.py", line 202, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+  File "/usr/lib64/python3.14/json/encoder.py", line 263, in iterencode
+    return _iterencode(o, 0)
+ValueError: Exceeds the limit (4300 digits) for integer string conversion; use sys.set_int_max_str_digits() to increase the limit
+when serializing list item 45
+when serializing dict item 'gold'

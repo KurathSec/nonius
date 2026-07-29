@@ -26,13 +26,22 @@ import pathlib
 import subprocess
 import sys
 import tempfile
+import threading
 import zipfile
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT.parent.parent / "src"))
 
 from nonius.adapters import evalplus as ep  # noqa: E402
+
+# Some HumanEval golds are integers with more than 4300 digits (factorial- and
+# fibonacci-shaped tasks), and Python 3.11 refuses to str() those by default. The guard
+# exists against a DoS through untrusted input; what is serialised here is the REFERENCE
+# gold computed from EvalPlus's own canonical solution, so lifting it is safe in this
+# process. The worker never needs it: it compares with == and returns only ints.
+sys.set_int_max_str_digits(0)
 
 SAMPLES = ROOT.parent.parent / ".data" / "evalplus_samples"
 OUT = ROOT / "derived" / "verdicts.raw.jsonl"
@@ -50,6 +59,10 @@ import json, os, resource, signal, sys, tempfile
 def _timeout(signum, frame):
     raise TimeoutError("draw did not terminate")
 
+# Same 4300-digit guard as the parent, hit here on the way IN: json.loads has to build
+# those integers to compare against them. Bounded by RLIMIT_CPU and the per-draw alarm, so
+# a candidate that tries to abuse the lifted limit still cannot run away.
+sys.set_int_max_str_digits(0)
 req = json.loads(sys.stdin.read())
 # Third-party code prints. stdout is therefore NOT a usable result channel -- a single
 # print() inside a candidate corrupts the JSON and loses the whole 200-draw batch, which is
@@ -115,6 +128,11 @@ def main() -> int:
     ap.add_argument("--systems", type=int, default=len(SYSTEMS))
     ap.add_argument("--seconds", type=int, default=3, help="per-draw wall limit")
     ap.add_argument("--tasks", type=int, default=0, help="0 = all")
+    # The parent only waits on subprocesses, so threads are the right pool: the work is in
+    # the children and the GIL is never contended. Default leaves two cores for the
+    # machine, because every worker is CPU-bound and a weak model's output is mostly
+    # non-terminating code burning its full alarm.
+    ap.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 4) - 2))
     args = ap.parse_args()
 
     rows = {}
@@ -135,6 +153,66 @@ def main() -> int:
 
     env = {"PATH": "/usr/bin:/bin", "PYTHONDONTWRITEBYTECODE": "1", "HOME": "/nonexistent"}
     fh = OUT.open("a", encoding="utf-8")
+    lock = threading.Lock()
+    counts: dict[str, list[int]] = {}
+
+    def grade(system: str, task: str, draws: list[list[object]]) -> None:
+        """One (system, task) batch. Runs in a thread; the real work is the child.
+
+        Never raises. A task that cannot be prepared is recorded as incomplete, because a
+        thrown exception here takes the whole pool down and discards every batch already in
+        flight -- which is how a single 4300-digit gold destroyed a six-minute run.
+        """
+        try:
+            _grade(system, task, draws)
+        except Exception as exc:  # noqa: BLE001 - recorded, never fatal
+            with lock:
+                fh.write(json.dumps({"system": system, "task": task, "verdicts": [],
+                                     "incomplete": f"{type(exc).__name__}: {exc}"[:300]}) + "\n")
+                fh.flush()
+                counts.setdefault(system, [0, 0])[1] += 1
+
+    def _grade(system: str, task: str, draws: list[list[object]]) -> None:
+        g = gold_for(rows[task])
+        if g is None:
+            return
+        ins, gold = g
+        rp = tempfile.mktemp(suffix=".json", prefix="ep-res-")
+        req = json.dumps({"entry_point": str(rows[task]["entry_point"]), "inputs": ins,
+                          "gold": gold, "seconds": args.seconds, "draws": draws,
+                          "result_path": rp})
+        failure = None
+        try:
+            proc = subprocess.run([sys.executable, "-c", WORKER], input=req,
+                                  capture_output=True, text=True, env=env,
+                                  timeout=args.seconds * len(draws) + 60)
+            if os.path.exists(rp):
+                verdicts = json.loads(pathlib.Path(rp).read_text())
+                os.unlink(rp)
+            else:
+                verdicts, failure = [], f"worker exited {proc.returncode}: {proc.stderr[-200:]}"
+        except subprocess.TimeoutExpired:
+            verdicts, failure = [], "batch exceeded its wall limit"
+        except json.JSONDecodeError:
+            verdicts, failure = [], "result file was not JSON"
+        if len(verdicts) != len(draws) and failure is None:
+            failure = f"worker returned {len(verdicts)} of {len(draws)} draws"
+        rec: dict[str, object] = {"system": system, "task": task, "verdicts": verdicts}
+        if failure:
+            rec["incomplete"] = failure
+        # One writer at a time: the append is a whole line and must not interleave.
+        with lock:
+            fh.write(json.dumps(rec) + "\n")
+            fh.flush()
+            c = counts.setdefault(system, [0, 0])
+            c[0] += 1
+            c[1] += 1 if failure else 0
+            total = sum(x[0] for x in counts.values())
+            if total % 25 == 0:
+                bad = sum(x[1] for x in counts.values())
+                print(f"  {total} pairs graded" + (f", {bad} INCOMPLETE" if bad else ""),
+                      flush=True)
+    pending: list[tuple[str, str, list[list[object]]]] = []
     for system in SYSTEMS[: args.systems]:
         zp = SAMPLES / f"{system}_temp_0.8.zip"
         if not zp.exists():
@@ -149,50 +227,22 @@ def main() -> int:
             draw = int(n.rsplit("/", 1)[1][:-3])
             by_task.setdefault(task, []).append((draw, n))
         tasks = sorted(by_task)[: args.tasks or None]
-        graded = incomplete = 0
         for task in tasks:
             if (system, task) in done or task not in rows:
                 continue
-            g = gold_for(rows[task])
-            if g is None:
-                continue
-            ins, gold = g
-            draws = [[d, z.read(n).decode("utf-8", "replace")] for d, n in sorted(by_task[task])]
-            rp = tempfile.mktemp(suffix=".json", prefix="ep-res-")
-            req = json.dumps({"entry_point": str(rows[task]["entry_point"]), "inputs": ins,
-                              "gold": gold, "seconds": args.seconds, "draws": draws,
-                              "result_path": rp})
-            # A worker that dies takes its whole batch with it: a draw can call os._exit,
-            # trip the address-space cap hard, or segfault a C extension, and none of that
-            # is catchable inside the loop. Record WHY rather than writing an empty list,
-            # which would silently drop 200 draws and read downstream as 200 failures.
-            failure = None
-            try:
-                proc = subprocess.run([sys.executable, "-c", WORKER], input=req,
-                                      capture_output=True, text=True, env=env,
-                                      timeout=args.seconds * len(draws) + 60)
-                if os.path.exists(rp):
-                    verdicts = json.loads(pathlib.Path(rp).read_text())
-                    os.unlink(rp)
-                else:
-                    verdicts, failure = [], f"worker exited {proc.returncode}: {proc.stderr[-200:]}"
-            except subprocess.TimeoutExpired:
-                verdicts, failure = [], "batch exceeded its wall limit"
-            except json.JSONDecodeError:
-                verdicts, failure = [], "result file was not JSON"
-            if len(verdicts) != len(draws) and failure is None:
-                failure = f"worker returned {len(verdicts)} of {len(draws)} draws"
-            rec = {"system": system, "task": task, "verdicts": verdicts}
-            if failure:
-                rec["incomplete"] = failure
-                incomplete += 1
-            fh.write(json.dumps(rec) + "\n")
-            fh.flush()
-            graded += 1
-        print(f"{system}: graded {graded} tasks"
-              + (f" ({incomplete} INCOMPLETE)" if incomplete else ""), flush=True)
+            draws = [[d, z.read(n).decode("utf-8", "replace")]
+                     for d, n in sorted(by_task[task])]
+            pending.append((system, task, draws))
+    print(f"{len(pending)} (system, task) pairs to grade on {args.jobs} workers", flush=True)
+    with ThreadPoolExecutor(max_workers=args.jobs) as pool:
+        list(pool.map(lambda a: grade(*a), pending))
     fh.close()
-    return 0
+    bad = sum(x[1] for x in counts.values())
+    for system in sorted(counts):
+        c = counts[system]
+        print(f"{system}: graded {c[0]}" + (f" ({c[1]} INCOMPLETE)" if c[1] else ""))
+    print(f"total {sum(x[0] for x in counts.values())} graded, {bad} incomplete")
+    return 1 if bad else 0
 
 
 if __name__ == "__main__":
