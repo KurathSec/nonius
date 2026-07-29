@@ -4,9 +4,10 @@
       "sha256": "d02bd6da1b690cafcc8a3b9783ac5c552ccc640a9825d834d01708f56af3160e"
     },
     "validation/run_01/derived/composite_archive.jsonl.gz": {
-      "sha256": "7981aa87f301a0045c3ddc7d0b72f788138b43a81d6f5315f0b763e295c316d1"
+      "sha256": "38e8239a354c89c0edfb3fc0728d987236702730990f7b48b43c16aecd384c50"
     }
   },
+  "harness_estimated_usd": 12.3795,
   "not_committed": {
     "run/run-01/completions.jsonl": {
       "bytes": 10832663,
@@ -23,5 +24,7 @@
       "what": "the committed pre-registration with status flipped to authorised; local only, because tests/test_run_and_export.py refuses a committed authorised one"
     }
   },
-  "note": "The large inputs are NOT committed. Their sha256 is recorded so a reader with a separately obtained copy can verify it is the one this run used."
+  "note": "The large inputs are NOT committed. Their sha256 is recorded so a reader with a separately obtained copy can verify it is the one this run used.",
+  "provider_reported_usd": 2.6338,
+  "usd_note": "Two estimators disagree by 4.7x. The harness figure prices tokens from the subject's config table; the provider returns usage.estimated_cost per call. Both are recorded; neither is silently preferred."
 }

@@ -1,4 +1,31 @@
 {
+  "caps": {
+    "1": {
+      "composites_quarantined": 0,
+      "composites_scored": 55,
+      "composites_supplied": 55,
+      "population": "measured"
+    },
+    "2": {
+      "composites_quarantined": 37,
+      "composites_scored": 463,
+      "composites_supplied": 500,
+      "population": "measured"
+    },
+    "3": {
+      "composites_quarantined": 0,
+      "composites_scored": 134,
+      "composites_supplied": 134,
+      "population": "measured"
+    },
+    "5": {
+      "composites_quarantined": 0,
+      "composites_scored": 500,
+      "composites_supplied": 500,
+      "population": "measured"
+    },
+    "note": "The pre-registered cap of 500 per depth withheld chains, and what it withheld is not neutral: at depth 2 it dropped every fsm_transition chain, at depth 5 every non-fsm one. So no family is held constant across depths and depth is confounded with family (AUDIT-ALL-0004)."
+  },
   "measured": {
     "1": {
       "accuracy": {
@@ -10,6 +37,7 @@
       "dead": 0.109090909091,
       "discriminating": 0.672727272727,
       "floored": 0.218181818182,
+      "gap_exceeds_m_star": false,
       "m_star": 0.254545454545,
       "n": 55,
       "ordering": [
@@ -18,27 +46,30 @@
         "mistralai-Mistral-Small-3.2-24B-Instruct-2506",
         "meta-llama-Meta-Llama-3.1-8B-Instruct"
       ],
+      "quarantined_excluded": 0,
       "top_two_gap": 0.139393939394
     },
     "2": {
       "accuracy": {
-        "deepseek-ai-DeepSeek-V4-Flash": 0.204,
-        "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.0253333333333,
+        "deepseek-ai-DeepSeek-V4-Flash": 0.149028077754,
+        "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.00359971202304,
         "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.0,
-        "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.0386666666667
+        "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.036717062635
       },
       "dead": 0.0,
-      "discriminating": 0.234,
-      "floored": 0.766,
-      "m_star": 0.0673333333333,
-      "n": 500,
+      "discriminating": 0.172786177106,
+      "floored": 0.827213822894,
+      "gap_exceeds_m_star": true,
+      "m_star": 0.0647948164147,
+      "n": 463,
       "ordering": [
         "deepseek-ai-DeepSeek-V4-Flash",
         "mistralai-Mistral-Small-3.2-24B-Instruct-2506",
         "meta-llama-Llama-3.3-70B-Instruct-Turbo",
         "meta-llama-Meta-Llama-3.1-8B-Instruct"
       ],
-      "top_two_gap": 0.165333333333
+      "quarantined_excluded": 37,
+      "top_two_gap": 0.112311015119
     },
     "3": {
       "accuracy": {
@@ -50,6 +81,7 @@
       "dead": 0.0,
       "discriminating": 0.0,
       "floored": 1.0,
+      "gap_exceeds_m_star": false,
       "m_star": null,
       "n": 134,
       "ordering": [
@@ -58,6 +90,7 @@
         "meta-llama-Meta-Llama-3.1-8B-Instruct",
         "mistralai-Mistral-Small-3.2-24B-Instruct-2506"
       ],
+      "quarantined_excluded": 0,
       "top_two_gap": 0.0
     },
     "5": {
@@ -70,6 +103,7 @@
       "dead": 0.0,
       "discriminating": 0.0,
       "floored": 1.0,
+      "gap_exceeds_m_star": false,
       "m_star": null,
       "n": 500,
       "ordering": [
@@ -78,20 +112,92 @@
         "meta-llama-Meta-Llama-3.1-8B-Instruct",
         "mistralai-Mistral-Small-3.2-24B-Instruct-2506"
       ],
+      "quarantined_excluded": 0,
       "top_two_gap": 0.0
     }
   },
   "noise_band": 0.0136770833333,
+  "predicted_on_drawn_population": {
+    "2": {
+      "accuracy": {
+        "deepseek-ai-DeepSeek-V4-Flash": 0.347228221742,
+        "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.054529637629,
+        "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.0,
+        "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.0536255099592
+      },
+      "discriminating": 0.561555075594,
+      "n": 463,
+      "ordering": [
+        "deepseek-ai-DeepSeek-V4-Flash",
+        "meta-llama-Llama-3.3-70B-Instruct-Turbo",
+        "mistralai-Mistral-Small-3.2-24B-Instruct-2506",
+        "meta-llama-Meta-Llama-3.1-8B-Instruct"
+      ],
+      "top_two_gap": 0.292698584113
+    },
+    "3": {
+      "accuracy": {
+        "deepseek-ai-DeepSeek-V4-Flash": 0.0804425787728,
+        "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.172201492537,
+        "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.0,
+        "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.142835820896
+      },
+      "discriminating": 0.716417910448,
+      "n": 134,
+      "ordering": [
+        "meta-llama-Llama-3.3-70B-Instruct-Turbo",
+        "mistralai-Mistral-Small-3.2-24B-Instruct-2506",
+        "deepseek-ai-DeepSeek-V4-Flash",
+        "meta-llama-Meta-Llama-3.1-8B-Instruct"
+      ],
+      "top_two_gap": 0.0293656716418
+    },
+    "5": {
+      "accuracy": {
+        "deepseek-ai-DeepSeek-V4-Flash": 0.0,
+        "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.00235277777778,
+        "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.0,
+        "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.01696
+      },
+      "discriminating": 0.346,
+      "n": 500,
+      "ordering": [
+        "mistralai-Mistral-Small-3.2-24B-Instruct-2506",
+        "meta-llama-Llama-3.3-70B-Instruct-Turbo",
+        "deepseek-ai-DeepSeek-V4-Flash",
+        "meta-llama-Meta-Llama-3.1-8B-Instruct"
+      ],
+      "top_two_gap": 0.0146072222222
+    }
+  },
   "provenance": {
     "completions_bought": 14268,
-    "estimated_usd": 12.3795,
     "nonius_spec": "2.0.0",
-    "prompt_task": "comprehend (output prediction), the same template the committed singleton archive was built with",
+    "prompt_task": "comprehend (output prediction), the template the committed singleton archive was built with",
     "prompt_version": "bench-prompts-v2",
     "run": "run-01",
     "seed": 20260619,
     "status": "executed",
-    "timeouts": 0
+    "timeouts": 23,
+    "unparseable": 107,
+    "usd_note": "two estimators disagree by 4.7x; both are in inputs.json and neither is silently preferred"
+  },
+  "reuse_ceiling": {
+    "2": {
+      "refused": false,
+      "worst_component": "agg_stats_W12",
+      "worst_multiplicity": 33
+    },
+    "3": {
+      "refused": false,
+      "worst_component": "fsm_transition",
+      "worst_multiplicity": 60
+    },
+    "5": {
+      "reason": "LINK-ALL-0006: component 'fsm_transition' appears in 428 of 500 composites, above the declared reuse ceiling of 100. The independence product bound over-counts on a set this correlated; raise the ceiling deliberately or emit a less reused set.",
+      "refused": true
+    },
+    "declared": 100
   },
   "singleton": {
     "accuracy": {
@@ -107,104 +213,117 @@
       "mistralai-Mistral-Small-3.2-24B-Instruct-2506",
       "meta-llama-Meta-Llama-3.1-8B-Instruct"
     ],
-    "source": "committed archive, program level"
+    "source": "committed archive, program level, k=120"
   },
   "thresholds": {
     "KT-0-execution-validity": {
       "fires": false,
       "floor": 0.6,
       "measured": 0.757575757576,
+      "parse_floor": 0.9,
+      "parse_rate": 0.99088870199,
       "system": "deepseek-ai-DeepSeek-V4-Flash"
     },
     "KT-1-product-vs-max": {
-      "2": {
-        "closer_to_max": 28,
-        "closer_to_product": 1972,
-        "informative": true
+      "informative_cells": {
+        "2": {
+          "cells": 1852,
+          "closer_to_max": 0,
+          "informative": 7,
+          "note": "informative = measured > 0 AND product != max. The rest pass by construction and are excluded rather than counted."
+        },
+        "3": {
+          "cells": 536,
+          "closer_to_max": 0,
+          "informative": 0,
+          "note": "informative = measured > 0 AND product != max. The rest pass by construction and are excluded rather than counted."
+        }
       },
-      "3": {
-        "closer_to_max": 0,
-        "closer_to_product": 536,
-        "informative": false
-      },
-      "5": {
-        "closer_to_max": 0,
-        "closer_to_product": 2000,
-        "informative": false
+      "registered": {
+        "closer_to": "product",
+        "depth": 3,
+        "fires": false,
+        "max": 0.959328358209,
+        "measured": 0.0,
+        "note": "product <= max, so a measured 0.0 cannot be closer to the max. This arm cannot fire on an all-zero row and says so.",
+        "product": 0.0804425787728,
+        "system": "deepseek-ai-DeepSeek-V4-Flash",
+        "vacuous": true
       }
     },
     "KT-2-quarantine": {
       "2": {
         "assessed": 2000,
+        "ceiling": 0.2,
+        "cells_able_to_exceed": 152,
         "exceeds_ceiling": false,
-        "line": "depth 2: quarantined 38/2000 = 0.0190 against declared ceiling 0.2000 [within ceiling], band 0.0137",
         "quarantined": 38,
-        "rate": 0.019
+        "rate": 0.019,
+        "rate_among_reachable": 0.25,
+        "structural_max_rate": 0.076
       },
       "3": {
         "assessed": 536,
+        "ceiling": 0.2,
+        "cells_able_to_exceed": 0,
         "exceeds_ceiling": false,
-        "line": "depth 3: quarantined 0/536 = 0.0000 against declared ceiling 0.2000 [within ceiling], band 0.0137",
         "quarantined": 0,
-        "rate": 0.0
-      },
-      "5": {
-        "assessed": 2000,
-        "exceeds_ceiling": false,
-        "line": "depth 5: quarantined 0/2000 = 0.0000 against declared ceiling 0.2000 [within ceiling], band 0.0137",
-        "quarantined": 0,
-        "rate": 0.0
+        "rate": 0.0,
+        "rate_among_reachable": null,
+        "structural_max_rate": 0.0
       }
     },
     "KT-2b-ordering": {
-      "1": {
-        "inverted": false,
-        "meaningful": true,
-        "ordering": [
-          "deepseek-ai-DeepSeek-V4-Flash",
-          "meta-llama-Llama-3.3-70B-Instruct-Turbo",
-          "mistralai-Mistral-Small-3.2-24B-Instruct-2506",
-          "meta-llama-Meta-Llama-3.1-8B-Instruct"
-        ]
-      },
       "2": {
-        "inverted": true,
-        "meaningful": true,
-        "ordering": [
+        "departs": true,
+        "evaluable": true,
+        "fires": true,
+        "largest_adjacent_gap": 0.112311015119,
+        "measured_order": [
           "deepseek-ai-DeepSeek-V4-Flash",
           "mistralai-Mistral-Small-3.2-24B-Instruct-2506",
           "meta-llama-Llama-3.3-70B-Instruct-Turbo",
           "meta-llama-Meta-Llama-3.1-8B-Instruct"
-        ]
+        ],
+        "predicted_order": [
+          "deepseek-ai-DeepSeek-V4-Flash",
+          "meta-llama-Llama-3.3-70B-Instruct-Turbo",
+          "mistralai-Mistral-Small-3.2-24B-Instruct-2506",
+          "meta-llama-Meta-Llama-3.1-8B-Instruct"
+        ],
+        "yardstick": 0.0647948164147
       },
       "3": {
-        "inverted": true,
-        "meaningful": false,
-        "ordering": [
+        "departs": true,
+        "evaluable": false,
+        "fires": false,
+        "largest_adjacent_gap": 0.0,
+        "measured_order": [
           "deepseek-ai-DeepSeek-V4-Flash",
           "meta-llama-Llama-3.3-70B-Instruct-Turbo",
           "meta-llama-Meta-Llama-3.1-8B-Instruct",
           "mistralai-Mistral-Small-3.2-24B-Instruct-2506"
-        ]
+        ],
+        "predicted_order": [
+          "meta-llama-Llama-3.3-70B-Instruct-Turbo",
+          "mistralai-Mistral-Small-3.2-24B-Instruct-2506",
+          "deepseek-ai-DeepSeek-V4-Flash",
+          "meta-llama-Meta-Llama-3.1-8B-Instruct"
+        ],
+        "yardstick": 0.0136770833333
       },
       "5": {
-        "inverted": true,
-        "meaningful": false,
-        "ordering": [
-          "deepseek-ai-DeepSeek-V4-Flash",
-          "meta-llama-Llama-3.3-70B-Instruct-Turbo",
-          "meta-llama-Meta-Llama-3.1-8B-Instruct",
-          "mistralai-Mistral-Small-3.2-24B-Instruct-2506"
-        ]
+        "evaluable": false,
+        "why": "depth refused by the reuse ceiling"
       }
     },
     "KT-4-floor-not-ceiling": {
+      "baseline_program_level_k120": 0.72,
       "best_composed_depth": 2,
-      "composed_discriminating": 0.234,
-      "delta": -0.486,
-      "fires": true,
+      "composed_discriminating": 0.172786177106,
+      "delta_against_program_level": -0.547213822894,
       "required": 0.05,
-      "singleton_discriminating": 0.72
+      "unit_warning": "The measured composed rows are one rendering cell at k=3, the item-level unit. The program-level baseline pools fifteen cells at k=120. The pre-registration requires the MATCHING unit, so the program-level delta overstates the effect by the replicate-depth difference and is not the registered comparison."
     }
   }
 }
