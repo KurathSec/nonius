@@ -1,0 +1,210 @@
+{
+  "measured": {
+    "1": {
+      "accuracy": {
+        "deepseek-ai-DeepSeek-V4-Flash": 0.757575757576,
+        "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.618181818182,
+        "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.218181818182,
+        "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.6
+      },
+      "dead": 0.109090909091,
+      "discriminating": 0.672727272727,
+      "floored": 0.218181818182,
+      "m_star": 0.254545454545,
+      "n": 55,
+      "ordering": [
+        "deepseek-ai-DeepSeek-V4-Flash",
+        "meta-llama-Llama-3.3-70B-Instruct-Turbo",
+        "mistralai-Mistral-Small-3.2-24B-Instruct-2506",
+        "meta-llama-Meta-Llama-3.1-8B-Instruct"
+      ],
+      "top_two_gap": 0.139393939394
+    },
+    "2": {
+      "accuracy": {
+        "deepseek-ai-DeepSeek-V4-Flash": 0.204,
+        "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.0253333333333,
+        "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.0,
+        "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.0386666666667
+      },
+      "dead": 0.0,
+      "discriminating": 0.234,
+      "floored": 0.766,
+      "m_star": 0.0673333333333,
+      "n": 500,
+      "ordering": [
+        "deepseek-ai-DeepSeek-V4-Flash",
+        "mistralai-Mistral-Small-3.2-24B-Instruct-2506",
+        "meta-llama-Llama-3.3-70B-Instruct-Turbo",
+        "meta-llama-Meta-Llama-3.1-8B-Instruct"
+      ],
+      "top_two_gap": 0.165333333333
+    },
+    "3": {
+      "accuracy": {
+        "deepseek-ai-DeepSeek-V4-Flash": 0.0,
+        "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.0,
+        "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.0,
+        "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.0
+      },
+      "dead": 0.0,
+      "discriminating": 0.0,
+      "floored": 1.0,
+      "m_star": null,
+      "n": 134,
+      "ordering": [
+        "deepseek-ai-DeepSeek-V4-Flash",
+        "meta-llama-Llama-3.3-70B-Instruct-Turbo",
+        "meta-llama-Meta-Llama-3.1-8B-Instruct",
+        "mistralai-Mistral-Small-3.2-24B-Instruct-2506"
+      ],
+      "top_two_gap": 0.0
+    },
+    "5": {
+      "accuracy": {
+        "deepseek-ai-DeepSeek-V4-Flash": 0.0,
+        "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.0,
+        "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.0,
+        "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.0
+      },
+      "dead": 0.0,
+      "discriminating": 0.0,
+      "floored": 1.0,
+      "m_star": null,
+      "n": 500,
+      "ordering": [
+        "deepseek-ai-DeepSeek-V4-Flash",
+        "meta-llama-Llama-3.3-70B-Instruct-Turbo",
+        "meta-llama-Meta-Llama-3.1-8B-Instruct",
+        "mistralai-Mistral-Small-3.2-24B-Instruct-2506"
+      ],
+      "top_two_gap": 0.0
+    }
+  },
+  "noise_band": 0.0136770833333,
+  "provenance": {
+    "completions_bought": 14268,
+    "estimated_usd": 12.3795,
+    "nonius_spec": "2.0.0",
+    "prompt_task": "comprehend (output prediction), the same template the committed singleton archive was built with",
+    "prompt_version": "bench-prompts-v2",
+    "run": "run-01",
+    "seed": 20260619,
+    "status": "executed",
+    "timeouts": 0
+  },
+  "singleton": {
+    "accuracy": {
+      "deepseek-ai-DeepSeek-V4-Flash": 0.8385,
+      "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.7685,
+      "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.552416666667,
+      "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.73825
+    },
+    "discriminating": 0.72,
+    "ordering": [
+      "deepseek-ai-DeepSeek-V4-Flash",
+      "meta-llama-Llama-3.3-70B-Instruct-Turbo",
+      "mistralai-Mistral-Small-3.2-24B-Instruct-2506",
+      "meta-llama-Meta-Llama-3.1-8B-Instruct"
+    ],
+    "source": "committed archive, program level"
+  },
+  "thresholds": {
+    "KT-0-execution-validity": {
+      "fires": false,
+      "floor": 0.6,
+      "measured": 0.757575757576,
+      "system": "deepseek-ai-DeepSeek-V4-Flash"
+    },
+    "KT-1-product-vs-max": {
+      "2": {
+        "closer_to_max": 28,
+        "closer_to_product": 1972,
+        "informative": true
+      },
+      "3": {
+        "closer_to_max": 0,
+        "closer_to_product": 536,
+        "informative": false
+      },
+      "5": {
+        "closer_to_max": 0,
+        "closer_to_product": 2000,
+        "informative": false
+      }
+    },
+    "KT-2-quarantine": {
+      "2": {
+        "assessed": 2000,
+        "exceeds_ceiling": false,
+        "line": "depth 2: quarantined 38/2000 = 0.0190 against declared ceiling 0.2000 [within ceiling], band 0.0137",
+        "quarantined": 38,
+        "rate": 0.019
+      },
+      "3": {
+        "assessed": 536,
+        "exceeds_ceiling": false,
+        "line": "depth 3: quarantined 0/536 = 0.0000 against declared ceiling 0.2000 [within ceiling], band 0.0137",
+        "quarantined": 0,
+        "rate": 0.0
+      },
+      "5": {
+        "assessed": 2000,
+        "exceeds_ceiling": false,
+        "line": "depth 5: quarantined 0/2000 = 0.0000 against declared ceiling 0.2000 [within ceiling], band 0.0137",
+        "quarantined": 0,
+        "rate": 0.0
+      }
+    },
+    "KT-2b-ordering": {
+      "1": {
+        "inverted": false,
+        "meaningful": true,
+        "ordering": [
+          "deepseek-ai-DeepSeek-V4-Flash",
+          "meta-llama-Llama-3.3-70B-Instruct-Turbo",
+          "mistralai-Mistral-Small-3.2-24B-Instruct-2506",
+          "meta-llama-Meta-Llama-3.1-8B-Instruct"
+        ]
+      },
+      "2": {
+        "inverted": true,
+        "meaningful": true,
+        "ordering": [
+          "deepseek-ai-DeepSeek-V4-Flash",
+          "mistralai-Mistral-Small-3.2-24B-Instruct-2506",
+          "meta-llama-Llama-3.3-70B-Instruct-Turbo",
+          "meta-llama-Meta-Llama-3.1-8B-Instruct"
+        ]
+      },
+      "3": {
+        "inverted": true,
+        "meaningful": false,
+        "ordering": [
+          "deepseek-ai-DeepSeek-V4-Flash",
+          "meta-llama-Llama-3.3-70B-Instruct-Turbo",
+          "meta-llama-Meta-Llama-3.1-8B-Instruct",
+          "mistralai-Mistral-Small-3.2-24B-Instruct-2506"
+        ]
+      },
+      "5": {
+        "inverted": true,
+        "meaningful": false,
+        "ordering": [
+          "deepseek-ai-DeepSeek-V4-Flash",
+          "meta-llama-Llama-3.3-70B-Instruct-Turbo",
+          "meta-llama-Meta-Llama-3.1-8B-Instruct",
+          "mistralai-Mistral-Small-3.2-24B-Instruct-2506"
+        ]
+      }
+    },
+    "KT-4-floor-not-ceiling": {
+      "best_composed_depth": 2,
+      "composed_discriminating": 0.234,
+      "delta": -0.486,
+      "fires": true,
+      "required": 0.05,
+      "singleton_discriminating": 0.72
+    }
+  }
+}

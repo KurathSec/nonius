@@ -1,0 +1,27 @@
+{
+  "committed": {
+    "validation/run_01/composite_shapes.jsonl": {
+      "sha256": "d02bd6da1b690cafcc8a3b9783ac5c552ccc640a9825d834d01708f56af3160e"
+    },
+    "validation/run_01/derived/composite_archive.jsonl.gz": {
+      "sha256": "7981aa87f301a0045c3ddc7d0b72f788138b43a81d6f5315f0b763e295c316d1"
+    }
+  },
+  "not_committed": {
+    "run/run-01/completions.jsonl": {
+      "bytes": 10832663,
+      "sha256": "4655566514bd34752f8eb113b6e8a501c2ee4f5bda7569f9190ea18792702dd8",
+      "what": "raw model output, 14268 records"
+    },
+    "run/run-01/composites.jsonl": {
+      "bytes": 11930578,
+      "sha256": "656af28ee5f021e30fc2847adcb1770c4a82c7304f7cc8fbf2cd78b03a57fdac",
+      "what": "the emitted composite set; regenerable by run/build_population.py"
+    },
+    "run/run-01/prereg-authorised.toml": {
+      "sha256": "cc71a8114eea1cecfd35586a823975703a16bfa97abda94a5054e26b7b49b0f4",
+      "what": "the committed pre-registration with status flipped to authorised; local only, because tests/test_run_and_export.py refuses a committed authorised one"
+    }
+  },
+  "note": "The large inputs are NOT committed. Their sha256 is recorded so a reader with a separately obtained copy can verify it is the one this run used."
+}
