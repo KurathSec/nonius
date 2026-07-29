@@ -303,3 +303,44 @@ def test_the_archive_reads_its_verdicts_once_however_often_it_is_asked() -> None
     assert plain == indexed
     assert hash(plain) == hash(indexed)
     assert "_cells_memo" not in repr(indexed)
+
+
+def test_the_path_search_reports_whether_it_finished_looking() -> None:
+    """An empty result means two opposite things, so the search says which.
+
+    `cap` bounds the RESULTS. Nothing bounded the WORK, and proving that no path of a given
+    depth exists means exhausting every node-distinct path shorter than it. `_max_depth`
+    asked exactly that question, for depths 2 through 32, with `cap=1`. On the second
+    reference subject -- 2279 live links over 109 items -- it ran for hours at full CPU with
+    flat memory and produced nothing, twice.
+
+    A budget alone would not be enough. A search that gives up returns the same empty tuple
+    as a corpus that builds nothing, and `_max_depth` would then publish the budget as the
+    benchmark's maximum depth. So the flag is the fix and the budget is the mechanism.
+    """
+    import pytest as _pytest
+    from conftest import corpus_items, corpus_oracle
+
+    from nonius.compose import analyze, search_paths
+    from nonius.errors import CompositionError
+
+    analysis = analyze(corpus_items(), corpus_oracle())
+
+    full, finished = search_paths(analysis, 2, cap=10_000)
+    assert finished is True, "the calibration corpus is small enough to search exhaustively"
+    assert full, "and it does build depth-2 paths"
+
+    starved, finished_starved = search_paths(analysis, 2, cap=10_000, budget=1)
+    assert finished_starved is False, (
+        "a search stopped by its budget must never report itself as exhaustive: that is "
+        "what would let an abandoned search be read as an uncomposable corpus"
+    )
+    assert len(starved) <= len(full)
+
+    # Finding `cap` results is also not exhaustive; the rest were never looked at.
+    _, finished_capped = search_paths(analysis, 2, cap=1)
+    assert finished_capped is False
+
+    # A budget of zero withholds everything and would report the corpus as empty.
+    with _pytest.raises(CompositionError, match="budget must be at least 1"):
+        search_paths(analysis, 2, budget=0)

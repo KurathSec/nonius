@@ -373,23 +373,50 @@ def chain_from_candidates(candidates: Sequence[Candidate]) -> Chain:
     return make_chain(tuple(order), links)
 
 
-def enumerate_paths(
-    analysis: LinkAnalysis, depth: int, *, cap: int = 10_000
-) -> tuple[tuple[str, ...], ...]:
-    """Node-distinct paths of exactly ``depth`` components over the live-link graph.
+#: How many stack expansions the path search may spend before giving up. ``cap`` bounds the
+#: RESULTS and does not bound the WORK, and the difference is the whole reason this exists:
+#: proving that no path of a given depth exists means exhausting every node-distinct path
+#: shorter than it. On a densely linked corpus that is astronomically large. The second
+#: reference subject has 2279 live links over 109 items, and asking it for one path of a
+#: depth it does not reach ran for hours at full CPU with flat memory and no output.
+#:
+#: Generous enough that neither the calibration corpus nor the first reference subject comes
+#: near it, so their enumerations are unchanged and the drift gate stays green.
+PATH_EXPANSION_BUDGET = 2_000_000
 
-    Bounded by ``cap``; the caller is expected to report the bound (AUDIT-ALL-0004).
+
+def search_paths(
+    analysis: LinkAnalysis, depth: int, *, cap: int = 10_000, budget: int = PATH_EXPANSION_BUDGET
+) -> tuple[tuple[tuple[str, ...], ...], bool]:
+    """Node-distinct paths of exactly ``depth``, and whether the search was exhaustive.
+
+    The flag is the point. A caller that gets no paths back cannot otherwise tell "this
+    corpus builds nothing at this depth" from "the search gave up", and those license
+    opposite conclusions: the first is a fact about the benchmark, the second is a fact
+    about the budget. Reporting them as one number is how a bound gets read as a finding
+    (AUDIT-ALL-0004).
+
+    ``exhaustive`` is True when the search ran out of graph rather than out of budget or
+    result room. Finding ``cap`` results also makes it False, since the rest were never
+    looked at.
     """
     if depth < 1:
         raise ValueError("depth must be >= 1")
+    if budget < 1:
+        raise CompositionError(
+            f"budget must be at least 1, got {budget}; a search allowed no work reports an "
+            f"empty result that reads as an uncomposable corpus (AUDIT-ALL-0004)"
+        )
     adj = analysis.adjacency()
     nodes = sorted({c.upstream_item for c in analysis.live} | {c.downstream_item for c in analysis.live})
     if depth == 1:
-        return tuple((n,) for n in nodes[:cap])
+        return tuple((n,) for n in nodes[:cap]), len(nodes) <= cap
 
     out: list[tuple[str, ...]] = []
     stack: list[tuple[tuple[str, ...], frozenset[str]]] = [((n,), frozenset({n})) for n in nodes]
-    while stack and len(out) < cap:
+    spent = 0
+    while stack and len(out) < cap and spent < budget:
+        spent += 1
         path, seen = stack.pop()
         if len(path) == depth:
             out.append(path)
@@ -397,7 +424,19 @@ def enumerate_paths(
         for nxt in adj.get(path[-1], ()):
             if nxt not in seen:
                 stack.append((path + (nxt,), seen | {nxt}))
-    return tuple(sorted(out))
+    return tuple(sorted(out)), not stack
+
+
+def enumerate_paths(
+    analysis: LinkAnalysis, depth: int, *, cap: int = 10_000
+) -> tuple[tuple[str, ...], ...]:
+    """Node-distinct paths of exactly ``depth`` components over the live-link graph.
+
+    Bounded by ``cap``; the caller is expected to report the bound (AUDIT-ALL-0004). Use
+    :func:`search_paths` where the difference between "none exist" and "stopped looking"
+    changes what may be concluded.
+    """
+    return search_paths(analysis, depth, cap=cap)[0]
 
 
 def _match_slots(

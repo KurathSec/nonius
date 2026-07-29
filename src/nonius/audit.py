@@ -26,6 +26,7 @@ from nonius.compose import (
     enumerate_fanins,
     enumerate_paths,
     make_chain,
+    search_paths,
 )
 from nonius.errors import CompositionError
 from nonius.model import Chain, Diagnostic, Item, Link
@@ -284,10 +285,15 @@ def _max_depth(analysis: LinkAnalysis) -> tuple[int, bool]:
         return 1, False
     best = 1
     for depth in range(2, MAX_DEPTH_SEARCH + 1):
-        paths = enumerate_paths(analysis, depth, cap=1)
+        paths, exhaustive = search_paths(analysis, depth, cap=1)
         fans = enumerate_fanins(analysis, depth, cap=1)
         if not paths and not fans:
-            return best, False
+            # Nothing found. Whether that is a fact about the corpus depends entirely on
+            # whether the search finished: an empty result from an abandoned search is not
+            # evidence that no deeper chain exists, and returning it as a maximum would
+            # publish a budget as a property of the benchmark. Report it as capped, which
+            # makes the verdict `composable` rather than `composable_to_depth_k`.
+            return best, not exhaustive
         best = depth
     return best, True
 
