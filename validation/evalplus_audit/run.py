@@ -23,7 +23,9 @@ sys.path.insert(0, str(ROOT.parent.parent / "src"))
 
 from nonius.adapters import evalplus as ep  # noqa: E402
 from nonius.canonical import canonical_json  # noqa: E402
-from nonius.compose import analyze  # noqa: E402
+from nonius.compose import analyze, make_chain, realize  # noqa: E402
+from nonius.manifest import index  # noqa: E402
+from nonius.model import Link  # noqa: E402
 from nonius.spec.registry import spec_version  # noqa: E402
 
 DERIVED = ROOT / "derived"
@@ -44,6 +46,25 @@ def main() -> int:
     unprobeable = sum(n for r, n in reasons.items() if "no probe set" in r or "empty codomain" in r)
     decided = candidates - unprobeable
     dead = decided - live
+
+    # A live link is not an emittable composite on this subject. Liveness asks whether the
+    # downstream answer varies over the upstream codomain; emission additionally requires
+    # the downstream CONTRACT to accept the piped value, and EvalPlus's contracts are the
+    # only domain declaration these items have. Reporting liveness alone would overstate
+    # what can actually be built, so the audit measures both and says so.
+    idx = index(items)
+    realizer = ep.make_realizer()
+    emittable = refused = 0
+    reasons: Counter[str] = Counter()
+    for cand in analysis.live:
+        chain = make_chain((cand.upstream_item, cand.downstream_item),
+                           [Link(0, cand.result, 1, cand.slot, cand.tag)])
+        try:
+            realize(chain, idx, ep.oracle, realizer)
+            emittable += 1
+        except Exception as exc:  # noqa: BLE001 - the refusal is the measurement
+            refused += 1
+            reasons[type(exc).__name__] += 1
 
     payload = {
         "provenance": {
@@ -80,6 +101,16 @@ def main() -> int:
             "ordered_pairs": len(items) * (len(items) - 1),
             "refusal_reasons": dict(sorted(reasons.items())),
         },
+        "emission": {
+            "note": "A live link still needs the downstream contract to accept the piped "
+                    "value. Liveness is necessary and not sufficient here, exactly as type "
+                    "compatibility is necessary and not sufficient for liveness.",
+            "live_links": live,
+            "emittable_composites": emittable,
+            "refused_at_realization": refused,
+            "emittable_share_of_live": emittable / live if live else None,
+            "refusal_kinds": dict(sorted(reasons.items())),
+        },
         "caps": dict(analysis.caps),
     }
 
@@ -88,6 +119,8 @@ def main() -> int:
     print(f"wrote {DERIVED / 'audit.json'}")
     print(f"  items {len(items)} | candidates {candidates} | unprobeable {unprobeable} "
           f"| decided {decided} | live {live} | dead {dead}")
+    print(f"  emittable {emittable} of {live} live ({emittable/live:.1%}); "
+          f"{refused} refused at realization")
     return 0
 
 

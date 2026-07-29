@@ -58,6 +58,17 @@
       "HumanEval/93.value"
     ]
   },
+  "emission": {
+    "emittable_composites": 1835,
+    "emittable_share_of_live": 0.805177709522,
+    "live_links": 2279,
+    "note": "A live link still needs the downstream contract to accept the piped value. Liveness is necessary and not sufficient here, exactly as type compatibility is necessary and not sufficient for liveness.",
+    "refusal_kinds": {
+      "CompositionError": 372,
+      "OracleError": 72
+    },
+    "refused_at_realization": 444
+  },
   "links": {
     "candidate_links": 3764,
     "dead_links": 285,
@@ -68,8 +79,8 @@
     "live_share_of_decided": 0.888845553822,
     "ordered_pairs": 11772,
     "refusal_reasons": {
-      "downstream answer constant over codomain": 285,
-      "result declares no codomain and its tag 'str' has no probe set": 1200
+      "CompositionError": 372,
+      "OracleError": 72
     },
     "unprobeable_links": 1200
   },
