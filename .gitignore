@@ -23,3 +23,6 @@ site/
 
 # Personal Claude Code settings: machine-specific paths, never shared.
 .claude/settings.local.json
+
+# Downloaded benchmark data, never committed.
+.data/
