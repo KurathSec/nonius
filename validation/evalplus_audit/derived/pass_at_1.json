@@ -1,0 +1,57 @@
+{
+  "all_below_greedy": true,
+  "comparable": false,
+  "estimand": "pass@1 over 200 samples per task at temperature 0.8, HumanEval+ inputs",
+  "measured_pass_at_1": {
+    "chatgpt": 0.572,
+    "code-llama-34b": 0.3153,
+    "code-llama-7b": 0.2344,
+    "codegen-2b": 0.1318,
+    "gpt-j": 0.0415,
+    "incoder-6b": 0.0675
+  },
+  "ordering_agrees": true,
+  "ordering_ours": [
+    "gpt-j",
+    "incoder-6b",
+    "codegen-2b",
+    "code-llama-7b",
+    "code-llama-34b",
+    "chatgpt"
+  ],
+  "ordering_published": [
+    "gpt-j",
+    "incoder-6b",
+    "codegen-2b",
+    "code-llama-7b",
+    "code-llama-34b",
+    "chatgpt"
+  ],
+  "published_estimand": "greedy decoding, pass@1, as served by the leaderboard",
+  "published_pass_at_1": {
+    "chatgpt": 73.2,
+    "code-llama-34b": 51.8,
+    "code-llama-7b": 37.8,
+    "codegen-2b": 24.4,
+    "gpt-j": 12.2,
+    "incoder-6b": 15.9
+  },
+  "published_source": "https://evalplus.github.io/results.json",
+  "sampling_ratio": {
+    "chatgpt": 0.7815,
+    "code-llama-34b": 0.6088,
+    "code-llama-7b": 0.6202,
+    "codegen-2b": 0.5403,
+    "gpt-j": 0.3401,
+    "incoder-6b": 0.4247
+  },
+  "systems_below_greedy": {
+    "chatgpt": true,
+    "code-llama-34b": true,
+    "code-llama-7b": true,
+    "codegen-2b": true,
+    "gpt-j": true,
+    "incoder-6b": true
+  },
+  "why_not_comparable": "different decoding regimes; equality is not the expectation. See check() for what is tested instead."
+}

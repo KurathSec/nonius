@@ -2,6 +2,16 @@
   "batches": [
     {
       "reason": "worker exited 1: ",
+      "system": "code-llama-34b",
+      "task": "HumanEval/100"
+    },
+    {
+      "reason": "worker exited 1: ",
+      "system": "code-llama-7b",
+      "task": "HumanEval/100"
+    },
+    {
+      "reason": "worker exited 1: ",
       "system": "gpt-j",
       "task": "HumanEval/123"
     },
@@ -11,29 +21,19 @@
       "task": "HumanEval/70"
     },
     {
-      "reason": "worker exited 1: ",
-      "system": "incoder-6b",
-      "task": "HumanEval/105"
-    },
-    {
       "reason": "result file was not JSON",
       "system": "gpt-j",
       "task": "HumanEval/85"
     },
     {
       "reason": "worker exited 1: ",
-      "system": "code-llama-7b",
-      "task": "HumanEval/100"
+      "system": "incoder-6b",
+      "task": "HumanEval/105"
     },
     {
       "reason": "worker exited 1: ",
       "system": "incoder-6b",
       "task": "HumanEval/96"
-    },
-    {
-      "reason": "worker exited 1: ",
-      "system": "code-llama-34b",
-      "task": "HumanEval/100"
     }
   ],
   "count": 7,

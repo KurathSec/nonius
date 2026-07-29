@@ -5,8 +5,18 @@ no difficulty. A verdict archive would give it a product bound, a noise band and
 which is what the first subject has and this one does not. EvalPlus published the raw
 material in 2023, so it costs no inference.
 
-**Status: downloaded, not built.** The 23 `temp_0.8` release assets are in
-`.data/evalplus_samples/` (410 MB, gitignored). Nothing has been executed.
+**Status: built, six systems of 23.** `derived/singleton_archive.jsonl.gz` holds 195400
+verdicts over 984 (system, task) pairs. The 23 `temp_0.8` release assets are in
+`.data/evalplus_samples/` (410 MB, gitignored); six were graded, and step 3 below is still
+open. Rebuild the artifact from the committed grades with:
+
+```console
+python validation/evalplus_audit/build_archive.py --emit
+```
+
+That reproduces the committed `singleton_archive.jsonl.gz` byte for byte, which is the
+point: the archive is a function of `derived/verdicts.raw.jsonl` and nothing else, with no
+step that lives only in a shell history.
 
 ## What the input is
 
@@ -53,10 +63,29 @@ into 3772, which is the difference between a coffee break and a weekend.
 2. Recompute the gold once per task, from `prompt + canonical_solution` over
    `base_input + plus_input`, and cache it. This is `get_groundtruth()`'s job in EvalPlus
    and it is deterministic.
-3. Grade one system end to end, then **byte-compare the resulting `pass@1` against
-   EvalPlus's own published figure for that system**. That is a real correctness check on
-   the whole pipeline, and it is available: `evalplus.github.io/results.json` carries the
-   aggregate per system. Do not proceed past a mismatch.
+3. Grade one system end to end, then check the resulting `pass@1` against EvalPlus's own
+   published figure. ~~Byte-compare~~ **This step as originally written asks for the wrong
+   comparison, and running it would have repeated run-01's KT-4 error.** The published
+   figure is greedy decoding at temperature 0; the release assets used here are 200 samples
+   per task at temperature 0.8. Those estimate different quantities, so equality is not a
+   bar the pipeline could pass even when correct.
+
+   What replaces it is weaker and still falsifiable, and it runs as
+   `build_archive.py --check`, writing `derived/pass_at_1.json`:
+
+   * the measured ordering over the six systems must reproduce the published ordering;
+   * every measured value must sit strictly below its published figure, because sampling at
+     0.8 is worse than greedy and HumanEval+ additionally grades the plus inputs.
+
+   Both hold. The ordering agrees on all six, and the ratio of measured to published rises
+   monotonically with capability, which is the direction sampling degradation predicts. The
+   second test is robust to a question this repository did not resolve, namely whether the
+   published number is the base or the plus split: the plus inputs only widen the gap, so
+   the inequality's direction does not turn on the answer.
+
+   This is a consistency check rather than the identity check the step asked for, and the
+   archive is correspondingly *consistent with* EvalPlus's published results rather than
+   *verified against* them.
 4. Grade the remaining 22, resumable, appending as they land so an interruption costs
    nothing already done.
 5. Emit `(system, item, draw, correct)` as a nonius `Archive`, gzipped with `mtime=0`, the
