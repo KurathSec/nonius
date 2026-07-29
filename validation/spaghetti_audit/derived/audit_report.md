@@ -43,14 +43,15 @@ verdict: composable_to_depth_13
   bounds: probe cap 64 per link, path cap 10000 per depth, sample 20000 per readout, diagnostic cap 25 per code
   WITHHELD: 10565 diagnostics beyond the per-code cap (full counts in --json under caps.diagnostic_counts)
 
-depth       n source     deepseek-ai-Deep meta-llama-Llama meta-llama-Meta- mistralai-Mistra    dead  floored  discrim     gap      m*
---------------------------------------------------------------------------------------------------------------------------------------
-    1     100 predicted            0.8385           0.7685           0.5524           0.7383  0.1800   0.1000   0.7200  0.0700  0.1707
-    2     729 predicted            0.3346           0.0967           0.0001           0.0951  0.0000   0.4554   0.5446  0.2379  0.0608
-    3     134 predicted            0.0804           0.1722           0.0000           0.1428  0.0000   0.2836   0.7164  0.0294  0.1192
-    5     732 predicted            0.0000           0.0025           0.0000           0.0145  0.0000   0.6721   0.3279  0.0120  0.0046
-    8       4 predicted            0.0000           0.0000           0.0000           0.0000  0.0000   1.0000   0.0000  0.0000     n/a
-   13       1 predicted            0.0000           0.0000           0.0000           0.0000  0.0000   1.0000   0.0000  0.0000     n/a
+depth       n source                 deepseek-ai-Deep meta-llama-Llama meta-llama-Meta- mistralai-Mistra    dead  floored  discrim     gap      m*
+--------------------------------------------------------------------------------------------------------------------------------------------------
+    1     100 predicted/all                    0.8385           0.7685           0.5524           0.7383  0.1800   0.1000   0.7200  0.0700  0.1707
+    1      59 predicted/composable             0.7263           0.6078           0.3915           0.5599  0.1525   0.1695   0.6780  0.1185  0.2473
+    2     729 predicted/all                    0.3346           0.0967           0.0001           0.0951  0.0000   0.4554   0.5446  0.2379  0.0608
+    3     134 predicted/all                    0.0804           0.1722           0.0000           0.1428  0.0000   0.2836   0.7164  0.0294  0.1192
+    5     732 predicted/all                    0.0000           0.0025           0.0000           0.0145  0.0000   0.6721   0.3279  0.0120  0.0046
+    8       4 predicted/all                    0.0000           0.0000           0.0000           0.0000  0.0000   1.0000   0.0000  0.0000     n/a
+   13       1 predicted/all                    0.0000           0.0000           0.0000           0.0000  0.0000   1.0000   0.0000  0.0000     n/a
 ```
 
 ## The two units, and why both appear

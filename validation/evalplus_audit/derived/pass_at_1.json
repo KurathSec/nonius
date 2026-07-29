@@ -4,11 +4,11 @@
   "estimand": "pass@1 over 200 samples per task at temperature 0.8, HumanEval+ inputs",
   "measured_pass_at_1": {
     "chatgpt": 0.572,
-    "code-llama-34b": 0.3153,
-    "code-llama-7b": 0.2344,
+    "code-llama-34b": 0.3137,
+    "code-llama-7b": 0.2331,
     "codegen-2b": 0.1318,
-    "gpt-j": 0.0415,
-    "incoder-6b": 0.0675
+    "gpt-j": 0.0407,
+    "incoder-6b": 0.0668
   },
   "ordering_agrees": true,
   "ordering_ours": [
@@ -39,11 +39,11 @@
   "published_source": "https://evalplus.github.io/results.json",
   "sampling_ratio": {
     "chatgpt": 0.7815,
-    "code-llama-34b": 0.6088,
-    "code-llama-7b": 0.6202,
+    "code-llama-34b": 0.6055,
+    "code-llama-7b": 0.6165,
     "codegen-2b": 0.5403,
-    "gpt-j": 0.3401,
-    "incoder-6b": 0.4247
+    "gpt-j": 0.3339,
+    "incoder-6b": 0.4199
   },
   "systems_below_greedy": {
     "chatgpt": true,

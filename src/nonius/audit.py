@@ -119,6 +119,7 @@ class AuditReport:
                     "depth": r.depth,
                     "n": r.n,
                     "source": r.source,
+                    "population": r.population,
                     "accuracy": dict(sorted(r.accuracy.items())),
                     "dead": r.dead,
                     "floored": r.floored,
@@ -529,6 +530,20 @@ def audit(
             fanins_at[1] = 0
             if archive is not None:
                 readouts.append(singleton_row(archive, seed=seed))
+                # ...and the same row over only the items a chain can be built from. The
+                # unrestricted row is the instrument as shipped; it is NOT a baseline for
+                # the composed rows, which are drawn from the live-link subset. Where the
+                # subset differs in difficulty -- and on the second reference subject it is
+                # easier for every system -- reading depth 2 against the unrestricted row
+                # attributes a change of population to a change of depth. Both are emitted,
+                # both labelled, neither substituted for the other.
+                composable = {
+                    c.components[0] for c in constructible(analysis, 1, cap=path_cap)
+                }
+                if composable and len(composable) < len(archive.items):
+                    readouts.append(
+                        singleton_row(archive, seed=seed, restrict_to=composable)
+                    )
             continue
         # One enumeration for both the columns and the pool: the fan-in column reports what
         # the dedup kept, because at depth 2 a "fan-in" is one upstream feeding one slot,

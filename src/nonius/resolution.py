@@ -35,7 +35,7 @@ change which depth looks best.
 from __future__ import annotations
 
 import random
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Literal
 
@@ -74,6 +74,17 @@ class DepthReadout:
     m_star: float | None
     #: Bounds applied while producing this row, reported never hidden (AUDIT-ALL-0004).
     caps: Mapping[str, object] = field(default_factory=dict)
+    #: Which items the row is computed over. ``all`` is every item in the archive;
+    #: ``composable`` is only those the live-link graph touches, which is the population
+    #: the composed rows are actually drawn from.
+    #:
+    #: The distinction is load-bearing and was missing. A depth-1 row over the whole
+    #: archive is not a baseline for composed rows over a subset, and on the second
+    #: reference subject the subset is systematically easier: every one of six systems
+    #: scores higher on the composable items. Read that way, part of the fall from depth 1
+    #: to depth 2 is a change of population wearing the clothes of a change of depth --
+    #: the same unit mismatch that corrupted run-01's KT-4.
+    population: str = "all"
 
     def leaders(self) -> tuple[str, str] | None:
         if len(self.accuracy) < 2:
@@ -99,11 +110,12 @@ def _row(
     *,
     seed: int,
     caps: Mapping[str, object],
+    population: str = "all",
 ) -> DepthReadout:
     systems = sorted({s for row in per_composite for s in row})
     n = len(per_composite)
     if n == 0 or not systems:
-        return DepthReadout(depth, 0, source, {}, 0.0, 0.0, 0.0, 0.0, None, caps)
+        return DepthReadout(depth, 0, source, {}, 0.0, 0.0, 0.0, 0.0, None, caps, population)
 
     accuracy = {s: mean([row.get(s, 0.0) for row in per_composite]) for s in systems}
 
@@ -147,6 +159,7 @@ def _row(
         top_two_gap=gap,
         m_star=m_star,
         caps=caps,
+        population=population,
     )
 
 
@@ -241,13 +254,22 @@ def measure(
     )
 
 
-def singleton_row(archive: Archive, *, seed: int = 0) -> DepthReadout:
+def singleton_row(
+    archive: Archive, *, seed: int = 0, restrict_to: Collection[str] | None = None
+) -> DepthReadout:
     """The depth-1 row: the source instrument, unchanged.
 
-    This is the baseline every other row is read against, and it is computed from the
-    archive alone -- no composition, no assumption, no sampling.
+    Computed from the archive alone -- no composition, no assumption, no sampling.
+
+    ``restrict_to`` narrows it to a named set of items, and the result is labelled
+    ``population="composable"``. Pass the items the live-link graph touches to get a row
+    that is actually a baseline for the composed rows: without it the depth-1 row averages
+    over every item in the archive while every row beneath it is drawn from a subset, and
+    the difference between them is read as an effect of depth. Callers that want the whole
+    instrument pass nothing, which is the unchanged behaviour.
     """
-    available = [archive.per_item(item) for item in archive.items]
+    keep = archive.items if restrict_to is None else [i for i in archive.items if i in restrict_to]
+    available = [archive.per_item(item) for item in keep]
     rows = [r for r in available if len(r) == len(archive.systems)]
     return _row(
         1,
@@ -255,13 +277,14 @@ def singleton_row(archive: Archive, *, seed: int = 0) -> DepthReadout:
         rows,
         seed=seed,
         caps={
-            "population": "singleton",
+            "population": "singleton" if restrict_to is None else "singleton-composable",
             "items_available": len(available),
             "items_used": len(rows),
             # Items missing for some system are dropped; saying so is the difference
             # between a filtered population and a silently truncated one (AUDIT-ALL-0004).
             "items_skipped_incomplete": len(available) - len(rows),
         },
+        population="all" if restrict_to is None else "composable",
     )
 
 
@@ -269,14 +292,16 @@ def table(rows: Sequence[DepthReadout]) -> str:
     """Render the readout as a fixed-width table."""
     systems = sorted({s for r in rows for s in r.accuracy})
     head = (
-        f"{'depth':>5} {'n':>7} {'source':<10}"
+        f"{'depth':>5} {'n':>7} {'source':<22}"
         + "".join(f"{s[:16]:>17}" for s in systems)
         + f"{'dead':>8}{'floored':>9}{'discrim':>9}{'gap':>8}{'m*':>8}"
     )
     lines = [head, "-" * len(head)]
-    for r in sorted(rows, key=lambda x: x.depth):
+    # Ordered by depth, then by population, so the two depth-1 rows sit together and the
+    # narrower one is never mistaken for a different depth.
+    for r in sorted(rows, key=lambda x: (x.depth, x.population)):
         lines.append(
-            f"{r.depth:>5} {r.n:>7} {r.source:<10}"
+            f"{r.depth:>5} {r.n:>7} {r.source + '/' + r.population:<22}"
             + "".join(f"{r.accuracy.get(s, float('nan')):>17.4f}" for s in systems)
             + f"{r.dead:>8.4f}{r.floored:>9.4f}{r.discriminating:>9.4f}"
             + f"{r.top_two_gap:>8.4f}"

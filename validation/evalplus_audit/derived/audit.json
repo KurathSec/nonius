@@ -78,13 +78,12 @@
   "difficulty": {
     "available": true,
     "items": 164,
-    "k": 200,
-    "noise_band": 0.0231832139202,
-    "panel_caveat": "Strata depend on which systems are in the panel. This one holds gpt-j at pass@1 0.0415, so `dead` (every system perfect) is unreachable and the dead count is 0 against 18/100 on the first subject. That gap is the panel rather than the benchmark.",
+    "k": 0,
+    "noise_band": null,
+    "panel_caveat": "Strata depend on which systems are in the panel. This one holds gpt-j at pass@1 0.0407, so `dead` (every system perfect) is unreachable and the dead count is 0 against 18/100 on the first subject. That gap is the panel rather than the benchmark.",
     "strata": {
-      "discriminating": 146,
-      "floored": 12,
-      "unknown": 6
+      "discriminating": 152,
+      "floored": 12
     },
     "systems": [
       "chatgpt",
@@ -96,7 +95,7 @@
     ],
     "systems_omitted": 17,
     "systems_omitted_note": "23 systems were released; 6 were graded. A subset is a bound and is reported beside what it withheld (AUDIT-ALL-0004).",
-    "unanimous_cell_fraction": 0.405322415558
+    "unanimous_cell_fraction": 0.406504065041
   },
   "emission": {
     "emittable_composites": 1835,
@@ -162,60 +161,83 @@
   "readouts": [
     {
       "accuracy": {
-        "chatgpt": 0.571708860759,
-        "code-llama-34b": 0.320348101266,
-        "code-llama-7b": 0.239493670886,
-        "codegen-2b": 0.136740506329,
-        "gpt-j": 0.0422784810127,
-        "incoder-6b": 0.0692405063291
+        "chatgpt": 0.572042682927,
+        "code-llama-34b": 0.313658536585,
+        "code-llama-7b": 0.233048933693,
+        "codegen-2b": 0.131829268293,
+        "gpt-j": 0.0407317073171,
+        "incoder-6b": 0.0667682926829
       },
       "dead": 0.0,
       "depth": 1,
-      "discriminating": 0.924050632911,
-      "floored": 0.0759493670886,
+      "discriminating": 0.926829268293,
+      "floored": 0.0731707317073,
       "gap_exceeds_m_star": true,
-      "m_star": 0.127341772152,
-      "n": 158,
+      "m_star": 0.126067073171,
+      "n": 164,
+      "population": "all",
       "source": "predicted",
-      "top_two_gap": 0.251360759494
+      "top_two_gap": 0.258384146341
     },
     {
       "accuracy": {
-        "chatgpt": 0.325641889147,
-        "code-llama-34b": 0.0973851276843,
-        "code-llama-7b": 0.0605573998839,
-        "codegen-2b": 0.0196703714452,
-        "gpt-j": 0.00400011607661,
-        "incoder-6b": 0.00607721996518
+        "chatgpt": 0.594384615385,
+        "code-llama-34b": 0.329461538462,
+        "code-llama-7b": 0.248692307692,
+        "codegen-2b": 0.141615384615,
+        "gpt-j": 0.0581538461538,
+        "incoder-6b": 0.0779230769231
+      },
+      "dead": 0.0,
+      "depth": 1,
+      "discriminating": 1.0,
+      "floored": 0.0,
+      "gap_exceeds_m_star": true,
+      "m_star": 0.187384615385,
+      "n": 65,
+      "population": "composable",
+      "source": "predicted",
+      "top_two_gap": 0.264923076923
+    },
+    {
+      "accuracy": {
+        "chatgpt": 0.331128821023,
+        "code-llama-34b": 0.0984174289773,
+        "code-llama-7b": 0.0609982386364,
+        "codegen-2b": 0.0192568465909,
+        "gpt-j": 0.00391602272727,
+        "incoder-6b": 0.00594946022727
       },
       "dead": 0.0,
       "depth": 2,
-      "discriminating": 0.994776552525,
-      "floored": 0.00522344747533,
+      "discriminating": 0.994886363636,
+      "floored": 0.00511363636364,
       "gap_exceeds_m_star": true,
-      "m_star": 0.0319953134068,
-      "n": 1723,
+      "m_star": 0.0321508522727,
+      "n": 1760,
+      "population": "all",
       "source": "predicted",
-      "top_two_gap": 0.228256761463
+      "top_two_gap": 0.232711392045
     },
     {
       "accuracy": {
-        "chatgpt": 0.15894817958,
-        "code-llama-34b": 0.0172074262662,
-        "code-llama-7b": 0.006889740625,
-        "codegen-2b": 0.000580265544181,
-        "gpt-j": 4.1057112069e-06,
-        "incoder-6b": 8.78243534483e-05
+        "chatgpt": 0.16876425965,
+        "code-llama-34b": 0.0186570647625,
+        "code-llama-7b": 0.0077683348,
+        "codegen-2b": 0.000538486425,
+        "gpt-j": 3.8101e-06,
+        "incoder-6b": 8.1501e-05
       },
       "dead": 0.0,
       "depth": 3,
-      "discriminating": 0.974784482759,
-      "floored": 0.0252155172414,
+      "discriminating": 0.9759,
+      "floored": 0.0241,
       "gap_exceeds_m_star": true,
-      "m_star": 0.00980252780172,
-      "n": 9280,
+      "m_star": 0.0096376856875,
+      "n": 10000,
+      "population": "all",
       "source": "predicted",
-      "top_two_gap": 0.141740753314
+      "top_two_gap": 0.150107194887
     },
     {
       "accuracy": {
@@ -233,6 +255,7 @@
       "gap_exceeds_m_star": true,
       "m_star": 0.00378499308185,
       "n": 10000,
+      "population": "all",
       "source": "predicted",
       "top_two_gap": 0.0573964216724
     }

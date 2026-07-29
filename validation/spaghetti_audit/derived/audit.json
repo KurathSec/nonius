@@ -361,8 +361,32 @@
         "floored": 0.1,
         "m_star": 0.170666666667,
         "n": 100,
+        "population": "all",
         "source": "predicted",
         "top_two_gap": 0.07
+      },
+      {
+        "accuracy": {
+          "deepseek-ai-DeepSeek-V4-Flash": 0.726271186441,
+          "meta-llama-Llama-3.3-70B-Instruct-Turbo": 0.607768361582,
+          "meta-llama-Meta-Llama-3.1-8B-Instruct": 0.391525423729,
+          "mistralai-Mistral-Small-3.2-24B-Instruct-2506": 0.55988700565
+        },
+        "caps": {
+          "items_available": 59,
+          "items_skipped_incomplete": 0,
+          "items_used": 59,
+          "population": "singleton-composable"
+        },
+        "dead": 0.152542372881,
+        "depth": 1,
+        "discriminating": 0.677966101695,
+        "floored": 0.169491525424,
+        "m_star": 0.247316384181,
+        "n": 59,
+        "population": "composable",
+        "source": "predicted",
+        "top_two_gap": 0.118502824859
       },
       {
         "accuracy": {
@@ -385,6 +409,7 @@
         "floored": 0.455418381344,
         "m_star": 0.0608396204847,
         "n": 729,
+        "population": "all",
         "source": "predicted",
         "top_two_gap": 0.237906569121
       },
@@ -409,6 +434,7 @@
         "floored": 0.283582089552,
         "m_star": 0.119247512438,
         "n": 134,
+        "population": "all",
         "source": "predicted",
         "top_two_gap": 0.0293656716418
       },
@@ -433,6 +459,7 @@
         "floored": 0.672131147541,
         "m_star": 0.00458561020036,
         "n": 732,
+        "population": "all",
         "source": "predicted",
         "top_two_gap": 0.0119763205829
       },
@@ -457,6 +484,7 @@
         "floored": 1.0,
         "m_star": null,
         "n": 4,
+        "population": "all",
         "source": "predicted",
         "top_two_gap": 0.0
       },
@@ -481,6 +509,7 @@
         "floored": 1.0,
         "m_star": null,
         "n": 1,
+        "population": "all",
         "source": "predicted",
         "top_two_gap": 0.0
       }

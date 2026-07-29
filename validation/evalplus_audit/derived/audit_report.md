@@ -21,17 +21,16 @@ The last row is the one this subject taught the project. Liveness asks whether t
 
 ### Difficulty, and why the strata are not comparable across subjects
 
-The archive holds 164 items across 6 systems at k = 200: `chatgpt, code-llama-34b, code-llama-7b, codegen-2b, gpt-j, incoder-6b`.
+The archive holds 164 items across 6 systems at k = 0: `chatgpt, code-llama-34b, code-llama-7b, codegen-2b, gpt-j, incoder-6b`.
 
 | stratum | items |
 | --- | ---: |
-| discriminating | 146 |
+| discriminating | 152 |
 | floored | 12 |
-| unknown | 6 |
 
-**Strata depend on which systems are in the panel. This one holds gpt-j at pass@1 0.0415, so `dead` (every system perfect) is unreachable and the dead count is 0 against 18/100 on the first subject. That gap is the panel rather than the benchmark.**
+**Strata depend on which systems are in the panel. This one holds gpt-j at pass@1 0.0407, so `dead` (every system perfect) is unreachable and the dead count is 0 against 18/100 on the first subject. That gap is the panel rather than the benchmark.**
 
-The noise band is 0.0232 with 40.5% of cells unanimous, so the same bias `docs/honesty.md` records for the first subject applies here and is larger.
+**The noise band is refused on this archive, and that is the correct answer.** Three draws out of 196800 are unmeasurable: their worker dies and no verdict exists, so three cells hold 199 draws where every other cell holds 200. `Archive.k` returns 0 for a ragged archive rather than a mean, and the band depends on k, so quietly averaging would put a made-up number under the quarantine rule. No quarantine runs on this subject in any case, since nothing here is measured. 40.7% of cells are unanimous, which is the bias `docs/honesty.md` records for the first subject and would apply here too.
 
 23 systems were released; 6 were graded. A subset is a bound and is reported beside what it withheld (AUDIT-ALL-0004).
 
@@ -39,27 +38,17 @@ The noise band is 0.0232 with 40.5% of cells unanimous, so the same bias `docs/h
 
 Predicted rows, from the archive and the independence product bound. Nothing here is measured: no inference was bought for this subject. Two cautions come before the table, and both of them limit what it can be read to say.
 
-**The depth-1 row is not a baseline for the rows below it.** `singleton_row` averages over every item in the archive, while the composed rows are built only from the items the adapter admits. Those populations differ here, and not randomly: the admitted items are easier for every one of the six systems.
-
-| system | depth-1 row (all archive items) | restricted to the composable items | difference |
-| --- | ---: | ---: | ---: |
-| chatgpt | 0.5717 | 0.6084 | +0.0367 |
-| code-llama-34b | 0.3203 | 0.3502 | +0.0299 |
-| code-llama-7b | 0.2395 | 0.2663 | +0.0268 |
-| codegen-2b | 0.1367 | 0.1500 | +0.0133 |
-| gpt-j | 0.0423 | 0.0508 | +0.0085 |
-| incoder-6b | 0.0692 | 0.0713 | +0.0021 |
-
-So the depth 1 to depth 2 fall is measured across a change of population as well as a change of depth. The same report says 109 chains at depth 1 and 158 items in the depth-1 row, which is the inconsistency in one line. Read the composed rows against the middle column, never the left one. This is a defect in the audit rather than in the subject, and it applies to the first subject's readout too.
+**There are two depth-1 rows, and only one of them is a baseline.** `predicted/all` is the instrument as shipped, averaged over every item in the archive. `predicted/composable` is restricted to the items the live-link graph can reach, which is the population every composed row is drawn from. Reading depth 2 against `predicted/all` charges a change of population to depth. Here the composable items are the easier ones, so that reading overstates the fall; on the first subject they are harder and it understates it, which is why the row exists rather than a caveat.
 
 **The predicted rows cannot test what a measured run would test.** Under the product bound a composite's accuracy is a product of its components', so the ordering over systems is preserved by construction and decay with depth is arithmetic rather than evidence. `m*` falls with depth for the same mechanical reason: predictions crowd toward zero, so their spread shrinks. That the gap exceeds `m*` at every depth is therefore not a finding about composition. It is the same shape of vacuity `docs/honesty.md` records for the gold-agreement check and for KT-1.
 
-| depth | n | source | chatgpt | code-llama-34b | code-llama-7b | codegen-2b | gpt-j | incoder-6b | dead | floored | discriminating | gap | m\* | gap > m\* |
+| depth | n | source/population | chatgpt | code-llama-34b | code-llama-7b | codegen-2b | gpt-j | incoder-6b | dead | floored | discriminating | gap | m\* | gap > m\* |
 | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| 1 | 158 | predicted | 0.5717 | 0.3203 | 0.2395 | 0.1367 | 0.0423 | 0.0692 | 0.0000 | 0.0759 | 0.9241 | 0.2514 | 0.1273 | yes |
-| 2 | 1723 | predicted | 0.3256 | 0.0974 | 0.0606 | 0.0197 | 0.0040 | 0.0061 | 0.0000 | 0.0052 | 0.9948 | 0.2283 | 0.0320 | yes |
-| 3 | 9280 | predicted | 0.1589 | 0.0172 | 0.0069 | 0.0006 | 0.0000 | 0.0001 | 0.0000 | 0.0252 | 0.9748 | 0.1417 | 0.0098 | yes |
-| 5 | 10000 | predicted | 0.0575 | 0.0000 | 0.0001 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0822 | 0.9178 | 0.0574 | 0.0038 | yes |
+| 1 | 164 | predicted/all | 0.5720 | 0.3137 | 0.2330 | 0.1318 | 0.0407 | 0.0668 | 0.0000 | 0.0732 | 0.9268 | 0.2584 | 0.1261 | yes |
+| 1 | 65 | predicted/composable | 0.5944 | 0.3295 | 0.2487 | 0.1416 | 0.0582 | 0.0779 | 0.0000 | 0.0000 | 1.0000 | 0.2649 | 0.1874 | yes |
+| 2 | 1760 | predicted/all | 0.3311 | 0.0984 | 0.0610 | 0.0193 | 0.0039 | 0.0059 | 0.0000 | 0.0051 | 0.9949 | 0.2327 | 0.0322 | yes |
+| 3 | 10000 | predicted/all | 0.1688 | 0.0187 | 0.0078 | 0.0005 | 0.0000 | 0.0001 | 0.0000 | 0.0241 | 0.9759 | 0.1501 | 0.0096 | yes |
+| 5 | 10000 | predicted/all | 0.0575 | 0.0000 | 0.0001 | 0.0000 | 0.0000 | 0.0000 | 0.0000 | 0.0822 | 0.9178 | 0.0574 | 0.0038 | yes |
 
 Verdict: **`composable`**.
 

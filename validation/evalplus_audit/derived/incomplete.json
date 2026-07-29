@@ -1,42 +1,22 @@
 {
   "batches": [
     {
-      "reason": "worker exited 1: ",
-      "system": "code-llama-34b",
-      "task": "HumanEval/100"
-    },
-    {
-      "reason": "worker exited 1: ",
+      "reason": "batch failed (worker exited 1: ); regraded per draw, 1 of 200 unmeasurable: [35]",
       "system": "code-llama-7b",
       "task": "HumanEval/100"
     },
     {
-      "reason": "worker exited 1: ",
+      "reason": "batch failed (worker exited 1: ); regraded per draw, 1 of 200 unmeasurable: [172]",
       "system": "gpt-j",
       "task": "HumanEval/123"
     },
     {
-      "reason": "result file was not JSON",
+      "reason": "batch failed (result file was not JSON); regraded per draw, 1 of 200 unmeasurable: [36]",
       "system": "gpt-j",
       "task": "HumanEval/70"
-    },
-    {
-      "reason": "result file was not JSON",
-      "system": "gpt-j",
-      "task": "HumanEval/85"
-    },
-    {
-      "reason": "worker exited 1: ",
-      "system": "incoder-6b",
-      "task": "HumanEval/105"
-    },
-    {
-      "reason": "worker exited 1: ",
-      "system": "incoder-6b",
-      "task": "HumanEval/96"
     }
   ],
-  "count": 7,
+  "count": 3,
   "note": "batches whose worker died; recorded rather than scored as failures, because an empty verdict list reads downstream as 200 model failures rather than as no measurement (AUDIT-ALL-0004)",
   "of_pairs": 984
 }

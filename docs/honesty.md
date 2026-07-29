@@ -125,6 +125,68 @@ item-level statistics report all 1500 items. Both are true, neither is a roundin
 other, and every number in the derived artifacts is labelled with its unit. Mixing them
 would make a saturation statistic look like a composability statistic.
 
+## The depth-1 row was not a baseline, on either subject
+
+The readout's depth-1 row averaged over every item in the archive, while every row beneath
+it was drawn from the items the live-link graph can actually reach. Those are different
+populations, so part of what looked like the cost of depth was the cost of changing which
+items were being scored. It is the same unit mismatch that corrupted run-01's KT-4, in the
+audit rather than in the run, and it was present from the first reference audit onward.
+
+Both rows are now emitted and labelled, `predicted/all` and `predicted/composable`, and
+neither is substituted for the other. The unrestricted row is the instrument as shipped;
+the restricted one is the baseline the composed rows are to be read against.
+
+The correction does not have a consistent sign, which is the part worth keeping. On the
+first subject the composable items are **harder** than the archive as a whole, so the old
+row flattered composition by overstating the fall (0.8385 to 0.7263 for the strongest
+system, over 59 items rather than 100). On the second subject they are **easier**, so the
+same code understated it. A bias that reverses direction between two subjects cannot be
+corrected for by intuition, and quoting either row without its population is not a rounding
+error.
+
+## What a second subject changed
+
+`validation/evalplus_audit/` points nonius at EvalPlus's HumanEval+, a benchmark this
+project did not build. It found a stage the design did not have a name for.
+
+Liveness asks whether the downstream answer varies over the upstream result's codomain.
+That is necessary and it is not sufficient. EvalPlus's items carry explicit contracts, and
+a link can be live while the downstream contract rejects the value being piped into it: of
+2279 live links, 444 are refused at realization. The first subject's items declare no
+contracts, so on that asset liveness and emittability coincide and the distinction was
+invisible. A tool validated on one benchmark had learned a rule that happened to hold
+there.
+
+Two further things that subject makes visible. Its difficulty strata hold **zero** dead
+items against 18 of 100 on the first subject, and the reason is the panel rather than the
+benchmark: `dead` requires every system to be perfect, and the panel includes gpt-j at a
+pass@1 below 0.05, which puts that out of reach. Strata are a function of which systems are in
+the archive and not only how many, so a cross-subject comparison of them is not available
+without saying which panel produced each.
+
+And its readout is entirely predicted. Under the product bound a composite's accuracy is a
+product of its components', so the system ordering is preserved by construction and the
+decay with depth is arithmetic. `m*` falls with depth for a mechanical reason as well:
+predictions crowd toward zero and their spread shrinks with them. The gap exceeding `m*` at
+every depth on that subject is therefore not a finding about composition, and it is the
+same vacuity already recorded above for the gold-agreement check and for KT-1.
+
+## The archive behind the second subject is consistent with EvalPlus, rather than verified
+
+The build specification asked for the graded `pass@1` to be compared against EvalPlus's
+published figure. That comparison is not available. The published number is greedy decoding
+at temperature 0; the release assets regraded here are 200 samples per task at temperature
+0.8. Equality is not a bar a correct pipeline would pass, and running the check as written
+would have repeated KT-4's mistake in a new place.
+
+What replaced it is weaker and can still fail: the measured ordering over the six systems
+must reproduce the published ordering, and every measured value must sit below its
+published figure, since sampling at 0.8 is worse than greedy and HumanEval+ grades the plus
+inputs as well. Both hold. That makes the archive consistent with EvalPlus's results rather
+than verified against them, and `validation/evalplus_audit/derived/pass_at_1.json` carries
+the numbers.
+
 ## The reference audit is a negative result
 
 On the benchmark nonius was demonstrated against, the four families that are actually

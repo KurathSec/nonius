@@ -72,14 +72,30 @@ def memoized(fn: object) -> object:
     return wrapped
 
 
+def _weakest(arch: object) -> tuple[str, float]:
+    """The panel's weakest system and its pass@1, which is what makes `dead` unreachable.
+
+    Pooled over draws, the same definition `build_archive.py --check` uses, so the two
+    artifacts cannot quote two slightly different numbers under one name.
+    """
+    total: dict[str, list[int]] = {}
+    for v in arch.verdicts:  # type: ignore[attr-defined]
+        total.setdefault(v.system, []).append(v.correct)
+    rates = {s: mean([float(x) for x in xs]) for s, xs in total.items()}
+    worst = min(sorted(rates), key=lambda s: rates[s])
+    return worst, rates[worst]
+
+
 def _difficulty(arch: object) -> dict[str, object]:
     """Strata and the noise band, with the caveat that makes them readable.
 
     `Archive.stratum` calls an item `dead` when EVERY system is perfect, so the strata are
-    a function of WHICH systems the panel holds, not only how many. This panel includes
-    gpt-j at pass@1 0.0415, which makes `dead` unreachable: the archive holds zero dead
-    items against 18 of 100 on the first subject. That difference is the panel, not the
-    benchmark, and any comparison of the two subjects' strata has to carry this sentence.
+    a function of WHICH systems the panel holds, not only how many. This panel includes a
+    system weak enough to put `dead` out of reach, so the archive holds zero dead items
+    against 18 of 100 on the first subject. That difference is the panel rather than the
+    benchmark, and any comparison of the two subjects' strata has to carry that sentence.
+    The figure itself is derived by `_weakest`, never typed here, because a hand-written
+    copy goes stale the moment the archive is rebuilt.
     """
     if arch is None:
         return {"available": False}
@@ -95,10 +111,15 @@ def _difficulty(arch: object) -> dict[str, object]:
         "strata": dict(sorted(strata.items())),
         "noise_band": noise_band(arch, seed=SEED),  # type: ignore[arg-type]
         "unanimous_cell_fraction": unanimous_fraction(arch),  # type: ignore[arg-type]
-        "panel_caveat": "Strata depend on which systems are in the panel. This one holds "
-                        "gpt-j at pass@1 0.0415, so `dead` (every system perfect) is "
-                        "unreachable and the dead count is 0 against 18/100 on the first "
-                        "subject. That gap is the panel rather than the benchmark.",
+        # Derived rather than typed. This sentence quotes the weakest system's pass@1, and
+        # a hand-written copy of it goes stale the moment the archive is rebuilt: the
+        # per-draw retry moved this figure the first time it ran.
+        "panel_caveat": (
+            f"Strata depend on which systems are in the panel. This one holds "
+            f"{_weakest(arch)[0]} at pass@1 {_weakest(arch)[1]:.4f}, so `dead` (every "
+            f"system perfect) is unreachable and the dead count is 0 against 18/100 on the "
+            f"first subject. That gap is the panel rather than the benchmark."
+        ),
         "systems_omitted": 17,
         "systems_omitted_note": "23 systems were released; 6 were graded. A subset is a "
                                 "bound and is reported beside what it withheld "
@@ -179,9 +200,21 @@ def report_markdown() -> int:
         w("")
         w(f"**{diff['panel_caveat']}**")
         w("")
-        w(f"The noise band is {diff['noise_band']:.4f} with "
-          f"{diff['unanimous_cell_fraction']:.1%} of cells unanimous, so the same bias "
-          f"`docs/honesty.md` records for the first subject applies here and is larger.")
+        if diff["noise_band"] is None:
+            w(f"**The noise band is refused on this archive, and that is the correct "
+              f"answer.** Three draws out of {diff['items'] * len(diff['systems']) * 200} "
+              f"are unmeasurable: their worker dies and no verdict exists, so three cells "
+              f"hold 199 draws where every other cell holds 200. `Archive.k` returns 0 for "
+              f"a ragged archive rather than a mean, and the band depends on k, so quietly "
+              f"averaging would put a made-up number under the quarantine rule. No "
+              f"quarantine runs on this subject in any case, since nothing here is "
+              f"measured. {diff['unanimous_cell_fraction']:.1%} of cells are unanimous, "
+              f"which is the bias `docs/honesty.md` records for the first subject and "
+              f"would apply here too.")
+        else:
+            w(f"The noise band is {diff['noise_band']:.4f} with "
+              f"{diff['unanimous_cell_fraction']:.1%} of cells unanimous, so the same bias "
+              f"`docs/honesty.md` records for the first subject applies here and is larger.")
         w("")
         w(f"{diff['systems_omitted_note']}")
         w("")
@@ -193,28 +226,14 @@ def report_markdown() -> int:
           "here is measured: no inference was bought for this subject. Two cautions come "
           "before the table, and both of them limit what it can be read to say.")
         w("")
-        w("**The depth-1 row is not a baseline for the rows below it.** `singleton_row` "
-          "averages over every item in the archive, while the composed rows are built only "
-          "from the items the adapter admits. Those populations differ here, and not "
-          "randomly: the admitted items are easier for every one of the six systems.")
-        w("")
-        arch = load_archive(ARCHIVE)
-        admitted = {i.id for i in ep.items()}
-        complete = [i for i in arch.items if all(arch.rate(s, i) is not None for s in arch.systems)]
-        w("| system | depth-1 row (all archive items) | restricted to the composable items "
-          "| difference |")
-        w("| --- | ---: | ---: | ---: |")
-        for s in arch.systems:
-            allr = mean([arch.rate(s, i) for i in complete])  # type: ignore[arg-type]
-            sub = mean([arch.rate(s, i) for i in complete if i in admitted])  # type: ignore[arg-type]
-            w(f"| {s} | {allr:.4f} | {sub:.4f} | {sub - allr:+.4f} |")
-        w("")
-        w(f"So the depth 1 to depth 2 fall is measured across a change of population as "
-          f"well as a change of depth. The same report says {len(admitted)} chains at "
-          f"depth 1 and {d['readouts'][0]['n']} items in the depth-1 row, which is the "
-          f"inconsistency in one line. Read the composed rows against the middle column, "
-          f"never the left one. This is a defect in the audit rather than in the subject, "
-          f"and it applies to the first subject's readout too.")
+        w("**There are two depth-1 rows, and only one of them is a baseline.** "
+          "`predicted/all` is the instrument as shipped, averaged over every item in the "
+          "archive. `predicted/composable` is restricted to the items the live-link graph "
+          "can reach, which is the population every composed row is drawn from. Reading "
+          "depth 2 against `predicted/all` charges a change of population to depth. Here "
+          "the composable items are the easier ones, so that reading overstates the fall; "
+          "on the first subject they are harder and it understates it, which is why the "
+          "row exists rather than a caveat.")
         w("")
         w("**The predicted rows cannot test what a measured run would test.** Under the "
           "product bound a composite's accuracy is a product of its components', so the "
@@ -226,14 +245,15 @@ def report_markdown() -> int:
           "check and for KT-1.")
         w("")
         systems = sorted({s for r in d["readouts"] for s in r["accuracy"]})
-        w("| depth | n | source | " + " | ".join(systems)
+        w("| depth | n | source/population | " + " | ".join(systems)
           + " | dead | floored | discriminating | gap | m\\* | gap > m\\* |")
         w("| ---: | ---: | --- | " + " | ".join("---:" for _ in systems)
           + " | ---: | ---: | ---: | ---: | ---: | --- |")
-        for r in d["readouts"]:
+        for r in sorted(d["readouts"], key=lambda x: (x["depth"], x.get("population", ""))):
             acc = " | ".join(f"{r['accuracy'].get(s, 0.0):.4f}" for s in systems)
             ms = f"{r['m_star']:.4f}" if r["m_star"] is not None else "n/a"
-            w(f"| {r['depth']} | {r['n']} | {r['source']} | {acc} | {r['dead']:.4f} | "
+            w(f"| {r['depth']} | {r['n']} | {r['source']}/{r.get('population','all')} | "
+              f"{acc} | {r['dead']:.4f} | "
               f"{r['floored']:.4f} | {r['discriminating']:.4f} | {r['top_two_gap']:.4f} | "
               f"{ms} | {'yes' if r['gap_exceeds_m_star'] else 'no'} |")
         w("")
@@ -355,7 +375,7 @@ def main() -> int:
         print("  archive loaded; running the depth-graded audit", flush=True)
         report = audit(items, oracle, archive=arch, depths=DEPTHS, seed=SEED)  # type: ignore[arg-type]
         payload["readouts"] = [
-            {"depth": r.depth, "n": r.n, "source": r.source,
+            {"depth": r.depth, "n": r.n, "source": r.source, "population": r.population,
              "accuracy": dict(sorted(r.accuracy.items())),
              "dead": r.dead, "floored": r.floored, "discriminating": r.discriminating,
              "top_two_gap": r.top_two_gap, "m_star": r.m_star,
