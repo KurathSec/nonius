@@ -331,3 +331,54 @@ def test_adapter_is_the_only_exempted_module() -> None:
     """The ruff exemption list and this test must agree on which module is the seam."""
     pyproject = (ROOT.parent / "pyproject.toml").read_text(encoding="utf-8")
     assert '"src/nonius/adapters/spaghetti.py" = ["TID253"]' in pyproject
+
+
+def test_the_adapter_imports_the_subject_without_writing_bytecode() -> None:
+    """Importing writes ``__pycache__`` next to the source, and the source is not ours.
+
+    This is not hypothetical. Two `.pyc` files were left in the subject's checkout on
+    2026-07-25 and 2026-07-27, before ``_read_only_import`` existed; the guard landed on
+    2026-07-28 and nothing has leaked since. What was missing is the part that keeps it
+    that way, because the guard is one refactor away from being dropped and the damage is
+    invisible to ``git status``: the subject's own .gitignore hides ``__pycache__``, so the
+    breach shows up in neither repository's status output.
+
+    Checked lexically. Every ``from src...``/``from bench...`` import in the adapter must
+    sit inside a ``with _read_only_import()`` block. An import moved out of that block by a
+    later edit fails here rather than silently writing into a tree nonius does not own.
+    """
+    tree = ast.parse(ADAPTER.read_text(encoding="utf-8"), filename=str(ADAPTER))
+
+    guarded: set[int] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.With):
+            continue
+        calls = [i.context_expr for i in node.items]
+        if not any(
+            isinstance(c, ast.Call) and getattr(c.func, "id", "") == "_read_only_import"
+            for c in calls
+        ):
+            continue
+        for inner in ast.walk(node):
+            if isinstance(inner, (ast.Import, ast.ImportFrom)):
+                guarded.add(id(inner))
+
+    subject_roots = {"src", "bench", "eval", "tests", "conftest", "config"}
+    unguarded = [
+        node.module
+        for node in ast.walk(tree)
+        if isinstance(node, ast.ImportFrom)
+        and node.module is not None
+        and node.module.split(".")[0] in subject_roots
+        and id(node) not in guarded
+    ]
+    assert not unguarded, (
+        f"these imports of the subject are outside `with _read_only_import()`: "
+        f"{sorted(unguarded)}. Each one writes __pycache__ into a checkout nonius is "
+        f"required to leave untouched."
+    )
+    # The guard is worthless if it does not actually set the flag, so the block is not
+    # taken on trust either: it must set `sys.dont_write_bytecode` and restore it.
+    src = ADAPTER.read_text(encoding="utf-8")
+    assert "sys.dont_write_bytecode = True" in src
+    assert "sys.dont_write_bytecode = previous" in src
