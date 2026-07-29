@@ -253,3 +253,53 @@ def test_the_archive_loader_refuses_what_it_cannot_read(tmp_path: Path) -> None:
     scored.write_text('{"system":"A","item":"i","draw":0,"correct":0.5}\n', encoding="utf-8")
     with pytest.raises(ManifestError, match="verdict is a verdict"):
         load(scored)
+
+
+def test_the_archive_reads_its_verdicts_once_however_often_it_is_asked() -> None:
+    """Accessors must not re-scan. Checked by counting traversals, never by a clock.
+
+    This is a regression gate on a defect that made a real audit unfinishable rather than
+    slow. Every accessor used to scan the full verdict tuple: `rate()` once per call, and
+    `k()` once per (system, item) pair. `product_prediction` asks for one rate per system
+    per component, so a depth-5 audit over ten thousand chains issued 300000 scans of a
+    195400-row archive -- 5.9e10 comparisons, five hours in, no output. On the calibration
+    corpus and the first subject's archive the same code is instant, which is exactly why
+    a timing threshold would not have caught it and a traversal count does.
+    """
+    from nonius.archive import Archive, Verdict
+
+    class CountingTuple(tuple):  # type: ignore[type-arg]
+        traversals = 0
+
+        def __iter__(self):  # type: ignore[no-untyped-def]
+            type(self).traversals += 1
+            return super().__iter__()
+
+    rows = CountingTuple(
+        Verdict(s, f"i{n}", d, (n + d) % 2)
+        for s in ("A", "B", "C")
+        for n in range(8)
+        for d in range(4)
+    )
+    arch = Archive(rows)
+
+    assert arch.k() == 4
+    for _ in range(50):
+        for system in arch.systems:
+            for item in arch.items:
+                assert arch.rate(system, item) is not None
+    arch.rates()
+
+    assert CountingTuple.traversals == 1, (
+        f"the archive traversed its verdicts {CountingTuple.traversals} times; one index "
+        f"pass must serve every accessor"
+    )
+
+    # The memo is derived, so it must not leak into identity: an indexed archive and a
+    # fresh one over the same verdicts are the same archive.
+    plain = Archive(tuple(rows))
+    indexed = Archive(tuple(rows))
+    indexed.k()
+    assert plain == indexed
+    assert hash(plain) == hash(indexed)
+    assert "_cells_memo" not in repr(indexed)

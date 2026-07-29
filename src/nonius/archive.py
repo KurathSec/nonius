@@ -18,7 +18,7 @@ import csv
 import gzip
 import json
 from collections.abc import Iterable, Iterator, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from nonius.errors import ManifestError
@@ -40,14 +40,42 @@ class Archive:
     """Per-item, per-draw verdicts for one or more systems."""
 
     verdicts: tuple[Verdict, ...]
+    #: Memo for :meth:`_cells`, excluded from equality, hashing and repr because it is
+    #: derived: two archives with the same verdicts are the same archive whether or not
+    #: either has been indexed.
+    _cells_memo: dict[tuple[str, str], list[int]] | None = field(
+        default=None, init=False, compare=False, repr=False
+    )
+
+    def _cells(self) -> dict[tuple[str, str], list[int]]:
+        """``(system, item) -> the draws``, built once and reused.
+
+        Every accessor below used to scan ``verdicts`` in full. That is invisible on a
+        small archive and quadratic on a real one: ``product_prediction`` asks for one rate
+        per system per component, so a depth-5 audit over ten thousand chains made 300000
+        scans of a 195400-row archive, which is 5.9e10 comparisons and does not finish.
+        ``k()`` was worse still, scanning once per (system, item) pair.
+
+        The memo is written through ``object.__setattr__`` because the dataclass is frozen.
+        That is sound here and would not be in general: the value is a pure function of
+        ``verdicts``, which cannot change, so no caller can observe a difference beyond the
+        time it took. Nothing derived from it depends on insertion order.
+        """
+        cached = self._cells_memo
+        if cached is None:
+            cached = {}
+            for v in self.verdicts:
+                cached.setdefault((v.system, v.item), []).append(v.correct)
+            object.__setattr__(self, "_cells_memo", cached)
+        return cached
 
     @property
     def systems(self) -> tuple[str, ...]:
-        return tuple(sorted({v.system for v in self.verdicts}))
+        return tuple(sorted({s for s, _ in self._cells()}))
 
     @property
     def items(self) -> tuple[str, ...]:
-        return tuple(sorted({v.item for v in self.verdicts}))
+        return tuple(sorted({i for _, i in self._cells()}))
 
     def k(self) -> int:
         """The replicate count, or 0 when systems disagree about it.
@@ -55,24 +83,23 @@ class Archive:
         A ragged archive is reported rather than averaged over: the noise band depends on
         k, and quietly using a mean k would put a made-up number under the quarantine rule.
         """
+        cells = self._cells()
         counts = {
-            len([v for v in self.verdicts if v.system == s and v.item == i])
-            for s in self.systems
-            for i in self.items
+            len(cells.get((s, i), ())) for s in self.systems for i in self.items
         }
         counts.discard(0)
         return counts.pop() if len(counts) == 1 else 0
 
     def rate(self, system: str, item: str) -> float | None:
         """Pass rate of ``system`` on ``item``; ``None`` when the pair is absent."""
-        draws = [v.correct for v in self.verdicts if v.system == system and v.item == item]
+        draws = self._cells().get((system, item))
         return mean([float(x) for x in draws]) if draws else None
 
     def rates(self) -> dict[tuple[str, str], float]:
-        acc: dict[tuple[str, str], list[float]] = {}
-        for v in self.verdicts:
-            acc.setdefault((v.system, v.item), []).append(float(v.correct))
-        return {key: mean(vals) for key, vals in sorted(acc.items())}
+        return {
+            key: mean([float(x) for x in vals])
+            for key, vals in sorted(self._cells().items())
+        }
 
     def per_item(self, item: str) -> dict[str, float]:
         return {
