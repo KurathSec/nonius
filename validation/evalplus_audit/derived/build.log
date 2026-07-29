@@ -1,18 +1,45 @@
-Traceback (most recent call last):
-  File "/home/kureist/nonius/validation/evalplus_audit/build_archive.py", line 199, in <module>
-    raise SystemExit(main())
-                     ~~~~^^
-  File "/home/kureist/nonius/validation/evalplus_audit/build_archive.py", line 162, in main
-    req = json.dumps({"entry_point": str(rows[task]["entry_point"]), "inputs": ins,
-                      "gold": gold, "seconds": args.seconds, "draws": draws,
-                      "result_path": rp})
-  File "/usr/lib64/python3.14/json/__init__.py", line 235, in dumps
-    return _default_encoder.encode(obj)
-           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^
-  File "/usr/lib64/python3.14/json/encoder.py", line 202, in encode
-    chunks = self.iterencode(o, _one_shot=True)
-  File "/usr/lib64/python3.14/json/encoder.py", line 263, in iterencode
-    return _iterencode(o, 0)
-ValueError: Exceeds the limit (4300 digits) for integer string conversion; use sys.set_int_max_str_digits() to increase the limit
-when serializing list item 45
-when serializing dict item 'gold'
+resuming: 70 (system, task) pairs already graded
+914 (system, task) pairs to grade on 14 workers
+  25 pairs graded
+  50 pairs graded
+  75 pairs graded, 1 INCOMPLETE
+  100 pairs graded, 1 INCOMPLETE
+  125 pairs graded, 1 INCOMPLETE
+  150 pairs graded, 1 INCOMPLETE
+  175 pairs graded, 1 INCOMPLETE
+  200 pairs graded, 1 INCOMPLETE
+  225 pairs graded, 1 INCOMPLETE
+  250 pairs graded, 1 INCOMPLETE
+  275 pairs graded, 2 INCOMPLETE
+  300 pairs graded, 2 INCOMPLETE
+  325 pairs graded, 2 INCOMPLETE
+  350 pairs graded, 2 INCOMPLETE
+  375 pairs graded, 3 INCOMPLETE
+  400 pairs graded, 3 INCOMPLETE
+  425 pairs graded, 3 INCOMPLETE
+  450 pairs graded, 3 INCOMPLETE
+  475 pairs graded, 4 INCOMPLETE
+  500 pairs graded, 4 INCOMPLETE
+  525 pairs graded, 5 INCOMPLETE
+  550 pairs graded, 5 INCOMPLETE
+  575 pairs graded, 5 INCOMPLETE
+  600 pairs graded, 5 INCOMPLETE
+  625 pairs graded, 6 INCOMPLETE
+  650 pairs graded, 6 INCOMPLETE
+  675 pairs graded, 6 INCOMPLETE
+  700 pairs graded, 6 INCOMPLETE
+  725 pairs graded, 6 INCOMPLETE
+  750 pairs graded, 6 INCOMPLETE
+  775 pairs graded, 6 INCOMPLETE
+  800 pairs graded, 6 INCOMPLETE
+  825 pairs graded, 6 INCOMPLETE
+  850 pairs graded, 6 INCOMPLETE
+  875 pairs graded, 6 INCOMPLETE
+  900 pairs graded, 6 INCOMPLETE
+chatgpt: graded 164
+code-llama-34b: graded 164 (1 INCOMPLETE)
+code-llama-7b: graded 164 (1 INCOMPLETE)
+codegen-2b: graded 164
+gpt-j: graded 94 (2 INCOMPLETE)
+incoder-6b: graded 164 (2 INCOMPLETE)
+total 914 graded, 6 incomplete
