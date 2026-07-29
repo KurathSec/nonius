@@ -175,9 +175,16 @@ def test_a_dead_run_is_distinguishable_from_a_null_one() -> None:
 
 
 def test_the_shipped_preregistration_is_not_authorised() -> None:
-    """A committed pre-registration that says 'authorised' would be a loaded gun."""
+    """A committed pre-registration that says 'authorised' would be a loaded gun.
+
+    The invariant is that word and no other. An earlier version pinned the literal
+    "designed_not_executed", which made recording that the run HAD happened fail a test
+    whose actual concern is arming the file -- so the record would have had to stay false
+    to keep the suite green.
+    """
     prereg = load_preregistration(PREREG)
-    assert prereg.status == "designed_not_executed"
+    assert prereg.status != "authorised"
+    assert prereg.status in {"designed_not_executed", "executed"}
     assert isinstance(NotAuthorised("x"), NoniusError)
 
 

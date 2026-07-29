@@ -4,14 +4,23 @@
 # quarantine rule can only ever confirm itself unless its ceiling is fixed in advance
 # (BOUND-ALL-0004), and a threshold chosen after seeing the data is not a threshold.
 #
-# STATUS: NOT EXECUTED. Nothing here has been run. The `nonius run` verb only prints a
-# plan and has no code path that can spend at all; spending means calling
-# nonius.run.execute() from your own code, with your own model client, authorised=True,
-# and a pre-registration whose status you have deliberately set to "authorised".
+# STATUS: EXECUTED. 14268 completions were bought against this design, and the outcome is
+# in validation/run_01/ -- the graded archive, the harness that re-derives every threshold
+# from it, and the result. Nothing in the thresholds below was touched after the run; that
+# is what the file is for, and the git history is the evidence.
+#
+# `nonius run` still only prints a plan and has no code path that can spend. Spending means
+# calling nonius.run.execute() from your own code, with your own model client,
+# authorised=True, and a pre-registration whose status you have deliberately set to
+# "authorised". This file has never said "authorised" and does not now: the run used a
+# local copy differing by that one line, whose sha256 is recorded in
+# validation/run_01/inputs.json.
 
 [run]
 id = "run-01"
-status = "designed_not_executed"
+# "executed", not "authorised": nonius.run.execute() refuses anything that is not exactly
+# "authorised", so this records what happened without arming the file.
+status = "executed"
 # The spec this design is fixed under, and the one the run must execute under. Moved from
 # 1.1.0 when the gold-agreement ruling was superseded by EMIT-ALL-0006. Nothing in this
 # file changed with it: the supersession corrects a ruling's stated reason and moves no
