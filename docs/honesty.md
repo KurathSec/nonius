@@ -241,8 +241,10 @@ rather than only in a commit.
 The grading was sound: an independent regrade of all 14268 completions with the subject's
 own matcher agreed on every one. The interpretation was not. "Accuracy tracked the
 product" rested on a statistic that passes by construction wherever the measurement is
-zero, and 1848 of 2000 depth-2 cells measured exactly zero; of the seven genuinely
-informative cells, the claim does not hold as stated. "Few shortcuts" quoted a 1.9%
+zero, and 1848 of 2000 depth-2 cells measured exactly zero; only seven cells were
+genuinely informative, and while none of the seven sat closer to the max, a claim about
+the whole population cannot rest on seven cells, so it was withdrawn as unsupported
+rather than as contradicted. "Few shortcuts" quoted a 1.9%
 quarantine rate against a 20% ceiling the data could not reach, since a cell measuring zero
 can never exceed a bound; the reachable maximum was 7.6% and the rate among cells able to
 exceed one was 25%.
