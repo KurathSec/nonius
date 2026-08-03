@@ -17,6 +17,64 @@ kind.
 
 Nothing yet.
 
+## [0.2.0] - 2026-08-03
+
+- package 0.2.0 · spec 2.0.0
+
+No recorded value changed; the drift snapshot is untouched. A second reference subject,
+and the defects it forced out of the core.
+
+### Added
+
+- **EvalPlus adapter** (`nonius.adapters.evalplus`) and a sandboxed out-of-process worker:
+  HumanEval+ as a second reference subject, one this project's author did not build. The
+  adapter admits 109 of 164 items (plain positional signatures, scalar results; two named
+  exclusions) and its realizer reaches the gold by merged-source execution, so the
+  gold-agreement check is not vacuous for it.
+- **The second reference audit** (`validation/evalplus_audit/`): the funnel it measured
+  (3764 type-compatible → 2564 decidable → 2279 live → 1835 emittable) names a stage the
+  first subject could not expose — a live link whose piped value the downstream *contract*
+  refuses. Liveness is necessary and not sufficient for emission, exactly as type
+  compatibility is necessary and not sufficient for liveness.
+- **A six-system verdict archive for the second subject** (196797 verdicts regraded from
+  EvalPlus's 2023 sample release; no inference bought). `build_archive.py --emit` rebuilds
+  the committed archive byte-for-byte from committed grades; `--check` tests consistency
+  with EvalPlus's published pass@1 (ordering reproduced; every value below its greedy
+  figure) and is documented as consistency, not verification.
+- **Population-labelled readouts**: `DepthReadout.population` and
+  `singleton_row(..., restrict_to=...)`. The depth-1 baseline used to average over every
+  archive item while composed rows drew from the live-link subset; both rows are now
+  emitted and labelled (`predicted/all`, `predicted/composable`). The correction reverses
+  sign between the two reference subjects, which is why it is a row and not a caveat.
+- **`search_paths`**: path enumeration with an explicit work budget and an exhaustiveness
+  flag. `cap` bounds results, not work; proving "nothing at this depth" exhausts every
+  shorter node-distinct path, which on the second subject's graph does not terminate. An
+  abandoned search now reports `composable` (capped) rather than publishing a budget as a
+  property of the benchmark.
+- **Layering gate for bytecode**: the subject checkout must stay free of our `__pycache__`;
+  every adapter import of the subject must sit inside the no-bytecode guard. Two `.pyc`
+  files had leaked before the guard existed; the gate keeps the repair permanent.
+
+### Fixed
+
+- **`Archive` accessors indexed**: every accessor rescanned the full verdict tuple, which
+  is invisible on small fixtures and quadratic on a real archive — the second subject's
+  depth-graded audit ran five hours at full CPU without finishing. One pass now builds
+  `(system, item) → draws`; values verified identical on all 984 cells. Gated by a
+  traversal-count test, not a clock, because a timing threshold is exactly what missed it.
+- `m_star` no longer crashes rendering when no interval exists; the cell prints `n/a`.
+- Batch failures in the archive build are regraded one worker per draw, so a single
+  misbehaving completion costs one verdict rather than 200; incomplete batches are named
+  in `incomplete.json` and retried on resume.
+
+### Docs
+
+- `docs/honesty.md` carries the second subject: the emission stage, the panel-dependence
+  of difficulty strata (zero dead items under a panel containing GPT-J), the vacuity of an
+  all-predicted readout, and the depth-1 population defect with its reversing sign.
+- The retraction wording now matches the artifact: the seven informative cells left the
+  headline unsupported rather than contradicted.
+
 ## [0.1.0] - 2026-07-28
 
 - package 0.1.0 · spec 2.0.0
